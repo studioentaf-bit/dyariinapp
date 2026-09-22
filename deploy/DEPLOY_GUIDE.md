@@ -63,8 +63,7 @@ sudo mkdir -p /var/www/dyariapp.my.id
 sudo chown -R $USER:$USER /var/www/dyariapp.my.id
 
 # Clone repo GitHub Anda ke folder tersebut
-# (Ganti URL_GITHUB_ANDA dengan link git repo Anda)
-git clone URL_GITHUB_ANDA /var/www/dyariapp.my.id
+git clone https://github.com/studioentaf-bit/dyariinapp.git /var/www/dyariapp.my.id
 
 # Masuk ke folder aplikasi Dyari
 cd /var/www/dyariapp.my.id
