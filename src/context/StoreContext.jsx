@@ -245,24 +245,7 @@ export const StoreProvider = ({ children }) => {
           if (valid.length > 0) return valid;
         }
       }
-      return [
-        {
-          id: 'cyberton-bundle-edukasi-anak',
-          name: 'Mega Bundle Video Edukasi Anak',
-          category: 'Aset Premium',
-          price: 35000,
-          image: 'https://lh3.googleusercontent.com/d/1PTgyE8XXopOnC9UV1HkGpI4cWRnmreIL',
-          quantity: 1
-        },
-        {
-          id: 'cyberton-ribuan-bank-konten',
-          name: 'Ribuan Bank Konten Viral Medsos',
-          category: 'Template Produktifitas',
-          price: 39000,
-          image: 'https://lh3.googleusercontent.com/d/1r4V8DwPP5wx4oTSv7BHwdjBOHvsB94qY',
-          quantity: 1
-        }
-      ];
+      return [];
     } catch {
       return [];
     }
@@ -272,25 +255,59 @@ export const StoreProvider = ({ children }) => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
 
-  // User State
-  const [user, setUser] = useState({
-    name: 'Alya Salsabila',
-    email: 'alya@dyari.user',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    stats: {
-      products: 4,
-      orders: 4,
-      downloads: 12
-    },
-    notifications: {
-      email: true,
-      productUpdates: true
+  // User State: Tamu (Guest) secara default, bukan data dummy Alya
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dyari_current_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.email && !parsed.email.toLowerCase().includes('alya')) {
+          return parsed;
+        }
+      }
+      return null;
+    } catch {
+      return null;
     }
   });
 
+  useEffect(() => {
+    try {
+      if (user && user.email && !user.email.toLowerCase().includes('alya')) {
+        localStorage.setItem('dyari_current_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('dyari_current_user');
+        localStorage.removeItem('dyari_member_user');
+      }
+    } catch (_) {}
+  }, [user]);
+
+  // Bersihkan cache dummy data lama jika tersisa di browser
+  useEffect(() => {
+    try {
+      const keysToClean = ['dyari_cart', 'dyari_current_user', 'dyari_member_user', 'dyari_orders', 'dyari_purchased_products', 'dyari_licenses', 'dyari_customers'];
+      keysToClean.forEach(key => {
+        const val = localStorage.getItem(key);
+        if (val && (val.includes('alya') || val.includes('Alya') || val.includes('Dimas') || val.includes('Nadya'))) {
+          localStorage.removeItem(key);
+        }
+      });
+      const savedCart = localStorage.getItem('dyari_cart');
+      if (savedCart && (savedCart.includes('cyberton-bundle-edukasi-anak') && savedCart.includes('cyberton-ribuan-bank-konten'))) {
+        try {
+          const parsed = JSON.parse(savedCart);
+          if (Array.isArray(parsed) && parsed.length === 2) {
+            localStorage.removeItem('dyari_cart');
+            setCart([]);
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }, []);
+
   // User Dashboard State
   const [dashboardTab, setDashboardTab] = useState('ringkasan');
-  const [activeProductAccess, setActiveProductAccess] = useState('cyberton-bundle-edukasi-anak');
+  const [activeProductAccess, setActiveProductAccess] = useState('');
 
   // Categories Management State (sync to localStorage)
   const [categories, setCategories] = useState(() => {
@@ -321,65 +338,21 @@ export const StoreProvider = ({ children }) => {
   const [orders, setOrders] = useState(initialOrders);
   const [lastOrder, setLastOrder] = useState(null);
 
-  // Purchased products list (100% Produk Cyberton)
-  const [purchasedProductIds, setPurchasedProductIds] = useState([
-    'cyberton-bundle-edukasi-anak',
-    'cyberton-ai-script-vo',
-    'cyberton-700-library',
-    'cyberton-ribuan-bank-konten'
-  ]);
+  // Purchased products list (Kosong secara default untuk pengguna baru)
+  const [purchasedProductIds, setPurchasedProductIds] = useState([]);
 
-  // Customers Management
-  const [customers, setCustomers] = useState([
-    { id: 'CUST-01', name: 'Alya Salsabila', email: 'alya@gmail.com', phone: '081234567890', totalSpent: 165000, orderCount: 3, joinedDate: '12 Jan 2026', status: 'Aktif' },
-    { id: 'CUST-02', name: 'Budi Santoso', email: 'budi.santoso@yahoo.com', phone: '082198765432', totalSpent: 128000, orderCount: 2, joinedDate: '05 Feb 2026', status: 'Aktif' },
-    { id: 'CUST-03', name: 'Siti Nurhaliza', email: 'siti.nur@gmail.com', phone: '085712349876', totalSpent: 89000, orderCount: 1, joinedDate: '20 Feb 2026', status: 'Aktif' },
-    { id: 'CUST-04', name: 'Andi Pratama', email: 'andi.p@outlook.com', phone: '081399887766', totalSpent: 215000, orderCount: 4, joinedDate: '01 Mar 2026', status: 'Aktif' },
-    { id: 'CUST-05', name: 'Rina Marlina', email: 'rina.design@gmail.com', phone: '087811223344', totalSpent: 70000, orderCount: 2, joinedDate: '15 Mar 2026', status: 'Aktif' }
-  ]);
+  // Customers Management (Kosong secara default, diisi riwayat transaksi nyata)
+  const [customers, setCustomers] = useState([]);
 
   // Coupons Management
   const [coupons, setCoupons] = useState([
-    { id: 'CP-1', code: 'DYARIHEMAT', discount: 15, type: 'percent', minSpend: 30000, usageCount: 48, status: 'Aktif' },
-    { id: 'CP-2', code: 'BUNDEL50', discount: 50, type: 'percent', minSpend: 50000, usageCount: 124, status: 'Aktif' },
-    { id: 'CP-3', code: 'PROMO10K', discount: 10000, type: 'fixed', minSpend: 35000, usageCount: 89, status: 'Aktif' }
+    { id: 'CP-1', code: 'DYARIHEMAT', discount: 15, type: 'percent', minSpend: 30000, usageCount: 0, status: 'Aktif' },
+    { id: 'CP-2', code: 'BUNDEL50', discount: 50, type: 'percent', minSpend: 50000, usageCount: 0, status: 'Aktif' },
+    { id: 'CP-3', code: 'PROMO10K', discount: 10000, type: 'fixed', minSpend: 35000, usageCount: 0, status: 'Aktif' }
   ]);
 
-  // Licenses Management State (Terintegrasi dengan Member & Produk Aktif)
-  const [licenses, setLicenses] = useState([
-    {
-      id: 'LIC-01',
-      code: 'DYARI-AI-9921-PRO',
-      productId: 'cyberton-ai-script-vo',
-      productName: 'AI Script & VO Generator',
-      customerEmail: 'alya@gmail.com',
-      customerName: 'Alya Salsabila',
-      type: 'COMMERCIAL',
-      status: 'Aktif',
-      startDate: '2026-08-28T11:30:00.000Z',
-      createdAt: '28 Agu 2026, 11:30',
-      expiryDate: '2027-08-28T11:30:00.000Z',
-      expiresAt: '28 Agu 2027, 11:30',
-      isLifetime: false,
-      durationLabel: '1 Tahun (365 Hari)'
-    },
-    {
-      id: 'LIC-02',
-      code: 'DYARI-LIB-7712-VIP',
-      productId: 'cyberton-700-library',
-      productName: '700+ Produk Digital Library Complete',
-      customerEmail: 'budi.santoso@yahoo.com',
-      customerName: 'Budi Santoso',
-      type: 'COMMERCIAL',
-      status: 'Aktif',
-      startDate: '2026-08-28T09:15:00.000Z',
-      createdAt: '28 Agu 2026, 09:15',
-      expiryDate: null,
-      expiresAt: 'Selamanya (Lifetime)',
-      isLifetime: true,
-      durationLabel: 'Selamanya (Lifetime)'
-    }
-  ]);
+  // Licenses Management State (Kosong secara default)
+  const [licenses, setLicenses] = useState([]);
 
   // Reviews & Testimonials
   const [reviews, setReviews] = useState(initialTestimonials);
@@ -500,9 +473,9 @@ export const StoreProvider = ({ children }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const completeOrder = ({ customerName, email, paymentMethod }) => {
-    const buyerName = customerName || user.name;
-    const buyerEmail = email || user.email;
+  const completeOrder = ({ customerName, email, paymentMethod, phone }) => {
+    const buyerName = customerName || user?.name || 'Pelanggan Dyari';
+    const buyerEmail = email || user?.email || '';
     const newOrderId = `#DY-${Math.floor(10000 + Math.random() * 90000)}`;
     const orderDate = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -602,7 +575,7 @@ export const StoreProvider = ({ children }) => {
       customer: buyerName,
       customerName: buyerName,
       email: buyerEmail,
-      phone: '081234567890',
+      phone: phone || user?.phone || '',
       status: 'Lunas'
     };
 
@@ -614,24 +587,32 @@ export const StoreProvider = ({ children }) => {
     const newPurchasedIds = cart.map(item => item.id);
     setPurchasedProductIds(prev => Array.from(new Set([...prev, ...newPurchasedIds])));
 
-    // Update user stats
-    setUser(prev => ({
-      ...prev,
-      stats: {
-        ...prev.stats,
-        products: prev.stats.products + cart.length,
-        orders: prev.stats.orders + 1,
-        downloads: prev.stats.downloads + cart.length * 2
-      }
-    }));
+    // Update user stats or create member session
+    if (buyerEmail) {
+      setUser(prev => ({
+        name: buyerName,
+        email: buyerEmail,
+        phone: phone || prev?.phone || '',
+        avatar: prev?.avatar || '',
+        stats: {
+          products: (prev?.stats?.products || 0) + cart.length,
+          orders: (prev?.stats?.orders || 0) + 1,
+          downloads: (prev?.stats?.downloads || 0) + cart.length * 2
+        },
+        notifications: {
+          email: true,
+          productUpdates: true
+        }
+      }));
+    }
 
     clearCart();
     navigateTo('order-success');
   };
 
   const createPendingOrder = ({ customerName, email, paymentMethod, phone }) => {
-    const buyerName = customerName || user.name;
-    const buyerEmail = email || user.email;
+    const buyerName = customerName || user?.name || 'Pelanggan Dyari';
+    const buyerEmail = email || user?.email || '';
     const newOrderId = `#DY-${Math.floor(10000 + Math.random() * 90000)}`;
     const orderDate = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -658,7 +639,7 @@ export const StoreProvider = ({ children }) => {
       customer: buyerName,
       customerName: buyerName,
       email: buyerEmail,
-      phone: phone || '081234567890',
+      phone: phone || user?.phone || '',
       status: 'Menunggu Pembayaran'
     };
 

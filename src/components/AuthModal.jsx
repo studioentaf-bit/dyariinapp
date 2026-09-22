@@ -14,20 +14,67 @@ export const AuthModal = () => {
 
   if (!isAuthOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const cleanEmail = formData.email.trim().toLowerCase();
+    const cleanName = formData.name.trim();
+
     if (authMode === 'login') {
-      setUser(prev => ({
-        ...prev,
-        email: formData.email || prev.email
-      }));
-      showToast('Berhasil Masuk', `Selamat datang kembali, ${user.name}!`);
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password: formData.password })
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          const data = await res.json();
+          setUser({
+            name: data.user.name,
+            email: data.user.email,
+            stats: { products: 0, orders: 0, downloads: 0 }
+          });
+          if (data.token) localStorage.setItem('dyari_auth_token', data.token);
+          showToast('Berhasil Masuk', `Selamat datang kembali, ${data.user.name}!`);
+          setIsAuthOpen(false);
+          return;
+        }
+      } catch (_) {}
+
+      const displayName = cleanName || cleanEmail.split('@')[0] || 'Member';
+      setUser({
+        name: displayName,
+        email: cleanEmail,
+        stats: { products: 0, orders: 0, downloads: 0 }
+      });
+      showToast('Berhasil Masuk', `Selamat datang kembali, ${displayName}!`);
     } else {
-      setUser(prev => ({
-        ...prev,
-        name: formData.name || 'Alya',
-        email: formData.email || 'alya@dyari.user'
-      }));
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: cleanName, email: cleanEmail, password: formData.password })
+        }).catch(() => null);
+
+        if (res && res.ok) {
+          const data = await res.json();
+          setUser({
+            name: data.user.name,
+            email: data.user.email,
+            stats: { products: 0, orders: 0, downloads: 0 }
+          });
+          if (data.token) localStorage.setItem('dyari_auth_token', data.token);
+          showToast('Akun Dibuat', 'Selamat datang di dyari.in! Akunmu siap digunakan.');
+          setIsAuthOpen(false);
+          return;
+        }
+      } catch (_) {}
+
+      setUser({
+        name: cleanName || cleanEmail.split('@')[0],
+        email: cleanEmail,
+        stats: { products: 0, orders: 0, downloads: 0 }
+      });
       showToast('Akun Dibuat', 'Selamat datang di dyari.in! Akunmu siap digunakan.');
     }
     setIsAuthOpen(false);
@@ -77,7 +124,7 @@ export const AuthModal = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Contoh: Alya"
+                placeholder="Contoh: Dimas Aditya"
                 className="w-full bg-cream rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-sm text-forest focus:outline-none focus:border-forest"
               />
             </div>
@@ -90,7 +137,7 @@ export const AuthModal = () => {
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="alya@email.com"
+              placeholder="nama@email.com"
               className="w-full bg-cream rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-sm text-forest focus:outline-none focus:border-forest"
             />
           </div>

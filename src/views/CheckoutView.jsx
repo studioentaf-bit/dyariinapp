@@ -16,11 +16,11 @@ import {
 import { ProductMockup } from '../components/ProductMockup';
 
 export const CheckoutView = () => {
-  const { cart, cartTotal, removeFromCart, completeOrder, createPendingOrder, navigateTo, showToast } = useStore();
+  const { cart, cartTotal, removeFromCart, completeOrder, createPendingOrder, navigateTo, showToast, user } = useStore();
 
-  const [email, setEmail] = useState('alya@dyari.user');
-  const [name, setName] = useState('Alya Salsabila');
-  const [phone, setPhone] = useState('081234567890');
+  const [email, setEmail] = useState(user?.email || '');
+  const [name, setName] = useState(user?.name || '');
+  const [phone, setPhone] = useState(user?.phone || '');
   const [paymentMethod, setPaymentMethod] = useState('QRIS');
   const [orderNote, setOrderNote] = useState('');
   const [showNoteInput, setShowNoteInput] = useState(false);
@@ -46,6 +46,7 @@ export const CheckoutView = () => {
       completeOrder({
         customerName: name,
         email,
+        phone,
         paymentMethod
       });
     }, 800);
@@ -172,7 +173,7 @@ export const CheckoutView = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Alya Salsabila"
+                  placeholder="Nama lengkap Anda"
                   className="w-full bg-[#FAFBF9] rounded-xl border border-[#DDE3DC] px-3.5 py-2 text-xs text-[#1C352D] focus:outline-none focus:border-[#1C352D]"
                 />
               </div>

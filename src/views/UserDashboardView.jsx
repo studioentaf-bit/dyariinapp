@@ -13,7 +13,8 @@ import {
   Clock, 
   ShieldCheck, 
   X,
-  Copy 
+  Copy,
+  LogOut 
 } from 'lucide-react';
 
 export const UserDashboardView = () => {
@@ -31,7 +32,8 @@ export const UserDashboardView = () => {
     activeProductAccess, 
     setActiveProductAccess, 
     navigateTo, 
-    showToast 
+    showToast,
+    setIsAuthOpen
   } = useStore();
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -57,6 +59,47 @@ export const UserDashboardView = () => {
     setActiveProductAccess(productId);
     setDashboardTab('akses-produk');
   };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('dyari_current_user');
+    localStorage.removeItem('dyari_member_user');
+    localStorage.removeItem('dyari_auth_token');
+    showToast('Berhasil Keluar', 'Anda telah keluar dari akun member.');
+    navigateTo('home');
+  };
+
+  if (!user) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-16 h-16 rounded-3xl bg-forest/5 border border-forest/15 flex items-center justify-center mx-auto text-forest shadow-xs">
+          <ShieldCheck size={36} className="text-forest" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-heading font-extrabold text-forest">
+            Area Akses Member
+          </h2>
+          <p className="text-xs sm:text-sm text-warmgray max-w-md mx-auto">
+            Silakan masuk atau daftarkan akun Anda untuk mengakses produk digital yang telah Anda miliki, lisensi aktif, serta riwayat faktur pesanan.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+          <button
+            onClick={() => setIsAuthOpen(true)}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-forest text-white text-xs font-heading font-bold shadow-md hover:bg-[#152a24] transition-all cursor-pointer"
+          >
+            Masuk ke Akun Saya
+          </button>
+          <button
+            onClick={() => navigateTo('home')}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white border border-[#DCE4DD] text-forest text-xs font-heading font-bold hover:bg-[#F2F6F3] transition-all cursor-pointer"
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = [
     { id: 'ringkasan', label: 'Ringkasan', icon: Home },
@@ -126,16 +169,32 @@ export const UserDashboardView = () => {
           </div>
 
           {/* User Profile Card in Sidebar */}
-          <div className="pt-2 border-t border-dyariborder flex items-center gap-3 px-2">
-            <img 
-              src={user.avatar} 
-              alt={user.name} 
-              className="w-10 h-10 rounded-full object-cover border border-dyariborder"
-            />
-            <div className="overflow-hidden">
-              <p className="font-heading font-bold text-forest text-sm truncate">{user.name}</p>
-              <p className="text-xs text-warmgray truncate">{user.email}</p>
+          <div className="pt-3 border-t border-dyariborder space-y-3 px-1">
+            <div className="flex items-center gap-3">
+              {user.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name} 
+                  className="w-9 h-9 rounded-full object-cover border border-dyariborder shrink-0"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-forest text-white text-xs font-bold flex items-center justify-center shrink-0">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
+                </div>
+              )}
+              <div className="overflow-hidden">
+                <p className="font-heading font-bold text-forest text-xs truncate">{user.name}</p>
+                <p className="text-[11px] text-warmgray truncate">{user.email}</p>
+              </div>
             </div>
+
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+            >
+              <LogOut size={13} />
+              <span>Keluar dari Akun</span>
+            </button>
           </div>
         </aside>
 

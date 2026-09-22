@@ -9,6 +9,7 @@ export const Navbar = () => {
     cart, 
     setIsCartOpen, 
     user, 
+    setIsAuthOpen,
     searchQuery, 
     setSearchQuery,
     setActiveCategory,
@@ -136,18 +137,35 @@ export const Navbar = () => {
               )}
             </button>
 
-            {/* User Profile Avatar */}
-            <button 
-              onClick={() => navigateTo('dashboard')}
-              className="p-1 rounded-full hover:ring-2 hover:ring-[#1C352D]/20 transition-all"
-              title="Dashboard Akun Pengguna"
-            >
-              <img 
-                src={user.avatar} 
-                alt={user.name} 
-                className="w-7 h-7 rounded-full object-cover border border-[#E5EAE4]"
-              />
-            </button>
+            {/* User Profile or Login Trigger */}
+            {user ? (
+              <button 
+                onClick={() => navigateTo('dashboard')}
+                className="p-1 rounded-full hover:ring-2 hover:ring-[#1C352D]/20 transition-all flex items-center justify-center cursor-pointer"
+                title={`Akun Member: ${user.name}`}
+              >
+                {user.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name} 
+                    className="w-7 h-7 rounded-full object-cover border border-[#E5EAE4]"
+                  />
+                ) : (
+                  <span className="w-7 h-7 rounded-full bg-[#1C352D] text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsAuthOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#DCE4DD] hover:border-forest text-xs font-bold text-forest transition-colors shadow-2xs hover:bg-[#F2F6F3] cursor-pointer"
+                title="Masuk atau Daftar Akun Member"
+              >
+                <User size={14} className="text-forest" />
+                <span className="hidden sm:inline">Masuk</span>
+              </button>
+            )}
           </div>
 
         </div>
