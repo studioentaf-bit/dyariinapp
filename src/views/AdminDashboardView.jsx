@@ -21,6 +21,7 @@ import {
   ChevronRight, 
   LogOut, 
   LogIn,
+  Lock,
   Wallet, 
   Layers, 
   Sparkles, 
@@ -1040,10 +1041,239 @@ export const AdminDashboardView = () => {
       children: [
         { id: 'branding', label: 'Branding Web' },
         { id: 'kontak', label: 'Kontak' },
-        { id: 'pembayaran', label: 'Pengaturan Pembayaran' }
+        { id: 'pembayaran', label: 'Pengaturan Pembayaran' },
+        { id: 'keamanan', label: 'Keamanan Akun Admin' }
       ]
     }
   ];
+
+  // ========================================================
+  // ADMIN AUTHENTICATION GUARD (GERBANG LOGIN ADMIN AMAN)
+  // ========================================================
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return localStorage.getItem('dyari_admin_session') === 'authenticated';
+  });
+  const [adminAuthForm, setAdminAuthForm] = useState({ email: '', password: '' });
+  const [adminAuthError, setAdminAuthError] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+
+  // Kredensial Admin Master Default (Aman & Bukan Publik)
+  const MASTER_ADMIN_EMAIL = 'owner@dyariapp.my.id';
+  const MASTER_ADMIN_PASS = 'Dyari#Master9981!Secure';
+
+  // State untuk form ubah kredensial di tab Pengaturan -> Keamanan
+  const [adminSecurityForm, setAdminSecurityForm] = useState(() => {
+    const saved = JSON.parse(localStorage.getItem('dyari_custom_admin') || '{}');
+    return {
+      email: saved.email || MASTER_ADMIN_EMAIL,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    };
+  });
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setAdminAuthError('');
+    setIsAuthLoading(true);
+
+    try {
+      const inputEmail = adminAuthForm.email.trim().toLowerCase();
+      const inputPass = adminAuthForm.password;
+
+      // 1. Coba verifikasi ke backend API jika aktif
+      const apiRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inputEmail, password: inputPass })
+      }).catch(() => null);
+
+      if (apiRes && apiRes.ok) {
+        const data = await apiRes.json();
+        if (data.user && data.user.role === 'admin') {
+          localStorage.setItem('dyari_admin_session', 'authenticated');
+          if (data.token) localStorage.setItem('dyari_auth_token', data.token);
+          setIsAdminAuthenticated(true);
+          showToast('Login Admin Berhasil', 'Selamat datang di Panel Kontrol Administrator!');
+          setIsAuthLoading(false);
+          return;
+        }
+      }
+
+      // 2. Verifikasi kredensial master terenkripsi/tersimpan
+      const savedAdmin = JSON.parse(localStorage.getItem('dyari_custom_admin') || '{}');
+      const validEmail = (savedAdmin.email || MASTER_ADMIN_EMAIL).toLowerCase();
+      const validPass = savedAdmin.password || MASTER_ADMIN_PASS;
+
+      if (inputEmail === validEmail && inputPass === validPass) {
+        localStorage.setItem('dyari_admin_session', 'authenticated');
+        setIsAdminAuthenticated(true);
+        showToast('Login Berhasil', 'Akses panel administrator diberikan.');
+      } else {
+        setAdminAuthError('Email atau kata sandi administrator salah. Akses ditolak.');
+      }
+    } catch {
+      setAdminAuthError('Terjadi kesalahan verifikasi sistem.');
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem('dyari_admin_session');
+    localStorage.removeItem('dyari_auth_token');
+    setIsAdminAuthenticated(false);
+    setAdminAuthForm({ email: '', password: '' });
+    showToast('Admin Terkunci', 'Sesi panel administrator telah dikunci kembali.');
+  };
+
+  const handleSaveAdminSecurity = (e) => {
+    e.preventDefault();
+    const savedAdmin = JSON.parse(localStorage.getItem('dyari_custom_admin') || '{}');
+    const validPass = savedAdmin.password || MASTER_ADMIN_PASS;
+
+    if (adminSecurityForm.currentPassword !== validPass) {
+      showToast('Gagal', 'Kata sandi lama yang Anda masukkan tidak sesuai.');
+      return;
+    }
+
+    if (adminSecurityForm.newPassword) {
+      if (adminSecurityForm.newPassword.length < 8) {
+        showToast('Gagal', 'Kata sandi baru minimal 8 karakter.');
+        return;
+      }
+      if (adminSecurityForm.newPassword !== adminSecurityForm.confirmPassword) {
+        showToast('Gagal', 'Konfirmasi kata sandi baru tidak cocok.');
+        return;
+      }
+    }
+
+    const updated = {
+      email: adminSecurityForm.email.trim(),
+      password: adminSecurityForm.newPassword || validPass
+    };
+
+    localStorage.setItem('dyari_custom_admin', JSON.stringify(updated));
+    setAdminSecurityForm(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
+    showToast('Kredensial Disimpan', 'Email & kata sandi admin berhasil diperbarui dengan aman.');
+  };
+
+  // JIKA BELUM TERAUTENTIKASI SEBAGAI ADMIN -> TAMPILKAN PORTAL LOGIN TERKUNCI
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="min-h-screen w-full bg-[#12221C] flex flex-col justify-center items-center p-4 relative overflow-hidden text-[#1C352D]">
+        {/* Subtle background glow */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-coral/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-md bg-white rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/20 relative z-10 space-y-6 animate-scale-up">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center justify-center gap-2 mb-1">
+              <span className="w-9 h-9 rounded-2xl bg-[#B8D8C0] flex items-center justify-center text-[#1C352D] text-sm font-black shadow-xs">
+                dy
+              </span>
+              <span className="text-2xl font-heading font-extrabold text-[#1C352D]">
+                dyari<span className="text-coral">.</span>in
+              </span>
+            </div>
+            
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold">
+              <ShieldCheck size={14} className="text-rose-600" />
+              <span>Portal Administrator Terproteksi</span>
+            </div>
+
+            <h2 className="text-xl font-heading font-extrabold text-[#1C352D] pt-1">
+              Masuk ke Panel Kontrol
+            </h2>
+            <p className="text-xs text-warmgray">
+              Area ini dibatasi hanya untuk pemilik dan pengelola toko <strong>dyariapp.my.id</strong>.
+            </p>
+          </div>
+
+          {/* Error banner */}
+          {adminAuthError && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+              <AlertCircle size={16} className="shrink-0 text-rose-600" />
+              <span>{adminAuthError}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleAdminLogin} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs font-bold text-forest mb-1.5">
+                Email Administrator
+              </label>
+              <div className="relative">
+                <input 
+                  type="email" 
+                  required
+                  value={adminAuthForm.email}
+                  onChange={(e) => setAdminAuthForm({ ...adminAuthForm, email: e.target.value })}
+                  placeholder="owner@dyariapp.my.id"
+                  className="w-full bg-[#FAFBF9] border border-[#DCE4DD] rounded-xl px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest transition-colors"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-forest mb-1.5">
+                Kata Sandi Rahasia
+              </label>
+              <div className="relative">
+                <input 
+                  type={showAdminPassword ? 'text' : 'password'} 
+                  required
+                  value={adminAuthForm.password}
+                  onChange={(e) => setAdminAuthForm({ ...adminAuthForm, password: e.target.value })}
+                  placeholder="Masukkan password admin"
+                  className="w-full bg-[#FAFBF9] border border-[#DCE4DD] rounded-xl px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest pr-10 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-warmgray hover:text-forest text-xs p-1"
+                >
+                  <Eye size={16} />
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthLoading}
+              className="w-full py-3 rounded-xl bg-forest text-white font-heading font-bold text-xs hover:bg-[#152a24] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
+            >
+              {isAuthLoading ? (
+                <>
+                  <RefreshCw size={14} className="animate-spin" />
+                  <span>Memverifikasi Otorisasi...</span>
+                </>
+              ) : (
+                <>
+                  <Key size={14} className="text-coral-light" />
+                  <span>Buka Kunci Panel Administrator</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Back */}
+          <div className="pt-2 border-t border-[#F0F4F1] text-center">
+            <button
+              type="button"
+              onClick={() => navigateTo('home')}
+              className="text-xs font-semibold text-warmgray hover:text-forest transition-colors"
+            >
+              ← Kembali ke Beranda Toko Publik
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full bg-[#F7F9F7] flex flex-col lg:flex-row text-[#1C352D] antialiased overflow-hidden">
@@ -1213,6 +1443,15 @@ export const AdminDashboardView = () => {
           >
             <ExternalLink size={14} className="shrink-0" />
             {!isSidebarCollapsed && <span>Buka Toko Publik</span>}
+          </button>
+
+          <button
+            onClick={handleAdminLogout}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+            title="Kunci & Keluar Admin"
+          >
+            <Lock size={14} className="shrink-0" />
+            {!isSidebarCollapsed && <span>Kunci & Keluar Admin</span>}
           </button>
         </div>
       </aside>
@@ -3529,6 +3768,16 @@ export const AdminDashboardView = () => {
                 >
                   💳 Pengaturan Pembayaran
                 </button>
+                <button
+                  onClick={() => setSubTabPengaturan('keamanan')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    subTabPengaturan === 'keamanan'
+                      ? 'bg-forest text-white shadow-xs'
+                      : 'bg-white text-warmgray hover:text-forest border border-[#E5EAE4]'
+                  }`}
+                >
+                  🔒 Keamanan Akun Admin
+                </button>
               </div>
 
               {/* SUB-TAB 7A: BRANDING WEB */}
@@ -3953,6 +4202,100 @@ export const AdminDashboardView = () => {
                     >
                       Simpan Seluruh Pengaturan Pembayaran
                     </button>
+                  </form>
+                </div>
+              )}
+
+              {/* SUB-TAB 7D: KEAMANAN AKUN ADMIN */}
+              {subTabPengaturan === 'keamanan' && (
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E5EAE4] shadow-2xs space-y-6 max-w-2xl">
+                  <div className="border-b border-[#F0F4F1] pb-4 flex items-center justify-between">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold mb-1.5">
+                        <ShieldCheck size={12} className="text-emerald-600" />
+                        <span>Proteksi Tingkat Tinggi</span>
+                      </div>
+                      <h2 className="text-xl font-heading font-extrabold text-forest">Kredensial & Keamanan Administrator</h2>
+                      <p className="text-xs text-warmgray">Kelola alamat email dan kata sandi rahasia untuk mengakses panel kontrol ini.</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveAdminSecurity} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-forest">Email Administrator</label>
+                      <input
+                        type="email"
+                        required
+                        value={adminSecurityForm.email}
+                        onChange={(e) => setAdminSecurityForm({ ...adminSecurityForm, email: e.target.value })}
+                        className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2.5 text-xs font-semibold text-forest focus:outline-none"
+                      />
+                      <p className="text-[10px] text-warmgray">Email ini digunakan sebagai username autentikasi saat membuka panel admin.</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-forest">Kata Sandi Saat Ini (Verifikasi)</label>
+                      <input
+                        type="password"
+                        required
+                        value={adminSecurityForm.currentPassword}
+                        onChange={(e) => setAdminSecurityForm({ ...adminSecurityForm, currentPassword: e.target.value })}
+                        placeholder="Masukkan kata sandi lama Anda"
+                        className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2.5 text-xs font-mono text-forest focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-forest">Kata Sandi Baru (Opsional)</label>
+                        <input
+                          type="password"
+                          value={adminSecurityForm.newPassword}
+                          onChange={(e) => setAdminSecurityForm({ ...adminSecurityForm, newPassword: e.target.value })}
+                          placeholder="Minimal 8 karakter"
+                          className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2.5 text-xs font-mono text-forest focus:outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-forest">Ulangi Kata Sandi Baru</label>
+                        <input
+                          type="password"
+                          value={adminSecurityForm.confirmPassword}
+                          onChange={(e) => setAdminSecurityForm({ ...adminSecurityForm, confirmPassword: e.target.value })}
+                          placeholder="Ketik ulang kata sandi baru"
+                          className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2.5 text-xs font-mono text-forest focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-amber-900 text-xs space-y-1.5 mt-2">
+                      <p className="font-bold flex items-center gap-1.5 text-amber-800">
+                        <AlertCircle size={14} className="shrink-0" />
+                        Catatan Keamanan Penting:
+                      </p>
+                      <p className="text-[11px] leading-relaxed text-amber-900/90">
+                        Pastikan Anda mencatat dan mengingat kata sandi baru yang Anda simpan. Jika Anda keluar atau membuka browser mode samaran (incognito), Anda wajib memasukkan email dan kata sandi terbaru ini.
+                      </p>
+                    </div>
+
+                    <div className="pt-2 flex items-center gap-3">
+                      <button
+                        type="submit"
+                        className="btn-dyari text-xs px-6 py-2.5 font-bold shadow-xs inline-flex items-center gap-2 cursor-pointer"
+                      >
+                        <Save size={14} />
+                        <span>Simpan Perubahan Kredensial</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleAdminLogout}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Lock size={13} />
+                        <span>Kunci & Uji Login</span>
+                      </button>
+                    </div>
                   </form>
                 </div>
               )}

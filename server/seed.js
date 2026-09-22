@@ -17,8 +17,8 @@ async function runSeed() {
     console.log('✅ Skema tabel PostgreSQL berhasil dibuat / diverifikasi.');
 
     // 2. Seed Default Admin User
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@dyari.id';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminEmail = process.env.ADMIN_EMAIL || 'owner@dyariapp.my.id';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Dyari#Master9981!Secure';
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
     const userCheck = await query('SELECT id FROM users WHERE email = $1', [adminEmail]);
