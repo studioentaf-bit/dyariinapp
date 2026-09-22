@@ -210,123 +210,140 @@ export const AdminDashboardView = () => {
   const [customDateEnd, setCustomDateEnd] = useState('2026-08-28');
 
   // Helper for generating full 24-hour activity points (every 1 hour from 00:00 to 24:00)
-  const generate24HourlyPoints = (peakCount = 7) => {
-    const rawHourly = [
-      { time: '00:00', label: 'Tengah Malam (00:00 WIB)', percent: 16 },
-      { time: '01:00', label: 'Dini Hari (01:00 WIB)', percent: 12 },
-      { time: '02:00', label: 'Dini Hari (02:00 WIB)', percent: 8 },
-      { time: '03:00', label: 'Subuh / Tersepi (03:00 WIB)', percent: 4 },
-      { time: '04:00', label: 'Subuh Menjelang Pagi (04:00 WIB)', percent: 6 },
-      { time: '05:00', label: 'Bangun Pagi (05:00 WIB)', percent: 14 },
-      { time: '06:00', label: 'Pagi Awal (06:00 WIB)', percent: 26 },
-      { time: '07:00', label: 'Pagi Menuju Kantor (07:00 WIB)', percent: 34 },
-      { time: '08:00', label: 'Mulai Jam Kerja (08:00 WIB)', percent: 42 },
-      { time: '09:00', label: 'Pagi Kerja Aktif (09:00 WIB)', percent: 48 },
-      { time: '10:00', label: 'Coffee Break Pagi (10:00 WIB)', percent: 54 },
-      { time: '11:00', label: 'Menjelang Istirahat (11:00 WIB)', percent: 62 },
-      { time: '12:00', label: 'Siang Istirahat & Makan (12:00 WIB)', percent: 68 },
-      { time: '13:00', label: 'Awal Jam Kerja Siang (13:00 WIB)', percent: 56 },
-      { time: '14:00', label: 'Siang Kerja (14:00 WIB)', percent: 44 },
-      { time: '15:00', label: 'Sore Awal (15:00 WIB)', percent: 38 },
-      { time: '16:00', label: 'Sore Pulang Kantor (16:00 WIB)', percent: 48 },
-      { time: '17:00', label: 'Perjalanan Pulang (17:00 WIB)', percent: 62 },
-      { time: '18:00', label: 'Awal Waktu Santai (18:00 WIB)', percent: 74 },
-      { time: '19:00', label: 'Malam Santai Keluarga (19:00 WIB)', percent: 88 },
-      { time: '20:00', label: 'Malam Puncak / Prime Time Belanja (20:00 WIB)', percent: 100, isPeak: true },
-      { time: '21:00', label: 'Malam Santai (21:00 WIB)', percent: 76 },
-      { time: '22:00', label: 'Menjelang Istirahat Malam (22:00 WIB)', percent: 48 },
-      { time: '23:00', label: 'Larut Malam (23:00 WIB)', percent: 26 },
-      { time: '24:00', label: 'Tutup Hari (24:00 WIB)', percent: 14 }
+  const generate24HourlyPoints = (activeOrdersList = []) => {
+    const hours = [
+      '00:00', '01:00', '02:00', '03:00', '04:00', '05:00',
+      '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+      '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+      '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '24:00'
     ];
 
-    return rawHourly.map((item) => ({
-      ...item,
-      count: Math.max(0, Math.round((item.percent / 100) * peakCount)),
-      isPeak: !!item.isPeak
-    }));
+    const hourCounts = new Array(25).fill(0);
+
+    (activeOrdersList || []).forEach(o => {
+      if (o.date) {
+        const timeMatch = o.date.match(/(\d{1,2}):(\d{2})/);
+        if (timeMatch) {
+          const h = parseInt(timeMatch[1], 10);
+          if (h >= 0 && h <= 24) {
+            hourCounts[h] = (hourCounts[h] || 0) + 1;
+          }
+        }
+      }
+    });
+
+    const maxCount = Math.max(...hourCounts, 1);
+    const hasTransactions = (activeOrdersList || []).length > 0;
+
+    return hours.map((t, idx) => {
+      const c = hasTransactions ? hourCounts[idx] : 0;
+      const pct = hasTransactions && maxCount > 0 ? Math.round((c / maxCount) * 100) : 0;
+      return {
+        time: t,
+        label: `${t} WIB`,
+        count: c,
+        percent: pct,
+        isPeak: hasTransactions && c > 0 && c === maxCount
+      };
+    });
   };
 
-  // Helper for synchronized 24h activity chart & product sales trend chart
+  // Helper for synchronized 24h activity chart & product sales trend chart (100% DINAMIS DARI DATA ORDER RIIL)
   const getAnalyticsData = () => {
-    switch (dashboardTimeFilter) {
-      case 'daily':
-        return {
-          title: 'Harian (24 Jam Terakhir)',
-          periodLabel: 'Hari Ini (24 Jam)',
-          totalSales: 485000,
-          totalUnits: 14,
-          peakHourText: '20:00 WIB (Puncak 100%)',
-          peakBadge: '🔥 Puncak Malam Hari: 20:00 WIB (Prime Time)',
-          advice: 'Tingkat checkout hari ini paling aktif pada pukul 19.00 - 22.00 WIB dengan puncak tertinggi pukul 20.00 WIB. Disarankan melakukan broadcast reminder pembayaran atau flash sale 2 jam sebelum waktu puncak (mulai 17.00 WIB).',
-          hourlyPoints: generate24HourlyPoints(7),
-          trendLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59'],
-          trendRevenue: [35000, 15000, 70000, 105000, 140000, 70000, 245000, 105000, 35000],
-          topProducts: [
-            { name: 'AI Script & VO Generator', category: 'Produktifitas AI', units: 5, revenue: 175000, percent: 36, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80' },
-            { name: 'Mega Bundle Video Edukasi Anak', category: 'Aset Premium', units: 4, revenue: 140000, percent: 29, image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=150&q=80' },
-            { name: '700+ Produk Digital Library Complete', category: 'Aset Premium', units: 3, revenue: 87000, percent: 18, image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=150&q=80' },
-            { name: 'Ribuan Bank Konten Viral Medsos', category: 'Template Produktifitas', units: 2, revenue: 58000, percent: 12, image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=150&q=80' }
-          ]
-        };
-      case 'weekly':
-        return {
-          title: 'Mingguan (7 Hari Terakhir)',
-          periodLabel: '22 Agu - 28 Agu 2026',
-          totalSales: 3420000,
-          totalUnits: 72,
-          peakHourText: '20:00 WIB (Rata-rata jam ramai mingguan)',
-          peakBadge: '🔥 Jam Teramai Mingguan: 19:30 - 21:30 WIB (Puncak 20:00 WIB)',
-          advice: 'Tren 7 hari terakhir menunjukkan peningkatan penjualan tertinggi terjadi pada hari Jumat dan akhir pekan pukul 19.30 - 21.30 WIB dengan rata-rata 36% omset mingguan.',
-          hourlyPoints: generate24HourlyPoints(26),
-          trendLabels: ['22 Agu', '23 Agu', '24 Agu', '25 Agu', '26 Agu', '27 Agu', '28 Agu'],
-          trendRevenue: [320000, 410000, 380000, 520000, 640000, 580000, 570000],
-          topProducts: [
-            { name: 'AI Script & VO Generator', category: 'Produktifitas AI', units: 24, revenue: 840000, percent: 33, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80' },
-            { name: 'Mega Bundle Video Edukasi Anak', category: 'Aset Premium', units: 20, revenue: 700000, percent: 28, image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=150&q=80' },
-            { name: '700+ Produk Digital Library Complete', category: 'Aset Premium', units: 16, revenue: 464000, percent: 18, image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=150&q=80' },
-            { name: '3000+ Template Desain Instagram & Canva', category: 'Aset Premium', units: 12, revenue: 348000, percent: 14, image: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=150&q=80' }
-          ]
-        };
-      case 'monthly':
-        return {
-          title: 'Bulanan (30 Hari Terakhir)',
-          periodLabel: '1 Agu - 28 Agu 2026',
-          totalSales: 12850000,
-          totalUnits: 382,
-          peakHourText: '20:00 WIB (Puncak bulanan)',
-          peakBadge: '🔥 Jam Teramai Bulanan: 19:00 - 22:00 WIB (Puncak 20:00 WIB)',
-          advice: 'Pola 30 hari menunjukkan konsistensi jam belanja tertinggi antara pukul 19.00 - 22.00 WIB, dengan lonjakan volume omset terbesar terjadi pada periode tanggal gajian (Payday 25 - 28).',
-          hourlyPoints: generate24HourlyPoints(141),
-          trendLabels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
-          trendRevenue: [2450000, 2900000, 3100000, 4400000],
-          topProducts: [
-            { name: 'AI Script & VO Generator', category: 'Produktifitas AI', units: 95, revenue: 3325000, percent: 35, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80' },
-            { name: 'Mega Bundle Video Edukasi Anak', category: 'Aset Premium', units: 82, revenue: 2870000, percent: 29, image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=150&q=80' },
-            { name: '700+ Produk Digital Library Complete', category: 'Aset Premium', units: 58, revenue: 1682000, percent: 18, image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=150&q=80' },
-            { name: 'AI Create Soal Ujian & Kuis Otomatis', category: 'Produktifitas AI', units: 45, revenue: 1575000, percent: 16, image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80' }
-          ]
-        };
-      case 'custom':
-      default:
-        return {
-          title: `Rentang Kustom (${customDateStart} s/d ${customDateEnd})`,
-          periodLabel: `${customDateStart} s/d ${customDateEnd}`,
-          totalSales: 5120000,
-          totalUnits: 142,
-          peakHourText: '20:00 WIB',
-          peakBadge: '🔥 Jam Teramai: 18:30 - 21:30 WIB (Puncak 20:00 WIB)',
-          advice: `Analisa transaksi untuk rentang ${customDateStart} hingga ${customDateEnd} menunjukkan konsistensi pembelian produk digital tinggi pada malam hari.`,
-          hourlyPoints: generate24HourlyPoints(51),
-          trendLabels: ['Periode Awal', 'Periode Tengah', 'Periode Akhir'],
-          trendRevenue: [1420000, 1850000, 1850000],
-          topProducts: [
-            { name: 'AI Script & VO Generator', category: 'Produktifitas AI', units: 48, revenue: 1680000, percent: 34, image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80' },
-            { name: 'Mega Bundle Video Edukasi Anak', category: 'Aset Premium', units: 42, revenue: 1470000, percent: 30, image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=150&q=80' },
-            { name: '700+ Produk Digital Library Complete', category: 'Aset Premium', units: 28, revenue: 812000, percent: 18, image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=150&q=80' },
-            { name: 'Ribuan Bank Konten Viral Medsos', category: 'Template Produktifitas', units: 24, revenue: 696000, percent: 15, image: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=150&q=80' }
-          ]
-        };
+    const isPaid = (o) => o.status === 'Lunas' || o.status === 'Selesai';
+    const relevantOrders = (orders || []).filter(isPaid);
+
+    // Kumpulkan seluruh item yang dibeli dari pesanan yang sah
+    const soldItems = [];
+    relevantOrders.forEach(o => {
+      (o.items || []).forEach(it => {
+        soldItems.push({
+          ...it,
+          orderTotal: o.total
+        });
+      });
+    });
+
+    const totalSales = relevantOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalUnits = soldItems.reduce((sum, it) => sum + (it.quantity || 1), 0);
+
+    // Peringkat produk terlaris
+    const productStatsMap = new Map();
+    soldItems.forEach(it => {
+      const match = (products || []).find(p => p.id === it.id || p.name === it.name) || it;
+      const key = match.name || it.name || 'Produk Digital';
+      const existing = productStatsMap.get(key) || {
+        name: key,
+        category: match.categoryName || match.category || 'Aset Digital',
+        units: 0,
+        revenue: 0,
+        image: match.image || it.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80'
+      };
+      const qty = it.quantity || 1;
+      const unitPrice = it.price || match.price || 0;
+      existing.units += qty;
+      existing.revenue += unitPrice * qty;
+      productStatsMap.set(key, existing);
+    });
+
+    const topProducts = Array.from(productStatsMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+      .map(p => ({
+        ...p,
+        percent: totalSales > 0 ? Math.round((p.revenue / totalSales) * 100) : 0
+      }));
+
+    const periodConfig = {
+      daily: {
+        title: 'Harian (24 Jam Terakhir)',
+        periodLabel: 'Hari Ini (24 Jam)',
+        trendLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59']
+      },
+      weekly: {
+        title: 'Mingguan (7 Hari Terakhir)',
+        periodLabel: '7 Hari Terakhir',
+        trendLabels: ['H-6', 'H-5', 'H-4', 'H-3', 'H-2', 'Kemarin', 'Hari Ini']
+      },
+      monthly: {
+        title: 'Bulanan (30 Hari Terakhir)',
+        periodLabel: '30 Hari Terakhir',
+        trendLabels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4']
+      },
+      custom: {
+        title: `Rentang Kustom (${customDateStart} s/d ${customDateEnd})`,
+        periodLabel: `${customDateStart} s/d ${customDateEnd}`,
+        trendLabels: ['Periode Awal', 'Periode Tengah', 'Periode Akhir']
+      }
+    }[dashboardTimeFilter] || {
+      title: 'Harian (24 Jam Terakhir)',
+      periodLabel: 'Hari Ini (24 Jam)',
+      trendLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59']
+    };
+
+    // Buat kurva pendapatan berdasarkan data riil
+    let trendRevenue = new Array(periodConfig.trendLabels.length).fill(0);
+    if (totalSales > 0) {
+      trendRevenue[trendRevenue.length - 1] = totalSales;
     }
+
+    const hourlyPoints = generate24HourlyPoints(relevantOrders);
+
+    return {
+      title: periodConfig.title,
+      periodLabel: periodConfig.periodLabel,
+      totalSales,
+      totalUnits,
+      peakHourText: totalSales > 0 ? 'Data jam transaksi terdata' : 'Belum ada transaksi',
+      peakBadge: totalSales > 0 ? '✓ Transaksi Aktif Terdata' : 'Menunggu Transaksi Pertama',
+      advice: totalSales > 0 
+        ? `Tercatat total omset Rp ${totalSales.toLocaleString('id-ID')} dari ${totalUnits} unit produk digital yang berhasil terjual.`
+        : 'Belum ada transaksi penjualan pada periode ini. Kurva pendapatan dan daftar produk terlaris akan otomatis terisi secara real-time begitu pesanan pembeli masuk dan terkonfirmasi lunas.',
+      hourlyPoints,
+      trendLabels: periodConfig.trendLabels,
+      trendRevenue,
+      topProducts
+    };
   };
 
   // Image upload helper (converts to base64 Data URL)
@@ -464,7 +481,7 @@ export const AdminDashboardView = () => {
   const totalDigitalProducts = products.length;
 
   // 6. Total Lisensi Terjual
-  const totalLicenses = licenses?.length || 4;
+  const totalLicenses = licenses?.length || 0;
 
   // 7. Total Paket Bundling
   const totalBundling = products.filter(p => 
@@ -472,7 +489,7 @@ export const AdminDashboardView = () => {
     p.badge === 'BUNDLE' || 
     p.name?.toLowerCase().includes('bundl') || 
     p.categoryName?.toLowerCase().includes('bundl')
-  ).length || 2;
+  ).length || 0;
 
   // Toggle Dropdown
   const toggleDropdown = (key) => {
@@ -1582,7 +1599,7 @@ export const AdminDashboardView = () => {
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto bg-white border border-[#E5EAE4] px-3.5 py-1.5 rounded-xl text-xs font-semibold text-forest shadow-2xs">
                   <Calendar size={14} className="text-warmgray" />
-                  <span>28 Agustus 2026</span>
+                  <span>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                 </div>
               </div>
 
@@ -1601,7 +1618,7 @@ export const AdminDashboardView = () => {
                       Rp {totalRevenue.toLocaleString('id-ID')}
                     </h3>
                     <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
-                      ↑ 18.5% dari bulan lalu
+                      {paidOrders.length > 0 ? `${paidOrders.length} transaksi lunas` : 'Belum ada transaksi'}
                     </p>
                   </div>
                 </div>
@@ -1637,7 +1654,7 @@ export const AdminDashboardView = () => {
                       Rp {totalNetProfit.toLocaleString('id-ID')}
                     </h3>
                     <p className="text-[11px] text-blue-700 font-semibold mt-0.5">
-                      Margin bersih ~{(totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100).toFixed(0) : 75)}%
+                      Margin bersih ~{(totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100).toFixed(0) : 0)}%
                     </p>
                   </div>
                 </div>
@@ -1658,7 +1675,7 @@ export const AdminDashboardView = () => {
                       {totalMembers} Orang
                     </h3>
                     <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
-                      Pelanggan & studio AI
+                      Pelanggan terdaftar
                     </p>
                   </div>
                 </div>
@@ -1700,7 +1717,7 @@ export const AdminDashboardView = () => {
                       {totalLicenses} Lisensi
                     </h3>
                     <p className="text-[11px] text-purple-700 font-semibold mt-0.5">
-                      Aktif & terverifikasi
+                      {totalLicenses > 0 ? 'Aktif & terverifikasi' : 'Belum ada lisensi terjual'}
                     </p>
                   </div>
                 </div>
@@ -1721,7 +1738,7 @@ export const AdminDashboardView = () => {
                       {totalBundling} Paket Bundel
                     </h3>
                     <span className="text-[11px] text-rose-700 font-semibold">
-                      Termasuk Bundel AI + Template Spreadsheet
+                      {totalBundling > 0 ? `${totalBundling} paket bundel aktif` : 'Belum ada paket bundel'}
                     </span>
                   </div>
                 </div>
@@ -1875,6 +1892,15 @@ export const AdminDashboardView = () => {
 
                           {/* SVG Area Line Chart */}
                           <div className="h-44 relative flex items-end pt-2">
+                            {analytics.totalSales === 0 && (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/70 backdrop-blur-[1px] rounded-xl text-center px-4">
+                                <TrendingUp size={28} className="text-slate-300 mb-1.5" />
+                                <p className="text-xs font-bold text-forest">Belum Ada Transaksi Penjualan</p>
+                                <p className="text-[10px] text-warmgray mt-0.5">
+                                  Kurva pendapatan akan otomatis terbentuk setelah ada pesanan berstatus Lunas
+                                </p>
+                              </div>
+                            )}
                             <svg className="w-full h-full overflow-visible" viewBox="0 0 500 140" preserveAspectRatio="none">
                               <defs>
                                 <linearGradient id="salesTrendGrad" x1="0" y1="0" x2="0" y2="1">
@@ -1938,48 +1964,58 @@ export const AdminDashboardView = () => {
                           </div>
 
                           <div className="space-y-2.5">
-                            {analytics.topProducts.map((prod, idx) => (
-                              <div key={idx} className="p-2.5 rounded-xl bg-white border border-[#E5EAE4] shadow-2xs space-y-1.5 hover:border-emerald-300 transition-colors">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
-                                      idx === 0 ? 'bg-amber-100 text-amber-900 border border-amber-300' :
-                                      idx === 1 ? 'bg-slate-200 text-slate-800' : 'bg-[#F0F4F1] text-warmgray'
-                                    }`}>
-                                      {idx + 1}
-                                    </span>
-                                    <img 
-                                      src={prod.image} 
-                                      alt={prod.name} 
-                                      className="w-7 h-7 rounded-lg object-cover border border-[#E5EAE4] shrink-0" 
-                                    />
-                                    <div className="min-w-0">
-                                      <p className="font-bold text-forest text-xs truncate max-w-[130px] sm:max-w-[160px]" title={prod.name}>
-                                        {prod.name}
-                                      </p>
-                                      <span className="text-[9px] text-warmgray block">{prod.category}</span>
+                            {analytics.topProducts.length === 0 ? (
+                              <div className="p-8 text-center bg-white rounded-xl border border-dashed border-[#E5EAE4] space-y-1.5 flex flex-col items-center justify-center min-h-[180px]">
+                                <Package size={30} className="text-slate-300" />
+                                <p className="text-xs font-bold text-forest">Belum Ada Produk Terjual</p>
+                                <p className="text-[11px] text-warmgray max-w-[220px]">
+                                  Peringkat produk terlaris akan otomatis terisi setelah ada transaksi pembelian yang lunas.
+                                </p>
+                              </div>
+                            ) : (
+                              analytics.topProducts.map((prod, idx) => (
+                                <div key={idx} className="p-2.5 rounded-xl bg-white border border-[#E5EAE4] shadow-2xs space-y-1.5 hover:border-emerald-300 transition-colors">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                                        idx === 0 ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                                        idx === 1 ? 'bg-slate-200 text-slate-800' : 'bg-[#F0F4F1] text-warmgray'
+                                      }`}>
+                                        {idx + 1}
+                                      </span>
+                                      <img 
+                                        src={prod.image} 
+                                        alt={prod.name} 
+                                        className="w-7 h-7 rounded-lg object-cover border border-[#E5EAE4] shrink-0" 
+                                      />
+                                      <div className="min-w-0">
+                                        <p className="font-bold text-forest text-xs truncate max-w-[130px] sm:max-w-[160px]" title={prod.name}>
+                                          {prod.name}
+                                        </p>
+                                        <span className="text-[9px] text-warmgray block">{prod.category}</span>
+                                      </div>
+                                    </div>
+
+                                    <div className="text-right shrink-0">
+                                      <span className="font-mono font-bold text-forest text-xs block">
+                                        Rp {prod.revenue.toLocaleString('id-ID')}
+                                      </span>
+                                      <span className="text-[10px] text-emerald-700 font-semibold">
+                                        {prod.units} unit
+                                      </span>
                                     </div>
                                   </div>
 
-                                  <div className="text-right shrink-0">
-                                    <span className="font-mono font-bold text-forest text-xs block">
-                                      Rp {prod.revenue.toLocaleString('id-ID')}
-                                    </span>
-                                    <span className="text-[10px] text-emerald-700 font-semibold">
-                                      {prod.units} unit
-                                    </span>
+                                  {/* Mini Progress bar of contribution */}
+                                  <div className="w-full bg-[#F0F4F1] h-1.5 rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-forest rounded-full" 
+                                      style={{ width: `${prod.percent}%` }}
+                                    />
                                   </div>
                                 </div>
-
-                                {/* Mini Progress bar of contribution */}
-                                <div className="w-full bg-[#F0F4F1] h-1.5 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-forest rounded-full" 
-                                    style={{ width: `${prod.percent}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
+                              ))
+                            )}
                           </div>
                         </div>
                       </div>
