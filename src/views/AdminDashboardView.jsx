@@ -193,6 +193,14 @@ export const AdminDashboardView = () => {
 
   // Dedicated Modals for 3 Product Types Stock Management
   const [productTypeFilter, setProductTypeFilter] = useState('ALL'); // 'ALL' | 'APPS_PREMIUM' | 'DIGITAL_PREMIUM' | 'LICENSE_TOOL'
+  const [adminProductSearch, setAdminProductSearch] = useState('');
+  const [adminProductPage, setAdminProductPage] = useState(1);
+  const adminProductsPerPage = 20;
+
+  useEffect(() => {
+    setAdminProductPage(1);
+  }, [adminProductSearch, productTypeFilter]);
+
   const [massImportModalProduct, setMassImportModalProduct] = useState(null);
   const [massImportText, setMassImportText] = useState('');
   const [massImportMode, setMassImportMode] = useState('append'); // 'append' | 'replace'
@@ -2915,63 +2923,78 @@ export const AdminDashboardView = () => {
                     </div>
                   </div>
 
-                  {/* Filter Pills by Product Type */}
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    <button
-                      onClick={() => setProductTypeFilter('ALL')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                        productTypeFilter === 'ALL'
-                          ? 'bg-forest text-white shadow-2xs'
-                          : 'bg-white border border-[#E5EAE4] text-warmgray hover:text-forest'
-                      }`}
-                    >
-                      Semua Produk ({products.length})
-                    </button>
-                    <button
-                      onClick={() => setProductTypeFilter('APPS_PREMIUM')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                        productTypeFilter === 'APPS_PREMIUM'
-                          ? 'bg-blue-600 text-white shadow-2xs'
-                          : 'bg-blue-50/60 border border-blue-200 text-blue-900 hover:bg-blue-100'
-                      }`}
-                    >
-                      <span>📱 Aplikasi Premium</span>
-                      <span className="bg-white/30 text-current text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                        {products.filter(p => (p.productType || (p.category === 'aplikasi' ? 'APPS_PREMIUM' : '')) === 'APPS_PREMIUM').length}
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setProductTypeFilter('DIGITAL_PREMIUM')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                        productTypeFilter === 'DIGITAL_PREMIUM'
-                          ? 'bg-emerald-700 text-white shadow-2xs'
-                          : 'bg-emerald-50/60 border border-emerald-200 text-emerald-900 hover:bg-emerald-100'
-                      }`}
-                    >
-                      <span>📦 Aset & Akses Member</span>
-                      <span className="bg-white/30 text-current text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                        {products.filter(p => {
-                          const pType = p.productType || (p.category === 'tools-ai' || p.type === 'LISENSI' ? 'LICENSE_TOOL' : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM'));
-                          return pType === 'DIGITAL_PREMIUM';
-                        }).length}
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setProductTypeFilter('LICENSE_TOOL')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                        productTypeFilter === 'LICENSE_TOOL'
-                          ? 'bg-purple-700 text-white shadow-2xs'
-                          : 'bg-purple-50/60 border border-purple-200 text-purple-900 hover:bg-purple-100'
-                      }`}
-                    >
-                      <span>🔑 Tools AI Premium</span>
-                      <span className="bg-white/30 text-current text-[10px] px-1.5 py-0.2 rounded-full font-mono">
-                        {products.filter(p => {
-                          const pType = p.productType || (p.category === 'tools-ai' || p.type === 'LISENSI' ? 'LICENSE_TOOL' : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM'));
-                          return pType === 'LICENSE_TOOL';
-                        }).length}
-                      </span>
-                    </button>
+                  {/* Search and Filter Bar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    {/* Filter Pills by Product Type */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                      <button
+                        onClick={() => setProductTypeFilter('ALL')}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                          productTypeFilter === 'ALL'
+                            ? 'bg-forest text-white shadow-2xs'
+                            : 'bg-white border border-[#E5EAE4] text-warmgray hover:text-forest'
+                        }`}
+                      >
+                        Semua ({products.length})
+                      </button>
+                      <button
+                        onClick={() => setProductTypeFilter('APPS_PREMIUM')}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                          productTypeFilter === 'APPS_PREMIUM'
+                            ? 'bg-blue-600 text-white shadow-2xs'
+                            : 'bg-blue-50/60 border border-blue-200 text-blue-900 hover:bg-blue-100'
+                        }`}
+                      >
+                        <span>📱 Apps</span>
+                        <span className="bg-white/30 text-current text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                          {products.filter(p => (p.productType || (p.category === 'aplikasi' ? 'APPS_PREMIUM' : '')) === 'APPS_PREMIUM').length}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setProductTypeFilter('DIGITAL_PREMIUM')}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                          productTypeFilter === 'DIGITAL_PREMIUM'
+                            ? 'bg-emerald-700 text-white shadow-2xs'
+                            : 'bg-emerald-50/60 border border-emerald-200 text-emerald-900 hover:bg-emerald-100'
+                        }`}
+                      >
+                        <span>📦 Aset Member</span>
+                        <span className="bg-white/30 text-current text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                          {products.filter(p => {
+                            const pType = p.productType || (p.category === 'tools-ai' || p.type === 'LISENSI' ? 'LICENSE_TOOL' : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM'));
+                            return pType === 'DIGITAL_PREMIUM';
+                          }).length}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setProductTypeFilter('LICENSE_TOOL')}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                          productTypeFilter === 'LICENSE_TOOL'
+                            ? 'bg-purple-700 text-white shadow-2xs'
+                            : 'bg-purple-50/60 border border-purple-200 text-purple-900 hover:bg-purple-100'
+                        }`}
+                      >
+                        <span>🔑 Tools AI</span>
+                        <span className="bg-white/30 text-current text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+                          {products.filter(p => {
+                            const pType = p.productType || (p.category === 'tools-ai' || p.type === 'LISENSI' ? 'LICENSE_TOOL' : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM'));
+                            return pType === 'LICENSE_TOOL';
+                          }).length}
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Search Input in Admin */}
+                    <div className="relative w-full sm:w-64 shrink-0">
+                      <Search size={14} className="absolute left-3 top-2.5 text-warmgray" />
+                      <input
+                        type="text"
+                        value={adminProductSearch}
+                        onChange={(e) => setAdminProductSearch(e.target.value)}
+                        placeholder="Cari produk di admin..."
+                        className="w-full pl-8 pr-3 py-1.5 bg-white border border-[#E5EAE4] rounded-xl text-xs text-forest placeholder:text-warmgray focus:outline-none focus:border-forest shadow-2xs"
+                      />
+                    </div>
                   </div>
 
                   {/* Products Table */}
@@ -2991,17 +3014,35 @@ export const AdminDashboardView = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#F0F4F1]">
-                          {products
-                            .filter(p => {
+                          {(() => {
+                            const filteredAdminProducts = products.filter(p => {
                               const pType = p.productType || (
                                 p.category === 'tools-ai' || p.type === 'LISENSI' 
                                   ? 'LICENSE_TOOL' 
                                   : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
                               );
-                              if (productTypeFilter === 'ALL') return true;
-                              return pType === productTypeFilter;
-                            })
-                            .map((p, index) => {
+                              const matchesType = productTypeFilter === 'ALL' || pType === productTypeFilter;
+                              const q = adminProductSearch.toLowerCase().trim();
+                              const matchesSearch = !q || p.name.toLowerCase().includes(q) || (p.categoryName && p.categoryName.toLowerCase().includes(q));
+                              return matchesType && matchesSearch;
+                            });
+
+                            const paginatedAdminProducts = filteredAdminProducts.slice(
+                              (adminProductPage - 1) * adminProductsPerPage,
+                              adminProductPage * adminProductsPerPage
+                            );
+
+                            if (paginatedAdminProducts.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={8} className="py-8 text-center text-warmgray text-xs">
+                                    Tidak ada produk yang sesuai dengan filter pencarian.
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            return paginatedAdminProducts.map((p, index) => {
                               const pType = p.productType || (
                                 p.category === 'tools-ai' || p.type === 'LISENSI' 
                                   ? 'LICENSE_TOOL' 
@@ -3011,15 +3052,23 @@ export const AdminDashboardView = () => {
                                 ? p.accountStock.filter(s => !s.isSold).length 
                                 : (p.stockCount ?? 0);
 
+                              const globalIndex = (adminProductPage - 1) * adminProductsPerPage + index + 1;
+
                               return (
                                 <tr key={p.id} className="hover:bg-[#FAFBF9] transition-colors">
                                   <td className="py-3.5 px-4 text-center font-bold text-forest/70 font-mono">
-                                    #{p.sortOrder || (index + 1)}
+                                    #{p.sortOrder || globalIndex}
                                   </td>
                                   <td className="py-3.5 px-4 flex items-center gap-3">
                                     <img 
-                                      src={p.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80'} 
+                                      src={
+                                        p.image?.includes('res.cloudinary.com') && p.image?.includes('/upload/') && !p.image?.includes('/upload/f_auto')
+                                          ? p.image.replace('/upload/', '/upload/f_auto,q_auto,w_100/')
+                                          : (p.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80')
+                                      } 
                                       alt={p.name} 
+                                      loading="lazy"
+                                      decoding="async"
                                       className="w-10 h-10 rounded-xl object-cover border border-[#E5EAE4] shrink-0 bg-slate-100" 
                                     />
                                     <div>
@@ -3117,10 +3166,55 @@ export const AdminDashboardView = () => {
                                   </td>
                                 </tr>
                               );
-                            })}
+                            });
+                          })()}
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {(() => {
+                      const filteredAdminProducts = products.filter(p => {
+                        const pType = p.productType || (
+                          p.category === 'tools-ai' || p.type === 'LISENSI' 
+                            ? 'LICENSE_TOOL' 
+                            : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
+                        );
+                        const matchesType = productTypeFilter === 'ALL' || pType === productTypeFilter;
+                        const q = adminProductSearch.toLowerCase().trim();
+                        return matchesType && (!q || p.name.toLowerCase().includes(q) || (p.categoryName && p.categoryName.toLowerCase().includes(q)));
+                      });
+                      const totalAdminProductPages = Math.ceil(filteredAdminProducts.length / adminProductsPerPage) || 1;
+
+                      if (totalAdminProductPages <= 1) return null;
+
+                      return (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#FAFBF9] border-t border-[#E5EAE4] text-xs">
+                          <p className="text-warmgray text-[11px]">
+                            Menampilkan halaman <strong className="text-forest">{adminProductPage}</strong> dari <strong className="text-forest">{totalAdminProductPages}</strong> ({filteredAdminProducts.length} total produk)
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              disabled={adminProductPage <= 1}
+                              onClick={() => setAdminProductPage(p => Math.max(1, p - 1))}
+                              className="px-3 py-1.5 rounded-lg border border-[#E5EAE4] bg-white font-semibold text-forest hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
+                            >
+                              ← Sebelumnya
+                            </button>
+                            <span className="px-2.5 py-1 text-xs font-mono font-bold text-forest bg-forest/10 rounded-lg">
+                              {adminProductPage}
+                            </span>
+                            <button
+                              disabled={adminProductPage >= totalAdminProductPages}
+                              onClick={() => setAdminProductPage(p => Math.min(totalAdminProductPages, p + 1))}
+                              className="px-3 py-1.5 rounded-lg border border-[#E5EAE4] bg-white font-semibold text-forest hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs"
+                            >
+                              Selanjutnya →
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}

@@ -261,7 +261,17 @@ export const UserDashboardView = () => {
                       <div key={item.id} className="p-4 sm:p-5 rounded-dyari-sm border border-dyariborder bg-cream/30 hover:bg-cream/70 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                           {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-dyariborder/50" />
+                            <img 
+                              src={
+                                item.image?.includes('res.cloudinary.com') && item.image?.includes('/upload/') && !item.image?.includes('/upload/f_auto')
+                                  ? item.image.replace('/upload/', '/upload/f_auto,q_auto,w_200/')
+                                  : item.image
+                              } 
+                              alt={item.name} 
+                              loading="lazy"
+                              decoding="async"
+                              className="w-12 h-12 rounded-xl object-cover shrink-0 border border-dyariborder/50" 
+                            />
                           ) : (
                             <div className="w-12 h-12 rounded-xl bg-forest/10 flex items-center justify-center text-xl shrink-0 text-forest">
                               📦
@@ -329,7 +339,17 @@ export const UserDashboardView = () => {
                       className="bg-white rounded-dyari border border-dyariborder overflow-hidden shadow-card flex flex-col justify-between transition-all hover:shadow-soft-hover"
                     >
                       <div className="aspect-[16/10] w-full bg-sage/30 relative">
-                        <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                        <img 
+                          src={
+                            prod.image?.includes('res.cloudinary.com') && prod.image?.includes('/upload/') && !prod.image?.includes('/upload/f_auto')
+                              ? prod.image.replace('/upload/', '/upload/f_auto,q_auto,w_600/')
+                              : prod.image
+                          } 
+                          alt={prod.name} 
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover" 
+                        />
                         <span className="absolute top-3 left-3 bg-matcha text-forest text-[10px] font-black px-2.5 py-1 rounded-full uppercase shadow-xs">
                           {prod.type}
                         </span>
