@@ -1,99 +1,164 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Check } from 'lucide-react';
+import { X, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const AuthModal = () => {
-  const { isAuthOpen, setIsAuthOpen, authMode, setAuthMode, user, setUser, showToast } = useStore();
+  const { isAuthOpen, setIsAuthOpen, authMode, setAuthMode, setUser, showToast, addCustomer } = useStore();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     agree: true
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   if (!isAuthOpen) return null;
 
+  const handleSwitchMode = (mode) => {
+    setAuthMode(mode);
+    setErrorMessage('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage('');
+
     const cleanEmail = formData.email.trim().toLowerCase();
     const cleanName = formData.name.trim();
 
-    if (authMode === 'login') {
-      try {
+    if (authMode === 'register') {
+      if (!cleanName) {
+        setErrorMessage('Nama lengkap wajib diisi.');
+        return;
+      }
+      if (formData.password.length < 6) {
+        setErrorMessage('Kata sandi minimal 6 karakter.');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setErrorMessage('Konfirmasi kata sandi tidak cocok.');
+        return;
+      }
+      if (!formData.agree) {
+        setErrorMessage('Anda wajib menyetujui Syarat & Kebijakan Privasi.');
+        return;
+      }
+    }
+
+    setIsLoading(true);
+
+    try {
+      if (authMode === 'login') {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: cleanEmail, password: formData.password })
         }).catch(() => null);
 
-        if (res && res.ok) {
-          const data = await res.json();
-          setUser({
-            name: data.user.name,
-            email: data.user.email,
-            stats: { products: 0, orders: 0, downloads: 0 }
-          });
-          if (data.token) localStorage.setItem('dyari_auth_token', data.token);
-          showToast('Berhasil Masuk', `Selamat datang kembali, ${data.user.name}!`);
-          setIsAuthOpen(false);
+        if (!res) {
+          throw new Error('Tidak dapat terhubung ke server backend API.');
+        }
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          setErrorMessage(data.message || 'Email atau kata sandi tidak sesuai.');
+          setIsLoading(false);
           return;
         }
-      } catch (_) {}
 
-      const displayName = cleanName || cleanEmail.split('@')[0] || 'Member';
-      setUser({
-        name: displayName,
-        email: cleanEmail,
-        stats: { products: 0, orders: 0, downloads: 0 }
-      });
-      showToast('Berhasil Masuk', `Selamat datang kembali, ${displayName}!`);
-    } else {
-      try {
+        const loggedUser = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          phone: data.user.phone || '',
+          avatar: data.user.avatar || '',
+          stats: { products: 0, orders: 0, downloads: 0 }
+        };
+
+        setUser(loggedUser);
+        if (data.token) localStorage.setItem('dyari_auth_token', data.token);
+
+        showToast('Berhasil Masuk', `Selamat datang kembali, ${data.user.name}!`);
+        setIsAuthOpen(false);
+      } else {
+        // Register Mode
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: cleanName, email: cleanEmail, password: formData.password })
+          body: JSON.stringify({
+            name: cleanName,
+            email: cleanEmail,
+            phone: formData.phone.trim() || '',
+            password: formData.password
+          })
         }).catch(() => null);
 
-        if (res && res.ok) {
-          const data = await res.json();
-          setUser({
-            name: data.user.name,
-            email: data.user.email,
-            stats: { products: 0, orders: 0, downloads: 0 }
-          });
-          if (data.token) localStorage.setItem('dyari_auth_token', data.token);
-          showToast('Akun Dibuat', 'Selamat datang di dyari.in! Akunmu siap digunakan.');
-          setIsAuthOpen(false);
+        if (!res) {
+          throw new Error('Tidak dapat terhubung ke server backend API.');
+        }
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          setErrorMessage(data.message || 'Pendaftaran gagal. Email mungkin sudah terdaftar.');
+          setIsLoading(false);
           return;
         }
-      } catch (_) {}
 
-      setUser({
-        name: cleanName || cleanEmail.split('@')[0],
-        email: cleanEmail,
-        stats: { products: 0, orders: 0, downloads: 0 }
-      });
-      showToast('Akun Dibuat', 'Selamat datang di dyari.in! Akunmu siap digunakan.');
+        const newMember = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          phone: data.user.phone || '',
+          avatar: data.user.avatar || '',
+          stats: { products: 0, orders: 0, downloads: 0 }
+        };
+
+        setUser(newMember);
+        if (data.token) localStorage.setItem('dyari_auth_token', data.token);
+
+        // Integrasikan data member baru ke daftar pelanggan di panel admin
+        if (addCustomer) {
+          addCustomer({
+            id: `CUST-${data.user.id}`,
+            name: data.user.name,
+            email: data.user.email,
+            phone: data.user.phone || '-',
+            totalSpent: 0,
+            orderCount: 0,
+            joinedDate: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+            status: 'Aktif'
+          });
+        }
+
+        showToast('Pendaftaran Berhasil', 'Akun member Anda telah aktif dan tersimpan di database.');
+        setIsAuthOpen(false);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Terjadi kesalahan sistem. Silakan coba kembali.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsAuthOpen(false);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-forest/40 backdrop-blur-sm">
       <div className="bg-white w-full max-w-md rounded-dyari-lg p-7 sm:p-8 shadow-2xl border border-dyariborder relative animate-in fade-in zoom-in-95">
         
-        {/* Close */}
+        {/* Close Button */}
         <button
-          onClick={() => setIsAuthOpen(false)}
-          className="absolute top-6 right-6 p-1.5 rounded-full hover:bg-sage text-warmgray hover:text-forest transition-colors"
+          onClick={() => { setIsAuthOpen(false); setErrorMessage(''); }}
+          className="absolute top-6 right-6 p-1.5 rounded-full hover:bg-sage text-warmgray hover:text-forest transition-colors cursor-pointer"
         >
           <X size={20} />
         </button>
 
         {/* Brand Header */}
-        <div className="text-center space-y-1.5 mb-6">
+        <div className="text-center space-y-1.5 mb-5">
           <div className="inline-flex items-center justify-center gap-1.5 text-2xl font-heading font-extrabold text-forest">
             <span className="w-7 h-7 rounded-full bg-matcha flex items-center justify-center text-forest text-xs font-black">
               dy
@@ -103,16 +168,24 @@ export const AuthModal = () => {
 
           {authMode === 'login' ? (
             <>
-              <h3 className="text-xl font-heading font-bold text-forest pt-2">Selamat datang kembali 👋</h3>
-              <p className="text-xs text-warmgray">Akses kembali produk digitalmu kapan saja.</p>
+              <h3 className="text-xl font-heading font-bold text-forest pt-1">Masuk ke Akun Member 👋</h3>
+              <p className="text-xs text-warmgray">Akses produk digital & lisensi aktif milikmu.</p>
             </>
           ) : (
             <>
-              <h3 className="text-xl font-heading font-bold text-forest pt-2">Buat akunmu ✦</h3>
-              <p className="text-xs text-warmgray">Simpan semua lisensi & produk digitalmu dalam satu tempat.</p>
+              <h3 className="text-xl font-heading font-bold text-forest pt-1">Daftar Akun Member Baru ✦</h3>
+              <p className="text-xs text-warmgray">Buat akun untuk menyimpan lisensi dan riwayat pembelian.</p>
             </>
           )}
         </div>
+
+        {/* Error Notification Banner */}
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2 animate-in fade-in">
+            <AlertCircle size={16} className="shrink-0 text-rose-600" />
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -125,39 +198,45 @@ export const AuthModal = () => {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Contoh: Dimas Aditya"
-                className="w-full bg-cream rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-sm text-forest focus:outline-none focus:border-forest"
+                className="w-full bg-[#FAFBF9] rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-forest mb-1">Email</label>
+            <label className="block text-xs font-semibold text-forest mb-1">Alamat Email</label>
             <input
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="nama@email.com"
-              className="w-full bg-cream rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-sm text-forest focus:outline-none focus:border-forest"
+              className="w-full bg-[#FAFBF9] rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest"
             />
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-forest">Kata Sandi</label>
-              {authMode === 'login' && (
-                <button type="button" className="text-xs text-coral hover:underline font-medium">
-                  Lupa kata sandi?
-                </button>
-              )}
+          {authMode === 'register' && (
+            <div>
+              <label className="block text-xs font-semibold text-forest mb-1">Nomor WhatsApp (Opsional)</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="08xxxxxxxxxx"
+                className="w-full bg-[#FAFBF9] rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest"
+              />
             </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold text-forest mb-1">Kata Sandi</label>
             <input
               type="password"
               required
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="••••••••"
-              className="w-full bg-cream rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-sm text-forest focus:outline-none focus:border-forest"
+              placeholder="Minimal 6 karakter"
+              className="w-full bg-[#FAFBF9] rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest"
             />
           </div>
 
@@ -169,8 +248,8 @@ export const AuthModal = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                placeholder="••••••••"
-                className="w-full bg-cream rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-sm text-forest focus:outline-none focus:border-forest"
+                placeholder="Ulangi kata sandi"
+                className="w-full bg-[#FAFBF9] rounded-dyari-sm border border-dyariborder px-3.5 py-2.5 text-xs text-forest focus:outline-none focus:border-forest"
               />
               
               <label className="flex items-start gap-2.5 mt-3 text-xs text-warmgray cursor-pointer">
@@ -188,57 +267,42 @@ export const AuthModal = () => {
 
           <button
             type="submit"
-            className="w-full mt-2 bg-forest text-white hover:bg-forest-light py-3 rounded-dyari-sm font-semibold text-sm transition-all duration-200 shadow-sm active:scale-95"
+            disabled={isLoading}
+            className="w-full mt-2 bg-forest text-white hover:bg-forest-light py-2.5 rounded-dyari-sm font-bold text-xs transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-70 flex items-center justify-center gap-2"
           >
-            {authMode === 'login' ? 'Masuk' : 'Buat Akun'}
+            {isLoading ? (
+              <>
+                <RefreshCw size={14} className="animate-spin" />
+                <span>Memproses...</span>
+              </>
+            ) : (
+              <span>{authMode === 'login' ? 'Masuk ke Akun' : 'Daftar Sekarang'}</span>
+            )}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-5">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-dyariborder"></div>
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-warmgray font-medium">ATAU</span>
-          </div>
-        </div>
-
-        {/* Google Auth Button */}
-        <button
-          onClick={handleSubmit}
-          type="button"
-          className="w-full border border-dyariborder bg-cream/50 hover:bg-cream text-forest py-2.5 px-4 rounded-dyari-sm font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          <span>Lanjutkan dengan Google</span>
-        </button>
-
         {/* Switch Link */}
-        <div className="mt-5 text-center text-xs text-warmgray">
+        <div className="mt-5 text-center text-xs text-warmgray border-t border-[#F0F4F1] pt-4">
           {authMode === 'login' ? (
             <p>
-              Belum punya akun?{' '}
+              Belum punya akun member?{' '}
               <button
-                onClick={() => setAuthMode('register')}
-                className="text-forest font-bold hover:underline"
+                type="button"
+                onClick={() => handleSwitchMode('register')}
+                className="text-forest font-bold hover:underline cursor-pointer"
               >
-                Buat akun
+                Daftar Akun
               </button>
             </p>
           ) : (
             <p>
-              Sudah punya akun?{' '}
+              Sudah punya akun member?{' '}
               <button
-                onClick={() => setAuthMode('login')}
-                className="text-forest font-bold hover:underline"
+                type="button"
+                onClick={() => handleSwitchMode('login')}
+                className="text-forest font-bold hover:underline cursor-pointer"
               >
-                Masuk
+                Masuk di sini
               </button>
             </p>
           )}

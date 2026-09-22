@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { 
   Home, 
@@ -1158,6 +1158,53 @@ export const AdminDashboardView = () => {
     setAdminSecurityForm(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
     showToast('Kredensial Disimpan', 'Email & kata sandi admin berhasil diperbarui dengan aman.');
   };
+
+  // Sinkronisasi otomatis data Member dari PostgreSQL Database ke Panel Admin
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const fetchDatabaseMembers = async () => {
+      try {
+        const token = localStorage.getItem('dyari_auth_token');
+        const res = await fetch('/api/members', {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            'x-admin-key': MASTER_ADMIN_PASS
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.members)) {
+            const mappedMembers = data.members.map(m => ({
+              id: `CUST-${m.id}`,
+              name: m.name,
+              email: m.email,
+              phone: m.phone || '-',
+              totalSpent: Number(m.total_spent) || 0,
+              orderCount: Array.isArray(m.purchased_products) ? m.purchased_products.length : 0,
+              joinedDate: new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+              status: m.status === 'AKTIF' ? 'Aktif' : 'Dibekukan',
+              purchasedProducts: m.purchased_products || [],
+              licenses: m.licenses || []
+            }));
+
+            // Perbarui daftar customers panel admin
+            setCustomers(prev => {
+              const prevMap = new Map(prev.map(c => [c.email.toLowerCase(), c]));
+              mappedMembers.forEach(m => {
+                prevMap.set(m.email.toLowerCase(), { ...prevMap.get(m.email.toLowerCase()), ...m });
+              });
+              return Array.from(prevMap.values());
+            });
+          }
+        }
+      } catch (_) {}
+    };
+
+    fetchDatabaseMembers();
+  }, [isAdminAuthenticated, activeMenu]);
 
   // JIKA BELUM TERAUTENTIKASI SEBAGAI ADMIN -> TAMPILKAN PORTAL LOGIN TERKUNCI
   if (!isAdminAuthenticated) {
