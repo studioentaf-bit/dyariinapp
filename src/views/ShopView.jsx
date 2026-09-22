@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/ProductCard';
 import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
@@ -6,12 +6,18 @@ import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 export const ShopView = () => {
   const { products, categories, activeCategory, setActiveCategory, searchQuery, setSearchQuery } = useStore();
   const [sortBy, setSortBy] = useState('popular'); // 'popular' | 'newest' | 'price-low' | 'price-high'
+  const [visibleCount, setVisibleCount] = useState(24);
 
   // Dynamic Filter Categories list from store
   const filterTabs = [
     { id: 'all', label: 'Semua' },
     ...(categories || []).map(cat => ({ id: cat.id, label: cat.name }))
   ];
+
+  // Reset pagination to 24 when filter or search changes
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [activeCategory, searchQuery, sortBy]);
 
   // Filtering products
   const filteredProducts = products.filter(product => {
@@ -32,6 +38,9 @@ export const ShopView = () => {
     if (sortBy === 'price-high') return b.price - a.price;
     return 0;
   });
+
+  // Limit displayed products to visibleCount for lightning-fast rendering
+  const displayedProducts = sortedProducts.slice(0, visibleCount);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -146,11 +155,31 @@ export const ShopView = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {sortedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {displayedProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          {/* Load More Button if remaining products exist */}
+          {visibleCount < sortedProducts.length && (
+            <div className="text-center pt-8 pb-4 space-y-2">
+              <button
+                onClick={() => setVisibleCount((prev) => prev + 24)}
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-forest text-white font-semibold text-sm shadow-md hover:bg-[#1E3A2F] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <span>Muat Lebih Banyak Produk</span>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-mono font-bold">
+                  +{Math.min(24, sortedProducts.length - visibleCount)}
+                </span>
+              </button>
+              <p className="text-xs text-warmgray">
+                Menampilkan <span className="font-bold text-forest">{displayedProducts.length}</span> dari <span className="font-bold text-forest">{sortedProducts.length}</span> produk
+              </p>
+            </div>
+          )}
+        </>
       )}
 
     </div>

@@ -4,10 +4,25 @@ import { authenticateToken } from './auth.js';
 
 const router = express.Router();
 
-// GET /api/products (Public list)
+// High-Performance In-Memory Cache with TTL (2 minutes)
+const productsCache = new Map();
+const CACHE_TTL_MS = 2 * 60 * 1000;
+
+export const clearProductsCache = () => {
+  productsCache.clear();
+};
+
+// GET /api/products (Public list with in-memory caching)
 router.get('/', async (req, res) => {
   try {
     const { category, search } = req.query;
+    const cacheKey = `list_${category || 'all'}_${search || 'all'}`;
+    const cached = productsCache.get(cacheKey);
+
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      return res.json({ products: cached.data, cached: true });
+    }
+
     let sql = 'SELECT * FROM products WHERE is_active = TRUE';
     const params = [];
 
@@ -23,6 +38,13 @@ router.get('/', async (req, res) => {
 
     sql += ' ORDER BY id ASC';
     const result = await query(sql, params);
+
+    // Save to cache for subsequent visitors
+    productsCache.set(cacheKey, {
+      data: result.rows,
+      timestamp: Date.now()
+    });
+
     res.json({ products: result.rows });
   } catch (error) {
     console.error('Fetch products error:', error);
@@ -81,6 +103,7 @@ router.post('/', authenticateToken, async (req, res) => {
       ]
     );
 
+    clearProductsCache();
     res.status(201).json({ message: 'Produk berhasil ditambahkan!', product: result.rows[0] });
   } catch (error) {
     console.error('Create product error:', error);
@@ -130,6 +153,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Produk tidak ditemukan.' });
     }
 
+    clearProductsCache();
     res.json({ message: 'Produk berhasil diperbarui!', product: result.rows[0] });
   } catch (error) {
     console.error('Update product error:', error);
@@ -146,6 +170,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
     const { id } = req.params;
     await query('DELETE FROM products WHERE id = $1', [id]);
+    clearProductsCache();
     res.json({ message: 'Produk berhasil dihapus.' });
   } catch (error) {
     console.error('Delete product error:', error);

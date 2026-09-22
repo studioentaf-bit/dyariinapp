@@ -38,8 +38,14 @@ export const ProductCard = ({ product }) => {
         )}
         
         <img 
-          src={product.image} 
+          src={
+            product.image?.includes('res.cloudinary.com') && product.image?.includes('/upload/') && !product.image?.includes('/upload/f_auto')
+              ? product.image.replace('/upload/', '/upload/f_auto,q_auto,w_600/')
+              : product.image
+          } 
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           onLoad={() => setImgLoaded(true)}
           className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
         />
