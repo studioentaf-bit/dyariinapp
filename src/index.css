@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  body {
+    background-color: #FFFDF8;
+    color: #29463A;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom dyari scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFDF8;
+}
+::-webkit-scrollbar-thumb {
+  background: #B8D8C0;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #97C0A2;
+}
+
+/* Organic Blobs */
+.organic-blob-1 {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+.organic-blob-2 {
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+.organic-blob-3 {
+  border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%;
+}
+
+/* Micro-interaction Button Styles */
+.btn-dyari-primary {
+  @apply bg-forest text-white hover:bg-forest-light px-6 py-3 rounded-dyari-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm;
+}
+
+.btn-dyari-coral {
+  @apply bg-coral text-forest font-semibold hover:bg-coral-hover px-6 py-3 rounded-dyari-sm transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm;
+}
+
+.btn-dyari-outline {
+  @apply border border-dyariborder bg-white text-forest hover:bg-sage px-6 py-3 rounded-dyari-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95;
+}
