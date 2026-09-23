@@ -1,11 +1,18 @@
 import bcrypt from 'bcryptjs';
-import pool, { query } from './db.js';
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Ensure environment variables are loaded
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(process.cwd(), 'server', '.env') });
+dotenv.config();
+
+import pool, { query } from './db.js';
 
 async function runSeed() {
   console.log('🚀 Memulai proses seeding database PostgreSQL (dyaridb)...');

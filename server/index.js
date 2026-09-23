@@ -1,6 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(process.cwd(), 'server', '.env') });
+dotenv.config();
+
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import licenseRoutes from './routes/licenses.js';
@@ -8,8 +18,6 @@ import orderRoutes from './routes/orders.js';
 import memberRoutes from './routes/members.js';
 import settingRoutes from './routes/settings.js';
 import { query } from './db.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
