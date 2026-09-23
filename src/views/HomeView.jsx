@@ -28,7 +28,7 @@ export const HomeView = () => {
   const [emailInput, setEmailInput] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
-  const bundleProduct = products.find(p => p.id === 'cyberton-700-library') || products[0];
+  const bundleProduct = products.find(p => p.id.includes('super-bundling') || p.id === 'cyberton-700-library') || products[0];
 
   const handleCategoryClick = (catId) => {
     setActiveCategory(catId);
