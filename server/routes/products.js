@@ -36,7 +36,7 @@ router.get('/', async (req, res) => {
       sql += ` AND (title ILIKE $${params.length} OR description ILIKE $${params.length})`;
     }
 
-    sql += ' ORDER BY id ASC';
+    sql += ' ORDER BY id DESC';
     const result = await query(sql, params);
 
     // Save to cache for subsequent visitors

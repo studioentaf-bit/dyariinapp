@@ -258,7 +258,7 @@ export const AdminDashboardView = () => {
   const [productTypeFilter, setProductTypeFilter] = useState('ALL'); // 'ALL' | 'APPS_PREMIUM' | 'DIGITAL_PREMIUM' | 'LICENSE_TOOL'
   const [adminProductSearch, setAdminProductSearch] = useState('');
   const [adminProductPage, setAdminProductPage] = useState(1);
-  const adminProductsPerPage = 20;
+  const adminProductsPerPage = 100;
 
   useEffect(() => {
     setAdminProductPage(1);
