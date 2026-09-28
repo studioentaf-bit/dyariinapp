@@ -102,7 +102,16 @@ router.post('/', authenticateToken, async (req, res) => {
     if (validCatId) {
       const catCheck = await query('SELECT id FROM categories WHERE id = $1', [validCatId]);
       if (catCheck.rows.length === 0) {
-        validCatId = null;
+        try {
+          await query(
+            `INSERT INTO categories (id, name, slug, description)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (id) DO NOTHING`,
+            [validCatId, category_name || validCatId, validCatId, 'Kategori ' + (category_name || validCatId)]
+          );
+        } catch (_) {
+          validCatId = null;
+        }
       }
     }
 
@@ -145,7 +154,16 @@ router.put('/:id', authenticateToken, async (req, res) => {
     if (validCatId) {
       const catCheck = await query('SELECT id FROM categories WHERE id = $1', [validCatId]);
       if (catCheck.rows.length === 0) {
-        validCatId = null;
+        try {
+          await query(
+            `INSERT INTO categories (id, name, slug, description)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (id) DO NOTHING`,
+            [validCatId, category_name || validCatId, validCatId, 'Kategori ' + (category_name || validCatId)]
+          );
+        } catch (_) {
+          validCatId = null;
+        }
       }
     }
 
