@@ -119,11 +119,74 @@ export const AdminDashboardView = () => {
     deleteCategory
   } = useStore();
 
-  // Navigation & Sub-tabs State
-  const [activeMenu, setActiveMenu] = useState('dashboard');
-  const [subTabProduk, setSubTabProduk] = useState('kelola-produk'); // 'kelola-produk' | 'kelola-kategori' | 'manajemen-stok' | 'kelola-lisensi'
-  const [productSubAction, setProductSubAction] = useState('semua'); // 'semua' | 'tambah' | 'kategori'
-  const [subTabPengaturan, setSubTabPengaturan] = useState('branding'); // 'branding' | 'kontak' | 'pembayaran'
+  // Navigation & Sub-tabs State (Persisten saat browser di-refresh)
+  const [activeMenu, setActiveMenu] = useState(() => {
+    try {
+      const hash = window.location.hash || '';
+      if (hash.includes('menu=')) {
+        const query = hash.split('?')[1];
+        if (query) {
+          const params = new URLSearchParams(query);
+          const m = params.get('menu');
+          if (m) return m;
+        }
+      }
+      const saved = localStorage.getItem('dyari_admin_active_menu');
+      if (saved) return saved;
+    } catch (_) {}
+    return 'dashboard';
+  });
+
+  const [subTabProduk, setSubTabProduk] = useState(() => {
+    try {
+      const hash = window.location.hash || '';
+      if (hash.includes('subtab=')) {
+        const query = hash.split('?')[1];
+        if (query) {
+          const params = new URLSearchParams(query);
+          const st = params.get('subtab');
+          if (st) return st;
+        }
+      }
+      const saved = localStorage.getItem('dyari_admin_subtab_produk');
+      if (saved) return saved;
+    } catch (_) {}
+    return 'kelola-produk';
+  });
+
+  const [productSubAction, setProductSubAction] = useState('semua');
+
+  const [subTabPengaturan, setSubTabPengaturan] = useState(() => {
+    try {
+      const hash = window.location.hash || '';
+      if (hash.includes('settings_tab=')) {
+        const query = hash.split('?')[1];
+        if (query) {
+          const params = new URLSearchParams(query);
+          const st = params.get('settings_tab');
+          if (st) return st;
+        }
+      }
+      const saved = localStorage.getItem('dyari_admin_subtab_pengaturan');
+      if (saved) return saved;
+    } catch (_) {}
+    return 'branding';
+  });
+
+  // Simpan menu aktif agar tidak kembali ke dashboard saat refresh
+  useEffect(() => {
+    try {
+      localStorage.setItem('dyari_admin_active_menu', activeMenu);
+      localStorage.setItem('dyari_admin_subtab_produk', subTabProduk);
+      localStorage.setItem('dyari_admin_subtab_pengaturan', subTabPengaturan);
+      let query = `menu=${activeMenu}`;
+      if (activeMenu === 'produk-lisensi') query += `&subtab=${subTabProduk}`;
+      if (activeMenu === 'pengaturan') query += `&settings_tab=${subTabPengaturan}`;
+      if (window.location.hash.startsWith('#admin')) {
+        window.history.replaceState(null, '', `#admin?${query}`);
+      }
+    } catch (_) {}
+  }, [activeMenu, subTabProduk, subTabPengaturan]);
 
   // Sidebar Hide/Show State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

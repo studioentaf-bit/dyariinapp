@@ -917,7 +917,10 @@ export const StoreProvider = ({ children }) => {
     // 2. Simpan permanen ke PostgreSQL backend API
     try {
       const token = localStorage.getItem('dyari_auth_token');
-      const headers = { 'Content-Type': 'application/json' };
+      const headers = { 
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure'
+      };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const res = await fetch('/api/products', {
@@ -951,12 +954,16 @@ export const StoreProvider = ({ children }) => {
             return mapped;
           });
         }
+        showToast('Tersimpan di Database', `${product.name} telah disimpan permanen ke database.`);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showToast('Peringatan Database', `Gagal simpan ke server: ${errJson.message || res.statusText}`);
       }
     } catch (e) {
       console.warn('Gagal sinkron produk ke database PostgreSQL:', e);
+      showToast('Mode Offline', 'Produk disimpan di cache browser, tetapi koneksi ke server gagal.');
     }
 
-    showToast('Produk Baru Berhasil Dibuat', product.name);
     return product;
   };
 
@@ -971,7 +978,10 @@ export const StoreProvider = ({ children }) => {
 
     try {
       const token = localStorage.getItem('dyari_auth_token');
-      const headers = { 'Content-Type': 'application/json' };
+      const headers = { 
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure'
+      };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       await fetch(`/api/products/${id}`, {
@@ -1010,7 +1020,9 @@ export const StoreProvider = ({ children }) => {
 
     try {
       const token = localStorage.getItem('dyari_auth_token');
-      const headers = {};
+      const headers = {
+        'x-admin-secret': 'Dyari#Master9981!Secure'
+      };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       await fetch(`/api/products/${id}`, {

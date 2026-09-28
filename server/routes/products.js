@@ -88,7 +88,24 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Judul produk dan harga wajib diisi.' });
     }
 
-    const autoSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let autoSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (!autoSlug) autoSlug = `prod-${Date.now()}`;
+
+    // Pastikan slug unik
+    const checkSlug = await query('SELECT id FROM products WHERE slug = $1', [autoSlug]);
+    if (checkSlug.rows.length > 0) {
+      autoSlug = `${autoSlug}-${Math.floor(100 + Math.random() * 900)}`;
+    }
+
+    // Verifikasi validitas category_id untuk mencegah error foreign key
+    let validCatId = category_id || null;
+    if (validCatId) {
+      const catCheck = await query('SELECT id FROM categories WHERE id = $1', [validCatId]);
+      if (catCheck.rows.length === 0) {
+        validCatId = null;
+      }
+    }
+
     const result = await query(
       `INSERT INTO products (
         title, slug, price, original_price, badge, category_id, category_name,
@@ -97,7 +114,7 @@ router.post('/', authenticateToken, async (req, res) => {
       RETURNING *`,
       [
         title, autoSlug, price, original_price || price, badge || '',
-        category_id || 'aset-premium', category_name || 'Aset Premium',
+        validCatId, category_name || 'Aset Premium',
         type || 'AKSES MEMBER', image || '', access_link || '',
         JSON.stringify(features || []), !!license_required, description || ''
       ]
@@ -107,7 +124,7 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(201).json({ message: 'Produk berhasil ditambahkan!', product: result.rows[0] });
   } catch (error) {
     console.error('Create product error:', error);
-    res.status(500).json({ message: 'Gagal menambahkan produk baru.' });
+    res.status(500).json({ message: 'Gagal menambahkan produk baru: ' + (error.message || error) });
   }
 });
 
@@ -123,6 +140,14 @@ router.put('/:id', authenticateToken, async (req, res) => {
       title, price, original_price, badge, category_id, category_name,
       type, image, access_link, features, license_required, description, is_active
     } = req.body;
+
+    let validCatId = category_id;
+    if (validCatId) {
+      const catCheck = await query('SELECT id FROM categories WHERE id = $1', [validCatId]);
+      if (catCheck.rows.length === 0) {
+        validCatId = null;
+      }
+    }
 
     const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
     const whereClause = isNum ? 'WHERE id = $14' : 'WHERE slug = $14';
@@ -146,7 +171,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
        ${whereClause}
        RETURNING *`,
       [
-        title, price, original_price, badge, category_id, category_name,
+        title, price, original_price, badge, validCatId, category_name,
         type, image, access_link, features ? JSON.stringify(features) : null,
         license_required, description, is_active, id
       ]
@@ -160,7 +185,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     res.json({ message: 'Produk berhasil diperbarui!', product: result.rows[0] });
   } catch (error) {
     console.error('Update product error:', error);
-    res.status(500).json({ message: 'Gagal memperbarui produk.' });
+    res.status(500).json({ message: 'Gagal memperbarui produk: ' + (error.message || error) });
   }
 });
 
