@@ -124,6 +124,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
       type, image, access_link, features, license_required, description, is_active
     } = req.body;
 
+    const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
+    const whereClause = isNum ? 'WHERE id = $14' : 'WHERE slug = $14';
+
     const result = await query(
       `UPDATE products SET
         title = COALESCE($1, title),
@@ -140,7 +143,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
         description = COALESCE($12, description),
         is_active = COALESCE($13, is_active),
         updated_at = CURRENT_TIMESTAMP
-       WHERE id = $14
+       ${whereClause}
        RETURNING *`,
       [
         title, price, original_price, badge, category_id, category_name,
@@ -169,7 +172,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     }
 
     const { id } = req.params;
-    await query('DELETE FROM products WHERE id = $1', [id]);
+    const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
+    const sql = isNum ? 'DELETE FROM products WHERE id = $1' : 'DELETE FROM products WHERE slug = $1';
+    await query(sql, [id]);
     clearProductsCache();
     res.json({ message: 'Produk berhasil dihapus.' });
   } catch (error) {

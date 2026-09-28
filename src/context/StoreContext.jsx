@@ -182,6 +182,37 @@ export const getLicenseEffectiveStatus = (license) => {
   };
 };
 
+// --- UTILITY: MAPPING PRODUK DARI POSTGRESQL API ---
+export const mapBackendProduct = (row) => ({
+  id: row.slug || `prod-${row.id}`,
+  dbId: row.id,
+  name: row.title,
+  tagline: row.description || '',
+  category: row.category_id || 'aset-premium',
+  categoryName: row.category_name || 'Mega Bundle & Canva',
+  subcategory: row.category_name || 'Aset Digital',
+  type: row.type || 'DIGITAL_PREMIUM',
+  badge: row.badge || '',
+  badgeColor: row.badge === 'NEW' ? 'bg-[#61A87D] text-white' : (row.badge ? 'bg-amber-600 text-white' : ''),
+  mockupType: 'app',
+  price: Number(row.price),
+  originalPrice: Number(row.original_price || row.price),
+  rating: Number(row.rating || 5.0),
+  reviewsCount: Number(row.sales_count || 0),
+  productType: 'DIGITAL_PREMIUM',
+  afterPurchaseMessage: 'Petunjuk Akses: Buka tautan di atas untuk langsung mengakses materi digital secara lengkap.',
+  image: row.image || '',
+  accessUrl: row.access_link || '',
+  gallery: [row.image || ''],
+  description: row.description || '',
+  features: Array.isArray(row.features) ? row.features : (typeof row.features === 'string' ? JSON.parse(row.features || '[]') : []),
+  perks: [
+    'Akses Langsung Instan Tanpa Menunggu',
+    'Lisensi Personal & Belajar Lengkap',
+    'Update Konten Berkala'
+  ]
+});
+
 const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
@@ -334,7 +365,39 @@ export const StoreProvider = ({ children }) => {
   }, [categories]);
 
   // Products & Orders List
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dyari_products_cache_v1');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return initialProducts;
+  });
+
+  // Sinkronisasi data produk langsung dari PostgreSQL Database
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBackendProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data.products) && data.products.length > 0 && isMounted) {
+            const mapped = data.products.map(mapBackendProduct);
+            setProducts(mapped);
+            localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+          }
+        }
+      } catch (err) {
+        console.warn('API /api/products tidak terjangkau, menggunakan data cadangan lokal.', err);
+      }
+    };
+    fetchBackendProducts();
+    return () => { isMounted = false; };
+  }, []);
+
   const [orders, setOrders] = useState(initialOrders);
   const [lastOrder, setLastOrder] = useState(null);
 
@@ -833,27 +896,131 @@ export const StoreProvider = ({ children }) => {
   };
 
   // Product CRUD
-  const addProduct = (newProduct) => {
-    const id = newProduct.id || `prod-${Date.now()}`;
+  const addProduct = async (newProduct) => {
+    const slug = newProduct.id || newProduct.slug || `dyari-${(newProduct.name || 'produk').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString().slice(-4)}`;
     const product = {
       ...newProduct,
-      id,
+      id: slug,
       rating: newProduct.rating || 5.0,
       reviewsCount: newProduct.reviewsCount || 0
     };
-    setProducts(prev => [product, ...prev]);
+
+    // 1. Simpan langsung ke state & cache browser agar instant responsif
+    setProducts(prev => {
+      const updated = [product, ...prev];
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    // 2. Simpan permanen ke PostgreSQL backend API
+    try {
+      const token = localStorage.getItem('dyari_auth_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          title: product.name,
+          slug: product.id,
+          price: product.price,
+          original_price: product.originalPrice || product.price,
+          badge: product.badge || '',
+          category_id: product.category || 'aset-premium',
+          category_name: product.categoryName || 'Mega Bundle & Canva',
+          type: product.type || 'DIGITAL_PREMIUM',
+          image: product.image || '',
+          access_link: product.accessUrl || '',
+          features: product.features || [],
+          license_required: product.productType === 'LICENSE_TOOL',
+          description: product.description || product.tagline || ''
+        })
+      });
+
+      if (res.ok) {
+        const saved = await res.json();
+        if (saved.product) {
+          setProducts(prev => {
+            const mapped = prev.map(p => p.id === product.id ? { ...p, dbId: saved.product.id } : p);
+            try {
+              localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+            } catch (_) {}
+            return mapped;
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Gagal sinkron produk ke database PostgreSQL:', e);
+    }
+
     showToast('Produk Baru Berhasil Dibuat', product.name);
     return product;
   };
 
-  const updateProduct = (id, updatedFields) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+  const updateProduct = async (id, updatedFields) => {
+    setProducts(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, ...updatedFields } : p);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      const token = localStorage.getItem('dyari_auth_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          title: updatedFields.name,
+          price: updatedFields.price,
+          original_price: updatedFields.originalPrice,
+          badge: updatedFields.badge,
+          category_id: updatedFields.category,
+          category_name: updatedFields.categoryName,
+          type: updatedFields.type,
+          image: updatedFields.image,
+          access_link: updatedFields.accessUrl,
+          features: updatedFields.features,
+          description: updatedFields.description || updatedFields.tagline
+        })
+      });
+    } catch (e) {
+      console.warn('Gagal sinkron update ke PostgreSQL:', e);
+    }
+
     showToast('Produk Diperbarui', 'Perubahan produk berhasil disimpan.');
   };
 
-  const deleteProduct = (id) => {
+  const deleteProduct = async (id) => {
     const p = products.find(prod => prod.id === id);
-    setProducts(prev => prev.filter(prod => prod.id !== id));
+    setProducts(prev => {
+      const updated = prev.filter(prod => prod.id !== id);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      const token = localStorage.getItem('dyari_auth_token');
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+    } catch (e) {
+      console.warn('Gagal sinkron delete ke PostgreSQL:', e);
+    }
+
     showToast('Produk Dihapus', `${p?.name || 'Produk'} telah dihapus.`);
   };
 
