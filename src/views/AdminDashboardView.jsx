@@ -3631,7 +3631,7 @@ export const AdminDashboardView = () => {
                 </div>
               )}
 
-              {/* SUB-TAB 5C: MANAJEMEN STOK BERDASARKAN FORM UI BARU */}
+              {/* SUB-TAB 5C: MANAJEMEN STOK BERDASARKAN FORM TEMA DYARI.IN */}
               {subTabProduk === 'manajemen-stok' && (() => {
                 // Kumpulkan seluruh data stok dari semua produk
                 const allStockItems = [];
@@ -3728,7 +3728,6 @@ export const AdminDashboardView = () => {
                   if (selectedStockKeys.length === 0) return;
                   if (!confirm(`Hapus ${selectedStockKeys.length} baris stok terpilih secara permanen?`)) return;
                   
-                  // Kelompokkan per productId
                   const mapByProd = {};
                   selectedStockKeys.forEach(key => {
                     const [pId, sId] = key.split(':::');
@@ -3752,18 +3751,18 @@ export const AdminDashboardView = () => {
                 };
 
                 return (
-                  <div className="bg-[#0B1311] border border-[#1A2924] rounded-2xl p-5 sm:p-6 text-white space-y-6 shadow-2xl text-left">
-                    {/* 1. HEADER UTAMA */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#182722] pb-5">
-                      <div className="flex items-start sm:items-center gap-3.5">
-                        <div className="w-11 h-11 rounded-xl bg-[#14221D] border border-[#223930] text-[#00E599] flex items-center justify-center shrink-0 shadow-inner">
-                          <Layers size={22} className="stroke-[2.2]" />
+                  <div className="space-y-6 text-left">
+                    {/* 1. HEADER UTAMA (TEMA DYARI.IN) */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAE4] pb-4">
+                      <div className="flex items-start sm:items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-sage border border-matcha/50 text-forest flex items-center justify-center shrink-0 shadow-2xs">
+                          <Layers size={20} className="stroke-[2.2]" />
                         </div>
                         <div>
-                          <h2 className="text-xl font-heading font-extrabold text-white tracking-tight">
+                          <h2 className="text-xl font-heading font-extrabold text-forest tracking-tight">
                             Manajemen & Kontrol Stok Produk
                           </h2>
-                          <p className="text-xs text-emerald-100/70 mt-0.5">
+                          <p className="text-xs text-warmgray mt-0.5">
                             Pantau ketersediaan link redeem, hapus stok kedaluwarsa/terjual, dan import batch stok dengan mudah.
                           </p>
                         </div>
@@ -3776,46 +3775,48 @@ export const AdminDashboardView = () => {
                           setImportBatchRawText('');
                           setShowImportBatchModal(true);
                         }}
-                        className="bg-[#00E599] hover:bg-[#00c985] text-[#071611] font-heading font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 self-start sm:self-auto cursor-pointer active:scale-95"
+                        className="btn-dyari text-xs px-4 py-2.5 font-bold shadow-xs inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                       >
-                        <Plus size={16} className="stroke-[3]" />
+                        <Plus size={15} />
                         <span>+ Tambah Stok Batch</span>
                       </button>
                     </div>
 
-                    {/* 2. CARD INTEGRASI KETERSEDIAAN STOK PAKET BUNDLING */}
-                    <div className="bg-[#131124] border border-purple-500/30 rounded-xl p-4.5 space-y-3.5">
+                    {/* 2. CARD INTEGRASI KETERSEDIAAN STOK PAKET BUNDLING (TEMA DYARI.IN) */}
+                    <div className="bg-gradient-to-br from-[#F5F8F6] via-white to-sage/40 border border-[#D5E2D9] rounded-2xl p-5 space-y-3.5 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <Layers3 size={16} className="text-purple-400" />
-                          <h3 className="font-heading font-extrabold text-sm text-purple-100">
+                          <div className="w-6 h-6 rounded-lg bg-matcha-light text-forest flex items-center justify-center">
+                            <Layers3 size={14} />
+                          </div>
+                          <h3 className="font-heading font-extrabold text-sm text-forest">
                             Integrasi Ketersediaan Stok Paket Bundling
                           </h3>
                         </div>
-                        <span className="bg-emerald-950/80 border border-emerald-500/40 text-[#00E599] text-[11px] font-bold px-3 py-1 rounded-full self-start sm:self-auto">
+                        <span className="bg-matcha-light text-forest border border-matcha/60 font-bold text-[11px] px-3 py-1 rounded-full self-start sm:self-auto shadow-2xs">
                           {readyBundleTotal} dari {comboBundles.length} Paket Ready
                         </span>
                       </div>
-                      <p className="text-[11px] text-purple-300/70 -mt-1.5">
+                      <p className="text-[11px] text-warmgray -mt-1.5">
                         Dihitung real-time dari stok produk satuan (Min Stok Komponen / Kebutuhan Qty)
                       </p>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                         {comboBundles.map((bundle, bIdx) => (
-                          <div key={bIdx} className="bg-[#1B172E] border border-purple-500/20 rounded-xl p-3.5 space-y-2">
+                          <div key={bIdx} className="bg-white border border-[#E2EBE5] rounded-xl p-3.5 space-y-2 shadow-2xs hover:border-matcha transition-colors">
                             <div className="flex items-center justify-between gap-2">
-                              <h4 className="font-heading font-bold text-xs text-purple-200 truncate">
+                              <h4 className="font-heading font-bold text-xs text-forest truncate">
                                 {bundle.name}
                               </h4>
-                              <span className="bg-emerald-950/70 border border-emerald-500/30 text-[#00E599] font-mono text-[11px] font-extrabold px-2 py-0.5 rounded shrink-0">
+                              <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-extrabold px-2 py-0.5 rounded shrink-0">
                                 Ready: {bundle.ready} Paket
                               </span>
                             </div>
-                            <div className="space-y-1 text-[11px] text-purple-300/80">
+                            <div className="space-y-1 text-[11px] text-warmgray">
                               {bundle.items.map((item, itIdx) => (
                                 <div key={itIdx} className="flex items-center justify-between truncate">
                                   <span className="truncate">• {item.name} ({item.qty}x)</span>
-                                  <span className="font-mono text-emerald-400 ml-2 shrink-0">{item.ready} ready</span>
+                                  <span className="font-mono text-forest font-bold ml-2 shrink-0">{item.ready} ready</span>
                                 </div>
                               ))}
                             </div>
@@ -3824,18 +3825,18 @@ export const AdminDashboardView = () => {
                       </div>
                     </div>
 
-                    {/* 3. CONTROL & FILTER BAR */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#0F1A17] border border-[#1A2C26] p-3 rounded-xl">
+                    {/* 3. CONTROL & FILTER BAR (TEMA DYARI.IN) */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#FAFBF9] border border-[#E5EAE4] p-3 rounded-2xl shadow-2xs">
                       {/* Left: Product Selector Dropdown */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-emerald-100/70 font-semibold shrink-0">Produk:</span>
+                        <span className="text-xs text-forest font-bold shrink-0">Produk:</span>
                         <select
                           value={stockProductFilter}
                           onChange={(e) => {
                             setStockProductFilter(e.target.value);
                             setSelectedStockKeys([]);
                           }}
-                          className="bg-[#14231E] border border-[#213830] text-gray-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#00E599] font-medium max-w-[280px] sm:max-w-[340px] truncate"
+                          className="bg-white border border-[#E5EAE4] text-forest text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-forest font-medium max-w-[280px] sm:max-w-[340px] truncate shadow-2xs"
                         >
                           <option value="ALL">Semua Produk ({allStockItems.length} total)</option>
                           {products.map(p => {
@@ -3854,10 +3855,10 @@ export const AdminDashboardView = () => {
                         <button
                           type="button"
                           onClick={() => setStockStatusFilter('ALL')}
-                          className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                          className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                             stockStatusFilter === 'ALL'
-                              ? 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/40'
-                              : 'bg-[#14231E] text-gray-400 hover:text-gray-200 border border-[#213830]'
+                              ? 'bg-forest text-white shadow-xs'
+                              : 'bg-white border border-[#E5EAE4] text-warmgray hover:text-forest hover:bg-sage-light'
                           }`}
                         >
                           Semua ({totalStockCount})
@@ -3865,10 +3866,10 @@ export const AdminDashboardView = () => {
                         <button
                           type="button"
                           onClick={() => setStockStatusFilter('READY')}
-                          className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                          className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                             stockStatusFilter === 'READY'
-                              ? 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/40'
-                              : 'bg-[#14231E] text-gray-400 hover:text-gray-200 border border-[#213830]'
+                              ? 'bg-forest text-white shadow-xs'
+                              : 'bg-white border border-[#E5EAE4] text-warmgray hover:text-forest hover:bg-sage-light'
                           }`}
                         >
                           Ready ({readyStockCount})
@@ -3876,10 +3877,10 @@ export const AdminDashboardView = () => {
                         <button
                           type="button"
                           onClick={() => setStockStatusFilter('SOLD')}
-                          className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                          className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
                             stockStatusFilter === 'SOLD'
-                              ? 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/40'
-                              : 'bg-[#14231E] text-gray-400 hover:text-gray-200 border border-[#213830]'
+                              ? 'bg-forest text-white shadow-xs'
+                              : 'bg-white border border-[#E5EAE4] text-warmgray hover:text-forest hover:bg-sage-light'
                           }`}
                         >
                           Sold ({soldStockCount})
@@ -3888,13 +3889,13 @@ export const AdminDashboardView = () => {
 
                       {/* Right: Search Input */}
                       <div className="relative w-full lg:w-64">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-warmgray" />
                         <input
                           type="text"
                           value={stockSearchQuery}
                           onChange={(e) => setStockSearchQuery(e.target.value)}
                           placeholder="Cari link / ref order..."
-                          className="w-full bg-[#14231E] border border-[#213830] text-gray-200 placeholder-gray-500 text-xs rounded-lg pl-8.5 pr-3 py-1.5 focus:outline-none focus:border-[#00E599]"
+                          className="w-full bg-white border border-[#E5EAE4] text-forest placeholder-warmgray-light text-xs rounded-xl pl-8.5 pr-3 py-2 focus:outline-none focus:border-forest shadow-2xs"
                         />
                       </div>
                     </div>
@@ -3902,12 +3903,12 @@ export const AdminDashboardView = () => {
                     {/* 4. ACTIONS BAR */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                       <div className="flex items-center gap-3">
-                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-gray-300">
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-forest font-medium">
                           <input
                             type="checkbox"
                             checked={isAllSelected}
                             onChange={handleToggleSelectAll}
-                            className="w-4 h-4 rounded bg-[#14231E] border-[#213830] text-[#00E599] focus:ring-0 cursor-pointer accent-[#00E599]"
+                            className="w-4 h-4 rounded border-[#D0DFD3] text-forest focus:ring-0 cursor-pointer accent-forest"
                           />
                           <span>Pilih Semua Halaman Ini ({displayedStock.length})</span>
                         </label>
@@ -3916,7 +3917,7 @@ export const AdminDashboardView = () => {
                           <button
                             type="button"
                             onClick={handleBulkDeleteSelected}
-                            className="bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                            className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                           >
                             <Trash2 size={13} />
                             <span>Hapus ({selectedStockKeys.length}) Terpilih</span>
@@ -3927,17 +3928,17 @@ export const AdminDashboardView = () => {
                       <button
                         type="button"
                         onClick={() => clearSoldStock(stockProductFilter === 'ALL' ? null : stockProductFilter)}
-                        className="bg-[#15231F] hover:bg-rose-950/40 border border-[#243A32] hover:border-rose-900/60 text-gray-300 hover:text-rose-300 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-2 self-start sm:self-auto transition-colors cursor-pointer"
+                        className="btn-dyari-outline text-xs px-3.5 py-1.5 font-bold hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-warmgray flex items-center gap-1.5 self-start sm:self-auto transition-colors cursor-pointer"
                       >
-                        <Trash2 size={13} className="text-gray-400" />
+                        <Trash2 size={13} />
                         <span>Bersihkan Semua Stok Terjual</span>
                       </button>
                     </div>
 
-                    {/* 5. TABEL KREDENSIAL & STOK */}
-                    <div className="overflow-x-auto rounded-xl border border-[#1A2C26] bg-[#0D1714]">
+                    {/* 5. TABEL KREDENSIAL & STOK (TEMA DYARI.IN) */}
+                    <div className="overflow-x-auto rounded-2xl border border-[#E5EAE4] bg-white shadow-2xs">
                       <table className="w-full text-left text-xs border-collapse">
-                        <thead className="bg-[#121E1A] text-gray-400 uppercase text-[10px] tracking-wider border-b border-[#1A2C26]">
+                        <thead className="bg-[#FAFBF9] text-forest/70 uppercase text-[10px] font-bold tracking-wider border-b border-[#E5EAE4]">
                           <tr>
                             <th className="py-3 px-3.5 w-10 text-center">
                               <span className="sr-only">Pilih</span>
@@ -3949,13 +3950,13 @@ export const AdminDashboardView = () => {
                             <th className="py-3 px-3 text-center w-16">AKSI</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#162621]">
+                        <tbody className="divide-y divide-[#F0F4F1]">
                           {displayedStock.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="py-12 text-center text-gray-400">
-                                <Package size={32} className="mx-auto mb-2 opacity-30 text-[#00E599]" />
-                                <p className="font-bold text-sm text-gray-300">Belum Ada Data Stok</p>
-                                <p className="text-xs text-gray-500 mt-1">
+                              <td colSpan={6} className="py-12 text-center text-warmgray">
+                                <Package size={32} className="mx-auto mb-2 opacity-40 text-forest" />
+                                <p className="font-bold text-sm text-forest">Belum Ada Data Stok</p>
+                                <p className="text-xs text-warmgray mt-1">
                                   Klik tombol "+ Tambah Stok Batch" di atas untuk memasukkan link atau akun baru.
                                 </p>
                               </td>
@@ -3966,14 +3967,14 @@ export const AdminDashboardView = () => {
                               const isSelected = selectedStockKeys.includes(key);
 
                               return (
-                                <tr key={key} className={`hover:bg-[#12201B] transition-colors ${isSelected ? 'bg-[#142620]' : ''}`}>
+                                <tr key={key} className={`hover:bg-sage-light/40 transition-colors ${isSelected ? 'bg-sage-light/70' : ''}`}>
                                   {/* Select Checkbox */}
                                   <td className="py-3 px-3.5 text-center">
                                     <input
                                       type="checkbox"
                                       checked={isSelected}
                                       onChange={() => handleToggleSelectOne(key)}
-                                      className="w-4 h-4 rounded bg-[#14231E] border-[#213830] text-[#00E599] focus:ring-0 cursor-pointer accent-[#00E599]"
+                                      className="w-4 h-4 rounded border-[#D0DFD3] text-forest focus:ring-0 cursor-pointer accent-forest"
                                     />
                                   </td>
 
@@ -3981,13 +3982,13 @@ export const AdminDashboardView = () => {
                                   <td className="py-3 px-3 max-w-[220px]">
                                     <div className="flex items-center gap-2.5">
                                       {item.productImage && (
-                                        <img src={item.productImage} alt={item.productName} className="w-7 h-7 rounded-lg object-cover shrink-0 border border-[#213830]" />
+                                        <img src={item.productImage} alt={item.productName} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-[#E5EAE4]" />
                                       )}
                                       <div className="truncate">
-                                        <p className="font-heading font-bold text-white truncate text-xs">
+                                        <p className="font-heading font-bold text-forest truncate text-xs">
                                           {item.productName}
                                         </p>
-                                        <p className="text-[10px] text-emerald-200/60 truncate">
+                                        <p className="text-[10px] text-warmgray truncate">
                                           {item.productCategory} • Rp {item.productPrice?.toLocaleString('id-ID')}
                                         </p>
                                       </div>
@@ -3996,15 +3997,15 @@ export const AdminDashboardView = () => {
 
                                   {/* Link / Kredensial Stok Box with Copy Button */}
                                   <td className="py-3 px-3">
-                                    <div className="bg-[#08110E] border border-[#1A2C26] rounded-lg px-3 py-2 flex items-center justify-between gap-2 max-w-xl group">
-                                      <span className="font-mono text-[11px] text-gray-200 truncate select-all">
+                                    <div className="bg-[#F8FAF8] border border-[#E0E7E2] rounded-xl px-3 py-2 flex items-center justify-between gap-2 max-w-xl group">
+                                      <span className="font-mono text-[11px] text-forest truncate select-all">
                                         {item.text}
                                       </span>
                                       <button
                                         type="button"
                                         onClick={() => handleCopyCredential(item.text)}
                                         title="Salin Link/Kredensial"
-                                        className="text-gray-400 hover:text-[#00E599] p-1 rounded hover:bg-[#152520] transition-colors shrink-0 cursor-pointer"
+                                        className="text-warmgray hover:text-forest p-1 rounded-lg hover:bg-sage transition-colors shrink-0 cursor-pointer"
                                       >
                                         <Copy size={13} />
                                       </button>
@@ -4014,13 +4015,13 @@ export const AdminDashboardView = () => {
                                   {/* Status */}
                                   <td className="py-3 px-3 text-center">
                                     {item.isSold ? (
-                                      <span className="inline-flex items-center gap-1.5 bg-[#1B2527] border border-[#27383B] text-gray-400 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+                                      <span className="inline-flex items-center gap-1.5 bg-gray-100 border border-gray-200 text-gray-600 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                                         <span>TERJUAL (SOLD)</span>
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center gap-1.5 bg-[#032B20] border border-[#065F46] text-[#34D399] text-[10px] font-bold px-2.5 py-1 rounded-full">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse"></span>
+                                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                         <span>READY</span>
                                       </span>
                                     )}
@@ -4040,19 +4041,19 @@ export const AdminDashboardView = () => {
                                               showToast('Ref Order', item.soldTo || 'Pesanan Manual');
                                             }
                                           }}
-                                          className="text-sky-400 hover:text-sky-300 font-mono font-bold text-[11px] inline-flex items-center gap-1 hover:underline cursor-pointer"
+                                          className="text-forest hover:text-forest-light font-mono font-bold text-[11px] inline-flex items-center gap-1 hover:underline cursor-pointer"
                                         >
                                           <span>{item.soldTo || '#$SHP-ORDER'}</span>
                                           <ExternalLink size={10} />
                                         </button>
-                                        <p className="text-[10px] text-gray-500 mt-0.5">
+                                        <p className="text-[10px] text-warmgray mt-0.5">
                                           {item.soldAt || 'Waktu tidak tercatat'}
                                         </p>
                                       </div>
                                     ) : (
                                       <div>
-                                        <span className="text-gray-500 text-xs font-mono">-</span>
-                                        <p className="text-[10px] text-gray-500">
+                                        <span className="text-warmgray text-xs font-mono">-</span>
+                                        <p className="text-[10px] text-warmgray">
                                           Ditambahkan: {item.addedAt || 'Hari Ini'}
                                         </p>
                                       </div>
@@ -4066,9 +4067,9 @@ export const AdminDashboardView = () => {
                                         type="button"
                                         onClick={() => toggleStockSold(item.productId, item.id)}
                                         title={item.isSold ? 'Ubah ke READY' : 'Tandai TERJUAL'}
-                                        className="text-gray-500 hover:text-[#00E599] p-1.5 rounded-lg hover:bg-[#142620] transition-colors cursor-pointer"
+                                        className="text-warmgray hover:text-emerald-700 p-1.5 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer"
                                       >
-                                        <CheckCircle2 size={13} />
+                                        <CheckCircle2 size={14} />
                                       </button>
                                       <button
                                         type="button"
@@ -4078,9 +4079,9 @@ export const AdminDashboardView = () => {
                                           }
                                         }}
                                         title="Hapus baris stok"
-                                        className="text-gray-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                        className="text-warmgray hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                                       >
-                                        <Trash2 size={13} />
+                                        <Trash2 size={14} />
                                       </button>
                                     </div>
                                   </td>
@@ -6513,22 +6514,27 @@ export const AdminDashboardView = () => {
         };
 
         return (
-          <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-[#0C1513] border border-[#1C2C25] rounded-2xl max-w-lg w-full p-6 text-white space-y-4 shadow-2xl animate-scale-up text-left">
+          <div className="fixed inset-0 bg-forest/40 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white border border-[#E5EAE4] rounded-3xl max-w-lg w-full p-6 text-forest space-y-4 shadow-2xl animate-scale-up text-left">
               {/* Header Modal */}
-              <div className="flex items-center justify-between border-b border-[#182721] pb-3">
-                <div>
-                  <h3 className="font-heading font-extrabold text-base text-white">
-                    Import Stok
-                  </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Paste teks berisi link atau kode redeem
-                  </p>
+              <div className="flex items-center justify-between border-b border-[#F0F4F1] pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-sage border border-matcha/50 text-forest flex items-center justify-center font-bold">
+                    <Layers size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-extrabold text-base text-forest">
+                      Import Stok
+                    </h3>
+                    <p className="text-xs text-warmgray mt-0.5">
+                      Paste teks berisi link atau kode redeem
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowImportBatchModal(false)}
-                  className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-[#172520] transition-colors cursor-pointer"
+                  className="text-warmgray hover:text-forest p-1 rounded-lg hover:bg-sage-light transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -6536,13 +6542,13 @@ export const AdminDashboardView = () => {
 
               {/* Form Input Produk Tujuan */}
               <div className="space-y-1.5">
-                <label className="text-xs text-gray-300 font-bold block">
+                <label className="text-xs text-forest font-bold block">
                   Produk Tujuan:
                 </label>
                 <select
                   value={importBatchTargetProductId}
                   onChange={(e) => setImportBatchTargetProductId(e.target.value)}
-                  className="w-full bg-[#111D19] border border-[#1F332B] text-gray-200 text-xs rounded-xl p-2.5 focus:outline-none focus:border-purple-500 font-medium"
+                  className="w-full bg-[#FAFBF9] border border-[#E5EAE4] text-forest text-xs rounded-xl p-2.5 focus:outline-none focus:border-forest font-medium"
                 >
                   {products.map(p => {
                     const readyCount = (p.accountStock || []).filter(s => !s.isSold).length;
@@ -6562,35 +6568,35 @@ export const AdminDashboardView = () => {
                   value={importBatchRawText}
                   onChange={(e) => setImportBatchRawText(e.target.value)}
                   placeholder={`Teks kotor diperbolehkan. Sistem otomatis mengekstrak semua link (https:// atau http://) sampai spasi/enter berikutnya; jika tidak ada link, sistem membaca 1 baris sebagai 1 kode/kredensial.\n\nContoh link:\nLink 1: https://redeem.example.com/c405a\nLink 2: https://redeem.example.com/d506b\n...`}
-                  className="w-full bg-[#0A1310] border border-[#1A2A24] rounded-xl p-3 text-xs font-mono text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500 leading-relaxed"
+                  className="w-full bg-[#FAFBF9] border border-[#E5EAE4] rounded-xl p-3 text-xs font-mono text-forest placeholder:text-warmgray-light focus:outline-none focus:border-forest leading-relaxed"
                 />
 
                 {/* Counter Badge */}
                 <div className="flex justify-end">
-                  <span className="bg-[#14231E] border border-[#213830] text-gray-300 font-mono font-bold text-[11px] px-2.5 py-1 rounded-lg">
+                  <span className="bg-sage-light border border-matcha/50 text-forest font-mono font-bold text-[11px] px-2.5 py-1 rounded-lg">
                     {detectedCount} kode/baris
                   </span>
                 </div>
               </div>
 
               {/* Info Text */}
-              <p className="text-[11px] text-gray-400 leading-relaxed">
+              <div className="p-3 rounded-xl bg-sage-light/60 border border-matcha/30 text-[11px] text-forest/80 leading-relaxed">
                 URL dideteksi otomatis. Jika tidak ada URL, satu kode redeem per baris tetap didukung. Duplikat global ditolak termasuk Available, Reserved, atau Sold.
-              </p>
+              </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#182721]">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#F0F4F1]">
                 <button
                   type="button"
                   onClick={handleDoImport}
-                  className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-heading font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
+                  className="btn-dyari text-xs px-5 py-2.5 font-bold shadow-xs cursor-pointer"
                 >
                   Import Stok
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowImportBatchModal(false)}
-                  className="bg-[#202E28] hover:bg-[#283A33] text-gray-300 font-bold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+                  className="btn-dyari-outline text-xs px-4 py-2.5 font-bold cursor-pointer"
                 >
                   Tutup
                 </button>
