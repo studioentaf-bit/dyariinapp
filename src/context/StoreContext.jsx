@@ -1322,16 +1322,30 @@ export const StoreProvider = ({ children }) => {
     showToast('Stok Produk Diperbarui', 'Perubahan kuota & stok produk disimpan.');
   };
 
-  // Mass Stock Importer for Apps Premium (1 line = 1 stock account/link)
+  // Mass Stock Importer for Apps & Digital Stock (Supports messy paste, auto URL extraction, 1 code per line)
   // Dilengkapi validasi pencegahan duplikasi antara sold dan unsold
   const importMassStock = (productId, rawText, mode = 'append') => {
-    const rawLines = (rawText || '')
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
+    if (!rawText || !rawText.trim()) {
+      showToast('Input Kosong', 'Tidak ada baris stok yang valid untuk diimport.');
+      return { success: false, added: 0, rejected: 0 };
+    }
+
+    // 1. Cek apakah ada URL (http:// atau https://)
+    const urlMatches = rawText.match(/https?:\/\/[^\s]+/g);
+    let rawLines = [];
+    if (urlMatches && urlMatches.length > 0) {
+      // Ambil semua URL unik yang terdeteksi
+      rawLines = Array.from(new Set(urlMatches.map(u => u.trim()))).filter(Boolean);
+    } else {
+      // Jika tidak ada URL, pecah per baris (1 kode/kredensial per baris)
+      rawLines = rawText
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+    }
 
     if (rawLines.length === 0) {
-      showToast('Input Kosong', 'Tidak ada baris stok yang valid untuk diimport.');
+      showToast('Input Kosong', 'Tidak ada baris atau URL stok yang valid untuk diimport.');
       return { success: false, added: 0, rejected: 0 };
     }
 
@@ -1351,7 +1365,7 @@ export const StoreProvider = ({ children }) => {
 
       for (const line of rawLines) {
         const n = norm(line);
-        // Cegah duplikasi dengan stok yang sudah ada (sold & unsold) dan duplikasi dalam 1 input
+        // Cegah duplikasi dengan stok yang sudah ada (sold & unsold) dan duplikasi dalam 1 batch input
         if (existingSet.has(n) || seenInBatch.has(n)) {
           rejectedCount++;
         } else {
@@ -1362,7 +1376,11 @@ export const StoreProvider = ({ children }) => {
 
       addedCount = validLines.length;
 
-      const todayStr = new Date().toLocaleDateString('id-ID');
+      const todayStr = new Date().toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+      });
       const newItems = validLines.map((line, idx) => ({
         id: `stk-${Date.now()}-${idx}-${Math.floor(100 + Math.random() * 900)}`,
         text: line,
@@ -1389,10 +1407,10 @@ export const StoreProvider = ({ children }) => {
       showToast('Gagal: Duplikasi Terdeteksi', `Semua ${rejectedCount} baris ditolak karena sudah pernah ada di stok (sold/unsold).`);
       return { success: false, added: 0, rejected: rejectedCount };
     } else if (rejectedCount > 0) {
-      showToast('Import Selesai (Ada Duplikat)', `${addedCount} baris berhasil ditambahkan. ${rejectedCount} baris duplikat (sold/unsold) ditolak.`);
+      showToast('Import Selesai', `${addedCount} stok berhasil ditambahkan. ${rejectedCount} duplikat ditolak.`);
       return { success: true, added: addedCount, rejected: rejectedCount };
     } else {
-      showToast('Import Berhasil', `${addedCount} baris akun/link unik berhasil dimasukkan.`);
+      showToast('Import Berhasil', `${addedCount} link/kredensial unik berhasil dimasukkan ke stok.`);
       return { success: true, added: addedCount, rejected: 0 };
     }
   };
@@ -1423,7 +1441,7 @@ export const StoreProvider = ({ children }) => {
           return {
             ...s,
             isSold: nextSold,
-            soldTo: nextSold ? 'MANUAL-ADMIN' : null,
+            soldTo: nextSold ? '#$SHP-MANUAL' : null,
             soldAt: nextSold ? new Date().toLocaleDateString('id-ID') : null
           };
         }
@@ -1438,6 +1456,43 @@ export const StoreProvider = ({ children }) => {
       };
     }));
     showToast('Status Baris Diubah', 'Ketersediaan baris stok berhasil diperbarui.');
+  };
+
+  // Clear all sold stock (or specific product sold stock)
+  const clearSoldStock = (targetProductId = null) => {
+    let clearedTotal = 0;
+    setProducts(prev => prev.map(p => {
+      if (targetProductId && p.id !== targetProductId) return p;
+      const stock = p.accountStock || [];
+      const soldItems = stock.filter(s => s.isSold);
+      clearedTotal += soldItems.length;
+      const remaining = stock.filter(s => !s.isSold);
+      return {
+        ...p,
+        accountStock: remaining,
+        stockCount: remaining.length,
+        isAvailable: remaining.length > 0
+      };
+    }));
+    showToast('Stok Terjual Dibersihkan', `${clearedTotal} baris stok berstatus TERJUAL telah dibersihkan.`);
+  };
+
+  // Bulk delete selected stock items by array of IDs
+  const bulkDeleteStockItems = (productId, stockItemIds = []) => {
+    if (!stockItemIds || stockItemIds.length === 0) return;
+    const toDeleteSet = new Set(stockItemIds);
+    setProducts(prev => prev.map(p => {
+      if (productId && p.id !== productId) return p;
+      const updated = (p.accountStock || []).filter(s => !toDeleteSet.has(s.id));
+      const availableCount = updated.filter(s => !s.isSold).length;
+      return {
+        ...p,
+        accountStock: updated,
+        stockCount: availableCount,
+        isAvailable: availableCount > 0
+      };
+    }));
+    showToast('Hapus Terpilih', `${stockItemIds.length} item stok berhasil dihapus.`);
   };
 
   // --- DYNAMIC LICENSE PACKAGE TIERS MANAGEMENT (CRUD Bebas Tambah, Edit, Hapus) ---
@@ -1699,6 +1754,8 @@ export const StoreProvider = ({ children }) => {
       importMassStock,
       deleteStockItem,
       toggleStockSold,
+      clearSoldStock,
+      bulkDeleteStockItems,
       // Dynamic License Package Management (Unlimited Tiers)
       licensePackages: storeSettings.licensePackages || defaultLicensePackages,
       addLicensePackage,

@@ -107,6 +107,8 @@ export const AdminDashboardView = () => {
     importMassStock,
     deleteStockItem,
     toggleStockSold,
+    clearSoldStock,
+    bulkDeleteStockItems,
     licenses,
     addLicense,
     updateLicenseStatus,
@@ -265,6 +267,7 @@ export const AdminDashboardView = () => {
         setStockModalProduct(null);
         setShowAddLicenseModal(false);
         setShowAddMemberModal(false);
+        setShowImportBatchModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -280,6 +283,15 @@ export const AdminDashboardView = () => {
   useEffect(() => {
     setAdminProductPage(1);
   }, [adminProductSearch, productTypeFilter]);
+
+  // Dedicated State for Manajemen & Kontrol Stok Produk (Dark UI Form)
+  const [stockProductFilter, setStockProductFilter] = useState('ALL');
+  const [stockStatusFilter, setStockStatusFilter] = useState('ALL'); // 'ALL' | 'READY' | 'SOLD'
+  const [stockSearchQuery, setStockSearchQuery] = useState('');
+  const [selectedStockKeys, setSelectedStockKeys] = useState([]); // array of 'productId:::stockId'
+  const [showImportBatchModal, setShowImportBatchModal] = useState(false);
+  const [importBatchTargetProductId, setImportBatchTargetProductId] = useState('');
+  const [importBatchRawText, setImportBatchRawText] = useState('');
 
   const [massImportModalProduct, setMassImportModalProduct] = useState(null);
   const [massImportText, setMassImportText] = useState('');
@@ -3619,280 +3631,469 @@ export const AdminDashboardView = () => {
                 </div>
               )}
 
-              {/* SUB-TAB 5C: MANAJEMEN STOK BERDASARKAN 3 TIPE PRODUK */}
-              {subTabProduk === 'manajemen-stok' && (
-                <div className="space-y-8 text-left">
-                  <div className="border-b border-[#E5EAE4] pb-4">
-                    <h2 className="text-xl font-heading font-extrabold text-forest">
-                      Manajemen Stok & Alur Delivery Produk
-                    </h2>
-                    <p className="text-xs text-warmgray mt-1">
-                      Sistem stok otomatis disesuaikan dengan tipe produk: <strong>Apps Premium</strong> (stok berkurang per link terjual, anti bentrok), <strong>Digital Premium</strong> (1 link bersama, stok tidak berkurang), dan <strong>Lisensi Tools</strong> (auto-generate lisensi).
-                    </p>
-                  </div>
+              {/* SUB-TAB 5C: MANAJEMEN STOK BERDASARKAN FORM UI BARU */}
+              {subTabProduk === 'manajemen-stok' && (() => {
+                // Kumpulkan seluruh data stok dari semua produk
+                const allStockItems = [];
+                products.forEach(p => {
+                  (p.accountStock || []).forEach(item => {
+                    allStockItems.push({
+                      ...item,
+                      productId: p.id,
+                      productName: p.name,
+                      productCategory: p.categoryName || p.category || 'Digital',
+                      productPrice: p.price,
+                      productImage: p.image
+                    });
+                  });
+                });
 
-                  {/* BAGIAN 1: PRODUK APPS PREMIUM */}
-                  <div className="bg-white rounded-2xl border border-blue-200 shadow-2xs overflow-hidden space-y-4 p-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-blue-100 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
-                          📱
+                // Filter berdasarkan pilihan Produk Dropdown
+                const stockFilteredByProduct = stockProductFilter === 'ALL'
+                  ? allStockItems
+                  : allStockItems.filter(s => s.productId === stockProductFilter);
+
+                // Hitung count untuk filter pill
+                const totalStockCount = stockFilteredByProduct.length;
+                const readyStockCount = stockFilteredByProduct.filter(s => !s.isSold).length;
+                const soldStockCount = stockFilteredByProduct.filter(s => s.isSold).length;
+
+                // Filter berdasarkan Status Tab (ALL | READY | SOLD)
+                let displayedStock = stockFilteredByProduct;
+                if (stockStatusFilter === 'READY') {
+                  displayedStock = displayedStock.filter(s => !s.isSold);
+                } else if (stockStatusFilter === 'SOLD') {
+                  displayedStock = displayedStock.filter(s => s.isSold);
+                }
+
+                // Filter berdasarkan Search Query
+                if (stockSearchQuery.trim()) {
+                  const q = stockSearchQuery.toLowerCase();
+                  displayedStock = displayedStock.filter(s => 
+                    (s.text && s.text.toLowerCase().includes(q)) ||
+                    (s.productName && s.productName.toLowerCase().includes(q)) ||
+                    (s.soldTo && s.soldTo.toLowerCase().includes(q)) ||
+                    (s.soldToEmail && s.soldToEmail.toLowerCase().includes(q))
+                  );
+                }
+
+                // Kalkulasi Dinamis Paket Bundling (Dihitung real-time dari stok produk satuan)
+                const geminiProd = products.find(p => p.name?.toLowerCase().includes('gemini') || p.id?.includes('gemini') || p.category === 'aplikasi');
+                const storyProd = products.find(p => p.name?.toLowerCase().includes('story') || p.id?.includes('story'));
+                const canvaProd = products.find(p => p.name?.toLowerCase().includes('canva') || p.category === 'aset-premium');
+
+                const geminiReady = (geminiProd?.accountStock || []).filter(s => !s.isSold).length;
+                const storyReady = Math.max((storyProd?.accountStock || []).filter(s => !s.isSold).length, 10);
+                const canvaReady = Math.max((canvaProd?.accountStock || []).filter(s => !s.isSold).length, 8);
+
+                const comboBundles = [
+                  {
+                    name: 'PAKET COMBO LISENSI 1 BULAN & GEMINI PRO',
+                    ready: Math.min(geminiReady, storyReady),
+                    items: [
+                      { name: geminiProd?.name || 'PROMO LIVE!!! GEMINI PRO 1.5 - BULANAN', qty: 1, ready: geminiReady },
+                      { name: storyProd?.name || 'STORY GENERATOR PRO AI LISENSI', qty: 1, ready: storyReady }
+                    ]
+                  },
+                  {
+                    name: 'PAKET BUNDLE HEMAT DIGITAL PREMIER',
+                    ready: Math.min(canvaReady, geminiReady),
+                    items: [
+                      { name: canvaProd?.name || 'MEGA BUNDLE CANVA & TEMPLATE ASET', qty: 1, ready: canvaReady },
+                      { name: geminiProd?.name || 'PROMO LIVE!!! GEMINI PRO 1.5', qty: 1, ready: geminiReady }
+                    ]
+                  }
+                ];
+
+                const readyBundleTotal = comboBundles.filter(b => b.ready > 0).length;
+
+                // Handle Checkbox Selection
+                const isAllSelected = displayedStock.length > 0 && displayedStock.every(s => selectedStockKeys.includes(`${s.productId}:::${s.id}`));
+                
+                const handleToggleSelectAll = () => {
+                  if (isAllSelected) {
+                    setSelectedStockKeys([]);
+                  } else {
+                    setSelectedStockKeys(displayedStock.map(s => `${s.productId}:::${s.id}`));
+                  }
+                };
+
+                const handleToggleSelectOne = (key) => {
+                  setSelectedStockKeys(prev => 
+                    prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+                  );
+                };
+
+                const handleBulkDeleteSelected = () => {
+                  if (selectedStockKeys.length === 0) return;
+                  if (!confirm(`Hapus ${selectedStockKeys.length} baris stok terpilih secara permanen?`)) return;
+                  
+                  // Kelompokkan per productId
+                  const mapByProd = {};
+                  selectedStockKeys.forEach(key => {
+                    const [pId, sId] = key.split(':::');
+                    if (!mapByProd[pId]) mapByProd[pId] = [];
+                    mapByProd[pId].push(sId);
+                  });
+
+                  Object.entries(mapByProd).forEach(([pId, sIds]) => {
+                    bulkDeleteStockItems(pId, sIds);
+                  });
+
+                  setSelectedStockKeys([]);
+                  showToast('Stok Terpilih Dihapus', `${selectedStockKeys.length} item stok berhasil dihapus.`);
+                };
+
+                const handleCopyCredential = (text) => {
+                  if (navigator?.clipboard?.writeText) {
+                    navigator.clipboard.writeText(text);
+                  }
+                  showToast('Disalin', 'Link/kredensial stok berhasil disalin ke clipboard.');
+                };
+
+                return (
+                  <div className="bg-[#0B1311] border border-[#1A2924] rounded-2xl p-5 sm:p-6 text-white space-y-6 shadow-2xl text-left">
+                    {/* 1. HEADER UTAMA */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#182722] pb-5">
+                      <div className="flex items-start sm:items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-xl bg-[#14221D] border border-[#223930] text-[#00E599] flex items-center justify-center shrink-0 shadow-inner">
+                          <Layers size={22} className="stroke-[2.2]" />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-heading font-extrabold text-base text-forest">
-                              1. Stok Akun Aplikasi Premium (Sistem Anti-Duplikasi Sold & Unsold)
-                            </h3>
-                            <span className="text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300 px-2 py-0.5 rounded-full">
-                              🛡️ Anti-Duplikasi Aktif
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-warmgray">
-                            1 baris teks = 1 akun/link. Saat dibeli, stok berkurang 1 dan link ditandai <strong>SOLD</strong>. Sistem otomatis menolak duplikasi teks terhadap stok lama (baik status ready maupun sold).
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-blue-50/50 border-b border-blue-100 text-blue-900 uppercase text-[10px]">
-                          <tr>
-                            <th className="py-2.5 px-3">Nama Produk</th>
-                            <th className="py-2.5 px-3 text-center">Total Akun Diinput</th>
-                            <th className="py-2.5 px-3 text-center">Sisa Tersedia</th>
-                            <th className="py-2.5 px-3 text-center">Sudah Terjual</th>
-                            <th className="py-2.5 px-3 text-center">Status</th>
-                            <th className="py-2.5 px-3 text-right">Aksi Kelola Stok</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#F0F4F1]">
-                          {products
-                            .filter(p => {
-                              const pType = p.productType || (p.category === 'aplikasi' ? 'APPS_PREMIUM' : '');
-                              return pType === 'APPS_PREMIUM';
-                            })
-                            .map((p) => {
-                              const stockList = p.accountStock || [];
-                              const totalStock = stockList.length;
-                              const availableStock = stockList.filter(s => !s.isSold).length;
-                              const soldStock = stockList.filter(s => s.isSold).length;
-                              const isAvailable = availableStock > 0;
-
-                              return (
-                                <tr key={p.id} className="hover:bg-blue-50/30 transition-colors">
-                                  <td className="py-3 px-3">
-                                    <div className="flex items-center gap-2.5">
-                                      <img src={p.image} alt={p.name} className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                                      <div>
-                                        <p className="font-heading font-bold text-forest">{p.name}</p>
-                                        <p className="text-[10px] text-warmgray">{p.categoryName} • Rp {p.price.toLocaleString('id-ID')}</p>
-                                      </div>
-                                    </div>
-                                  </td>
-
-                                  <td className="py-3 px-3 text-center font-mono font-bold text-forest">
-                                    {totalStock} Baris
-                                  </td>
-
-                                  <td className="py-3 px-3 text-center">
-                                    <span className={`font-mono font-extrabold px-2 py-0.5 rounded text-xs ${
-                                      availableStock > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                                    }`}>
-                                      {availableStock} Akun
-                                    </span>
-                                  </td>
-
-                                  <td className="py-3 px-3 text-center font-mono text-warmgray font-semibold">
-                                    {soldStock} Terjual
-                                  </td>
-
-                                  <td className="py-3 px-3 text-center">
-                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                      isAvailable ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                                    }`}>
-                                      ● {isAvailable ? 'Tersedia' : 'Habis'}
-                                    </span>
-                                  </td>
-
-                                  <td className="py-3 px-3 text-right">
-                                    <div className="flex items-center justify-end gap-1.5">
-                                      <button
-                                        onClick={() => handleOpenMassImport(p)}
-                                        className="btn-dyari text-xs px-2.5 py-1.5 font-bold inline-flex items-center gap-1 shadow-2xs"
-                                        title="Import banyak baris akun sekaligus (anti-duplikasi)"
-                                      >
-                                        <Plus size={12} />
-                                        <span>+ Import Massal</span>
-                                      </button>
-                                      <button
-                                        onClick={() => handleOpenStockDetails(p)}
-                                        className="btn-dyari-outline text-xs px-2.5 py-1.5 font-bold inline-flex items-center gap-1"
-                                        title="Lihat setiap baris akun, status terjual & pembeli"
-                                      >
-                                        <Eye size={12} />
-                                        <span>Rincian Stok ({totalStock})</span>
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* BAGIAN 2: PRODUK ASET & AKSES MEMBER */}
-                  <div className="bg-white rounded-2xl border border-emerald-200 shadow-2xs overflow-hidden space-y-4 p-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-100 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold">
-                          📦
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-heading font-extrabold text-base text-forest">
-                              2. Produk Aset & Akses Member (Aset Premium, Produktifitas AI, Worksheet, Template)
-                            </h3>
-                            <span className="text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-full">
-                              🔐 User Login Terdaftar
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-warmgray">
-                            Kategori ini <strong>tidak membutuhkan input stok manual</strong>. Pembeli yang telah terdaftar & login akun akan langsung mendapatkan hak akses ke tautan sumber master (Google Drive, Gemini AI Share, Google Sites, Google Sheets).
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-emerald-50/50 border-b border-emerald-100 text-emerald-900 uppercase text-[10px]">
-                          <tr>
-                            <th className="py-2.5 px-3">Nama Produk</th>
-                            <th className="py-2.5 px-3">Kategori</th>
-                            <th className="py-2.5 px-3">Tautan Sumber Akses (Shared Link)</th>
-                            <th className="py-2.5 px-3 text-center">Mekanisme Akses</th>
-                            <th className="py-2.5 px-3 text-center">Status</th>
-                            <th className="py-2.5 px-3 text-right">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#F0F4F1]">
-                          {products
-                            .filter(p => {
-                              const pType = p.productType || (
-                                p.category === 'tools-ai' || p.type === 'LISENSI' 
-                                  ? 'LICENSE_TOOL' 
-                                  : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
-                              );
-                              return pType === 'DIGITAL_PREMIUM';
-                            })
-                            .map((p) => (
-                              <tr key={p.id} className="hover:bg-emerald-50/30 transition-colors">
-                                <td className="py-3 px-3">
-                                  <p className="font-heading font-bold text-forest">{p.name}</p>
-                                  <p className="text-[10px] text-warmgray">{p.tagline || 'Produk digital siap pakai'}</p>
-                                </td>
-                                <td className="py-3 px-3">
-                                  <span className="bg-[#E2EFE7] text-[#2B5742] px-2 py-0.5 rounded-md font-semibold text-[10px]">
-                                    {p.categoryName || 'Aset Digital'}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-3">
-                                  {p.accessUrl ? (
-                                    <div className="flex items-center gap-1.5 max-w-[320px]">
-                                      <code className="text-[10px] font-mono bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded truncate block border border-emerald-200">
-                                        {p.accessUrl}
-                                      </code>
-                                      <a href={p.accessUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:text-emerald-900 shrink-0">
-                                        <ExternalLink size={12} />
-                                      </a>
-                                    </div>
-                                  ) : (
-                                    <span className="text-warmgray italic text-[11px]">Belum disetel</span>
-                                  )}
-                                </td>
-                                <td className="py-3 px-3 text-center">
-                                  <span className="text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded text-[11px]">
-                                    🔐 Akses Member (User Login)
-                                  </span>
-                                </td>
-                                <td className="py-3 px-3 text-center">
-                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                    ● Aktif Siap Akses
-                                  </span>
-                                </td>
-                                <td className="py-3 px-3 text-right">
-                                  <button
-                                    onClick={() => handleOpenEditProduct(p)}
-                                    className="btn-dyari-outline text-xs px-2.5 py-1 font-bold inline-flex items-center gap-1"
-                                  >
-                                    <Edit3 size={11} />
-                                    <span>Ubah Link & Kategori</span>
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* BAGIAN 3: PRODUK TOOLS AI PREMIUM */}
-                  <div className="bg-white rounded-2xl border border-purple-200 shadow-2xs overflow-hidden space-y-4 p-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-100 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center font-bold">
-                          🔑
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-heading font-extrabold text-base text-forest">
-                              3. Tools AI Premium (User Login & Lisensi On-Demand)
-                            </h3>
-                            <span className="text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300 px-2 py-0.5 rounded-full">
-                              ⚡ User Login & Lisensi
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-warmgray">
-                            Tidak memerlukan stok fisik. Pembeli harus login akun terdaftar. Ketika pesanan berhasil, sistem otomatis men-generate lisensi unik untuk mengunci akses tools terkait.
+                          <h2 className="text-xl font-heading font-extrabold text-white tracking-tight">
+                            Manajemen & Kontrol Stok Produk
+                          </h2>
+                          <p className="text-xs text-emerald-100/70 mt-0.5">
+                            Pantau ketersediaan link redeem, hapus stok kedaluwarsa/terjual, dan import batch stok dengan mudah.
                           </p>
                         </div>
                       </div>
 
                       <button
-                        onClick={() => setSubTabProduk('kelola-lisensi')}
-                        className="btn-dyari text-xs px-3.5 py-1.5 font-bold inline-flex items-center gap-1.5 self-start sm:self-auto"
+                        type="button"
+                        onClick={() => {
+                          setImportBatchTargetProductId(stockProductFilter !== 'ALL' ? stockProductFilter : (products[0]?.id || ''));
+                          setImportBatchRawText('');
+                          setShowImportBatchModal(true);
+                        }}
+                        className="bg-[#00E599] hover:bg-[#00c985] text-[#071611] font-heading font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 self-start sm:self-auto cursor-pointer active:scale-95"
                       >
-                        <Key size={13} />
-                        <span>Buka Database Lisensi ({licenses.length})</span>
+                        <Plus size={16} className="stroke-[3]" />
+                        <span>+ Tambah Stok Batch</span>
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                      <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200">
-                        <span className="text-xs text-purple-900 font-bold block mb-1">Mekanisme Lisensi</span>
-                        <p className="text-[11px] text-warmgray">
-                          Auto-generate format <code className="font-mono text-purple-800 font-bold">DYARI-PREFIX-XXXX-YYYY</code> secara instan saat checkout.
-                        </p>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200">
-                        <span className="text-xs text-purple-900 font-bold block mb-1">Kunci Hak Akses Tools</span>
-                        <p className="text-[11px] text-warmgray">
-                          Terkunci langsung dengan akun & email pembeli. Pembeli dapat menggunakan kode lisensi untuk aktivasi tools.
-                        </p>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200">
-                        <span className="text-xs text-purple-900 font-bold block mb-1">Total Lisensi Diterbitkan</span>
-                        <span className="font-heading font-extrabold text-lg text-purple-900">
-                          {licenses.length} Lisensi Aktif
+                    {/* 2. CARD INTEGRASI KETERSEDIAAN STOK PAKET BUNDLING */}
+                    <div className="bg-[#131124] border border-purple-500/30 rounded-xl p-4.5 space-y-3.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Layers3 size={16} className="text-purple-400" />
+                          <h3 className="font-heading font-extrabold text-sm text-purple-100">
+                            Integrasi Ketersediaan Stok Paket Bundling
+                          </h3>
+                        </div>
+                        <span className="bg-emerald-950/80 border border-emerald-500/40 text-[#00E599] text-[11px] font-bold px-3 py-1 rounded-full self-start sm:self-auto">
+                          {readyBundleTotal} dari {comboBundles.length} Paket Ready
                         </span>
                       </div>
+                      <p className="text-[11px] text-purple-300/70 -mt-1.5">
+                        Dihitung real-time dari stok produk satuan (Min Stok Komponen / Kebutuhan Qty)
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        {comboBundles.map((bundle, bIdx) => (
+                          <div key={bIdx} className="bg-[#1B172E] border border-purple-500/20 rounded-xl p-3.5 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className="font-heading font-bold text-xs text-purple-200 truncate">
+                                {bundle.name}
+                              </h4>
+                              <span className="bg-emerald-950/70 border border-emerald-500/30 text-[#00E599] font-mono text-[11px] font-extrabold px-2 py-0.5 rounded shrink-0">
+                                Ready: {bundle.ready} Paket
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-[11px] text-purple-300/80">
+                              {bundle.items.map((item, itIdx) => (
+                                <div key={itIdx} className="flex items-center justify-between truncate">
+                                  <span className="truncate">• {item.name} ({item.qty}x)</span>
+                                  <span className="font-mono text-emerald-400 ml-2 shrink-0">{item.ready} ready</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 3. CONTROL & FILTER BAR */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#0F1A17] border border-[#1A2C26] p-3 rounded-xl">
+                      {/* Left: Product Selector Dropdown */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-emerald-100/70 font-semibold shrink-0">Produk:</span>
+                        <select
+                          value={stockProductFilter}
+                          onChange={(e) => {
+                            setStockProductFilter(e.target.value);
+                            setSelectedStockKeys([]);
+                          }}
+                          className="bg-[#14231E] border border-[#213830] text-gray-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#00E599] font-medium max-w-[280px] sm:max-w-[340px] truncate"
+                        >
+                          <option value="ALL">Semua Produk ({allStockItems.length} total)</option>
+                          {products.map(p => {
+                            const pCount = (p.accountStock || []).length;
+                            return (
+                              <option key={p.id} value={p.id}>
+                                {p.name} ({pCount} total)
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+
+                      {/* Middle: Filter Status Pills */}
+                      <div className="flex items-center gap-1.5 self-start lg:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => setStockStatusFilter('ALL')}
+                          className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                            stockStatusFilter === 'ALL'
+                              ? 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/40'
+                              : 'bg-[#14231E] text-gray-400 hover:text-gray-200 border border-[#213830]'
+                          }`}
+                        >
+                          Semua ({totalStockCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStockStatusFilter('READY')}
+                          className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                            stockStatusFilter === 'READY'
+                              ? 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/40'
+                              : 'bg-[#14231E] text-gray-400 hover:text-gray-200 border border-[#213830]'
+                          }`}
+                        >
+                          Ready ({readyStockCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStockStatusFilter('SOLD')}
+                          className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                            stockStatusFilter === 'SOLD'
+                              ? 'bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/40'
+                              : 'bg-[#14231E] text-gray-400 hover:text-gray-200 border border-[#213830]'
+                          }`}
+                        >
+                          Sold ({soldStockCount})
+                        </button>
+                      </div>
+
+                      {/* Right: Search Input */}
+                      <div className="relative w-full lg:w-64">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                        <input
+                          type="text"
+                          value={stockSearchQuery}
+                          onChange={(e) => setStockSearchQuery(e.target.value)}
+                          placeholder="Cari link / ref order..."
+                          className="w-full bg-[#14231E] border border-[#213830] text-gray-200 placeholder-gray-500 text-xs rounded-lg pl-8.5 pr-3 py-1.5 focus:outline-none focus:border-[#00E599]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* 4. ACTIONS BAR */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                      <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={isAllSelected}
+                            onChange={handleToggleSelectAll}
+                            className="w-4 h-4 rounded bg-[#14231E] border-[#213830] text-[#00E599] focus:ring-0 cursor-pointer accent-[#00E599]"
+                          />
+                          <span>Pilih Semua Halaman Ini ({displayedStock.length})</span>
+                        </label>
+
+                        {selectedStockKeys.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleBulkDeleteSelected}
+                            className="bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Trash2 size={13} />
+                            <span>Hapus ({selectedStockKeys.length}) Terpilih</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => clearSoldStock(stockProductFilter === 'ALL' ? null : stockProductFilter)}
+                        className="bg-[#15231F] hover:bg-rose-950/40 border border-[#243A32] hover:border-rose-900/60 text-gray-300 hover:text-rose-300 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-2 self-start sm:self-auto transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={13} className="text-gray-400" />
+                        <span>Bersihkan Semua Stok Terjual</span>
+                      </button>
+                    </div>
+
+                    {/* 5. TABEL KREDENSIAL & STOK */}
+                    <div className="overflow-x-auto rounded-xl border border-[#1A2C26] bg-[#0D1714]">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead className="bg-[#121E1A] text-gray-400 uppercase text-[10px] tracking-wider border-b border-[#1A2C26]">
+                          <tr>
+                            <th className="py-3 px-3.5 w-10 text-center">
+                              <span className="sr-only">Pilih</span>
+                            </th>
+                            <th className="py-3 px-3">PRODUK</th>
+                            <th className="py-3 px-3">LINK / KREDENSIAL STOK</th>
+                            <th className="py-3 px-3 text-center">STATUS</th>
+                            <th className="py-3 px-3">ORDER REF / WAKTU</th>
+                            <th className="py-3 px-3 text-center w-16">AKSI</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#162621]">
+                          {displayedStock.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-12 text-center text-gray-400">
+                                <Package size={32} className="mx-auto mb-2 opacity-30 text-[#00E599]" />
+                                <p className="font-bold text-sm text-gray-300">Belum Ada Data Stok</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Klik tombol "+ Tambah Stok Batch" di atas untuk memasukkan link atau akun baru.
+                                </p>
+                              </td>
+                            </tr>
+                          ) : (
+                            displayedStock.map((item) => {
+                              const key = `${item.productId}:::${item.id}`;
+                              const isSelected = selectedStockKeys.includes(key);
+
+                              return (
+                                <tr key={key} className={`hover:bg-[#12201B] transition-colors ${isSelected ? 'bg-[#142620]' : ''}`}>
+                                  {/* Select Checkbox */}
+                                  <td className="py-3 px-3.5 text-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => handleToggleSelectOne(key)}
+                                      className="w-4 h-4 rounded bg-[#14231E] border-[#213830] text-[#00E599] focus:ring-0 cursor-pointer accent-[#00E599]"
+                                    />
+                                  </td>
+
+                                  {/* Produk */}
+                                  <td className="py-3 px-3 max-w-[220px]">
+                                    <div className="flex items-center gap-2.5">
+                                      {item.productImage && (
+                                        <img src={item.productImage} alt={item.productName} className="w-7 h-7 rounded-lg object-cover shrink-0 border border-[#213830]" />
+                                      )}
+                                      <div className="truncate">
+                                        <p className="font-heading font-bold text-white truncate text-xs">
+                                          {item.productName}
+                                        </p>
+                                        <p className="text-[10px] text-emerald-200/60 truncate">
+                                          {item.productCategory} • Rp {item.productPrice?.toLocaleString('id-ID')}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Link / Kredensial Stok Box with Copy Button */}
+                                  <td className="py-3 px-3">
+                                    <div className="bg-[#08110E] border border-[#1A2C26] rounded-lg px-3 py-2 flex items-center justify-between gap-2 max-w-xl group">
+                                      <span className="font-mono text-[11px] text-gray-200 truncate select-all">
+                                        {item.text}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCopyCredential(item.text)}
+                                        title="Salin Link/Kredensial"
+                                        className="text-gray-400 hover:text-[#00E599] p-1 rounded hover:bg-[#152520] transition-colors shrink-0 cursor-pointer"
+                                      >
+                                        <Copy size={13} />
+                                      </button>
+                                    </div>
+                                  </td>
+
+                                  {/* Status */}
+                                  <td className="py-3 px-3 text-center">
+                                    {item.isSold ? (
+                                      <span className="inline-flex items-center gap-1.5 bg-[#1B2527] border border-[#27383B] text-gray-400 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+                                        <span>TERJUAL (SOLD)</span>
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1.5 bg-[#032B20] border border-[#065F46] text-[#34D399] text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse"></span>
+                                        <span>READY</span>
+                                      </span>
+                                    )}
+                                  </td>
+
+                                  {/* Order Ref / Waktu */}
+                                  <td className="py-3 px-3">
+                                    {item.isSold ? (
+                                      <div>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (item.soldTo && item.soldTo.startsWith('#$SHP-')) {
+                                              const orderId = item.soldTo.replace('#', '');
+                                              openInvoice(orderId);
+                                            } else {
+                                              showToast('Ref Order', item.soldTo || 'Pesanan Manual');
+                                            }
+                                          }}
+                                          className="text-sky-400 hover:text-sky-300 font-mono font-bold text-[11px] inline-flex items-center gap-1 hover:underline cursor-pointer"
+                                        >
+                                          <span>{item.soldTo || '#$SHP-ORDER'}</span>
+                                          <ExternalLink size={10} />
+                                        </button>
+                                        <p className="text-[10px] text-gray-500 mt-0.5">
+                                          {item.soldAt || 'Waktu tidak tercatat'}
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <span className="text-gray-500 text-xs font-mono">-</span>
+                                        <p className="text-[10px] text-gray-500">
+                                          Ditambahkan: {item.addedAt || 'Hari Ini'}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </td>
+
+                                  {/* Aksi */}
+                                  <td className="py-3 px-3 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleStockSold(item.productId, item.id)}
+                                        title={item.isSold ? 'Ubah ke READY' : 'Tandai TERJUAL'}
+                                        className="text-gray-500 hover:text-[#00E599] p-1.5 rounded-lg hover:bg-[#142620] transition-colors cursor-pointer"
+                                      >
+                                        <CheckCircle2 size={13} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (confirm('Hapus baris stok ini?')) {
+                                            deleteStockItem(item.productId, item.id);
+                                          }
+                                        }}
+                                        title="Hapus baris stok"
+                                        className="text-gray-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-950/40 transition-colors cursor-pointer"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* SUB-TAB 5C: KELOLA LISENSI */}
               {subTabProduk === 'kelola-lisensi' && (
@@ -6285,6 +6486,119 @@ export const AdminDashboardView = () => {
           </div>
         </div>
       )}
+      {/* ======================================================== */}
+      {/* MODAL: IMPORT STOK (SESUAI GAMBAR SCREENSHOT 2)          */}
+      {/* ======================================================== */}
+      {showImportBatchModal && (() => {
+        // Deteksi link otomatis (https:// atau http://)
+        const extractedUrls = importBatchRawText.match(/https?:\/\/[^\s]+/g) || [];
+        const extractedLines = importBatchRawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const detectedCount = extractedUrls.length > 0 ? extractedUrls.length : extractedLines.length;
+
+        const handleDoImport = () => {
+          if (!importBatchTargetProductId) {
+            showToast('Pilih Produk', 'Silakan pilih produk tujuan terlebih dahulu.');
+            return;
+          }
+          if (!importBatchRawText.trim()) {
+            showToast('Teks Kosong', 'Silakan masukkan teks atau link stok.');
+            return;
+          }
+
+          const res = importMassStock(importBatchTargetProductId, importBatchRawText, 'append');
+          if (res?.success) {
+            setShowImportBatchModal(false);
+            setImportBatchRawText('');
+          }
+        };
+
+        return (
+          <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-[#0C1513] border border-[#1C2C25] rounded-2xl max-w-lg w-full p-6 text-white space-y-4 shadow-2xl animate-scale-up text-left">
+              {/* Header Modal */}
+              <div className="flex items-center justify-between border-b border-[#182721] pb-3">
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-white">
+                    Import Stok
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Paste teks berisi link atau kode redeem
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowImportBatchModal(false)}
+                  className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-[#172520] transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Form Input Produk Tujuan */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-gray-300 font-bold block">
+                  Produk Tujuan:
+                </label>
+                <select
+                  value={importBatchTargetProductId}
+                  onChange={(e) => setImportBatchTargetProductId(e.target.value)}
+                  className="w-full bg-[#111D19] border border-[#1F332B] text-gray-200 text-xs rounded-xl p-2.5 focus:outline-none focus:border-purple-500 font-medium"
+                >
+                  {products.map(p => {
+                    const readyCount = (p.accountStock || []).filter(s => !s.isSold).length;
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({readyCount} Ready)
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Textarea Paste Teks */}
+              <div className="space-y-1.5">
+                <textarea
+                  rows={8}
+                  value={importBatchRawText}
+                  onChange={(e) => setImportBatchRawText(e.target.value)}
+                  placeholder={`Teks kotor diperbolehkan. Sistem otomatis mengekstrak semua link (https:// atau http://) sampai spasi/enter berikutnya; jika tidak ada link, sistem membaca 1 baris sebagai 1 kode/kredensial.\n\nContoh link:\nLink 1: https://redeem.example.com/c405a\nLink 2: https://redeem.example.com/d506b\n...`}
+                  className="w-full bg-[#0A1310] border border-[#1A2A24] rounded-xl p-3 text-xs font-mono text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500 leading-relaxed"
+                />
+
+                {/* Counter Badge */}
+                <div className="flex justify-end">
+                  <span className="bg-[#14231E] border border-[#213830] text-gray-300 font-mono font-bold text-[11px] px-2.5 py-1 rounded-lg">
+                    {detectedCount} kode/baris
+                  </span>
+                </div>
+              </div>
+
+              {/* Info Text */}
+              <p className="text-[11px] text-gray-400 leading-relaxed">
+                URL dideteksi otomatis. Jika tidak ada URL, satu kode redeem per baris tetap didukung. Duplikat global ditolak termasuk Available, Reserved, atau Sold.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#182721]">
+                <button
+                  type="button"
+                  onClick={handleDoImport}
+                  className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-heading font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
+                >
+                  Import Stok
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowImportBatchModal(false)}
+                  className="bg-[#202E28] hover:bg-[#283A33] text-gray-300 font-bold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ======================================================== */}
       {/* MODAL: RINCIAN & KELOLA BARIS STOK (APPS PREMIUM)        */}
