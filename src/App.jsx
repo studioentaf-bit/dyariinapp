@@ -53,7 +53,7 @@ const MainLayout = () => {
     <div className="min-h-screen flex flex-col bg-cream text-forest font-sans selection:bg-matcha selection:text-forest">
       {showNav && <Navbar />}
 
-      <main className={`flex-1 ${currentView === 'admin' ? 'h-screen overflow-hidden' : (currentView === 'story-generator' ? 'overflow-hidden' : 'pb-16 md:pb-0')}`}>
+      <main className={`flex-1 ${currentView === 'admin' ? 'h-screen overflow-hidden' : (currentView === 'story-generator' ? 'h-[calc(100vh-4.5rem)] sm:h-[calc(100vh-5rem)] overflow-hidden' : 'pb-16 md:pb-0')}`}>
         {renderView()}
       </main>
 
@@ -63,7 +63,7 @@ const MainLayout = () => {
       <CartDrawer />
       <AuthModal />
       <Toast />
-      {showNav && <MobileBottomNav />}
+      {showNav && currentView !== 'story-generator' && <MobileBottomNav />}
     </div>
   );
 };

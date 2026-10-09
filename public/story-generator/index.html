@@ -23,6 +23,7 @@
         }
     </script>
     <style>
+        html, body { height: 100% !important; width: 100% !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8f7f4; color: #191c1a; }
         .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f0eee6; }
@@ -42,9 +43,9 @@
         .submenu-closed { max-height: 0; opacity: 0; overflow: hidden; margin: 0 !important; padding: 0 !important; transition: max-height 0.3s ease, opacity 0.2s ease; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-[#2e593f] selection:text-white">
+<body class="h-full w-full overflow-hidden selection:bg-[#2e593f] selection:text-white">
     <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden md:hidden transition-opacity"></div>
-    <div class="flex h-screen overflow-hidden bg-[#f8f7f4]">
+    <div class="flex h-full w-full overflow-hidden bg-[#f8f7f4]">
         <aside id="mainSidebar" class="w-64 bg-white border-r border-[#e6e3da] flex flex-col justify-between shrink-0 z-30">
             <div class="flex flex-col h-full">
                 <div class="p-4 border-b border-[#f0eee6] flex items-center justify-between">
