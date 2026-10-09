@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Search, ShoppingBag, User, X } from 'lucide-react';
+import { Search, ShoppingBag, User, X, Sparkles } from 'lucide-react';
 
 export const Navbar = () => {
   const { 
@@ -9,7 +9,7 @@ export const Navbar = () => {
     cart, 
     setIsCartOpen, 
     user, 
-    setIsAuthOpen,
+    setIsAuthOpen, 
     searchQuery, 
     setSearchQuery,
     setActiveCategory,
@@ -73,8 +73,8 @@ export const Navbar = () => {
             </button>
           </div>
 
-          {/* Desktop Navigation Menu (Matching Image 1: Toko, Kategori, Bundel, Gratis, Tentang) */}
-          <nav className="hidden md:flex items-center space-x-7 lg:space-x-9 text-xs sm:text-sm font-medium">
+          {/* Desktop Navigation Menu (Matching Image 1: Toko, Kategori, Bundel, Gratis, Tentang, Story Generator) */}
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-xs sm:text-sm font-medium">
             <button 
               onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
               className={`transition-colors ${currentView === 'shop' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
@@ -98,6 +98,22 @@ export const Navbar = () => {
               className="text-[#616863] hover:text-[#1C352D] transition-colors"
             >
               Gratis
+            </button>
+            <button 
+              onClick={() => navigateTo('story-generator')}
+              className={`flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-full ${
+                currentView === 'story-generator'
+                  ? 'bg-[#1C352D] text-white font-bold shadow-xs'
+                  : 'text-[#1C352D] font-semibold hover:bg-[#EBEFEA]'
+              }`}
+            >
+              <Sparkles size={13} className={currentView === 'story-generator' ? 'text-[#A3E6B5]' : 'text-[#EE7C6B]'} />
+              <span>Story Generator</span>
+              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                currentView === 'story-generator' ? 'bg-white/20 text-white' : 'bg-[#EE7C6B]/15 text-[#EE7C6B]'
+              }`}>
+                AI
+              </span>
             </button>
             <button 
               onClick={() => {

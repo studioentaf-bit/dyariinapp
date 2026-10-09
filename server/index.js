@@ -17,6 +17,7 @@ import licenseRoutes from './routes/licenses.js';
 import orderRoutes from './routes/orders.js';
 import memberRoutes from './routes/members.js';
 import settingRoutes from './routes/settings.js';
+import aiRoutes from './routes/ai.js';
 import { query } from './db.js';
 
 const app = express();
@@ -26,10 +27,14 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-gemini-key', 'x-admin-secret']
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// Static files (dist & public for standalone server mode)
+app.use(express.static(path.join(__dirname, '..', 'dist')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Request logger
 app.use((req, res, next) => {
@@ -65,6 +70,18 @@ app.use('/api/licenses', licenseRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/ai', aiRoutes);
+
+// Fallback for Story Generator direct route
+app.get('/story-generator', (req, res) => {
+  const file1 = path.join(__dirname, '..', 'public', 'story-generator', 'index.html');
+  const file2 = path.join(__dirname, '..', 'dist', 'story-generator', 'index.html');
+  res.sendFile(file1, (err) => {
+    if (err) res.sendFile(file2, (err2) => {
+      if (err2) res.redirect('/#story-generator');
+    });
+  });
+});
 
 // 404 Handler
 app.use((req, res) => {

@@ -234,7 +234,7 @@ export const StoreProvider = ({ children }) => {
     try {
       const hash = (window.location.hash || '').replace('#', '').trim();
       const [viewPart] = hash.split('?');
-      const validViews = ['home', 'shop', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice'];
+      const validViews = ['home', 'shop', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
       if (viewPart && validViews.includes(viewPart)) {
         return viewPart;
       }
@@ -249,7 +249,7 @@ export const StoreProvider = ({ children }) => {
     const handleHash = () => {
       const rawHash = (window.location.hash || '').replace('#', '').trim();
       const [viewPart, queryPart] = rawHash.split('?');
-      const validViews = ['home', 'shop', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice'];
+      const validViews = ['home', 'shop', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
       if (viewPart && validViews.includes(viewPart)) {
         setCurrentView(viewPart);
       }

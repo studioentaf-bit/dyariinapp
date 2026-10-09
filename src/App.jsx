@@ -16,6 +16,7 @@ import { OrderSuccessView } from './views/OrderSuccessView';
 import { UserDashboardView } from './views/UserDashboardView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 import { PublicInvoiceView } from './views/PublicInvoiceView';
+import { StoryGeneratorView } from './views/StoryGeneratorView';
 
 const MainLayout = () => {
   const { currentView } = useStore();
@@ -38,6 +39,8 @@ const MainLayout = () => {
         return <AdminDashboardView />;
       case 'invoice':
         return <PublicInvoiceView />;
+      case 'story-generator':
+        return <StoryGeneratorView />;
       default:
         return <HomeView />;
     }
@@ -50,7 +53,7 @@ const MainLayout = () => {
     <div className="min-h-screen flex flex-col bg-cream text-forest font-sans selection:bg-matcha selection:text-forest">
       {showNav && <Navbar />}
 
-      <main className={`flex-1 ${currentView === 'admin' ? 'h-screen overflow-hidden' : 'pb-16 md:pb-0'}`}>
+      <main className={`flex-1 ${currentView === 'admin' ? 'h-screen overflow-hidden' : (currentView === 'story-generator' ? 'overflow-hidden' : 'pb-16 md:pb-0')}`}>
         {renderView()}
       </main>
 

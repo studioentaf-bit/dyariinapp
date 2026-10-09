@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
-import { Home, Store, ShoppingBag, User } from 'lucide-react';
+import { Home, Store, ShoppingBag, User, Sparkles } from 'lucide-react';
 
 export const MobileBottomNav = () => {
   const { currentView, navigateTo, cart, setIsCartOpen } = useStore();
@@ -8,7 +8,7 @@ export const MobileBottomNav = () => {
   const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-dyariborder py-2 px-6 shadow-lg">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-dyariborder py-2 px-4 shadow-lg">
       <div className="flex items-center justify-between max-w-md mx-auto text-xs font-medium text-warmgray">
         
         {/* Beranda */}
@@ -18,8 +18,8 @@ export const MobileBottomNav = () => {
             currentView === 'home' ? 'text-forest font-bold' : 'hover:text-forest'
           }`}
         >
-          <Home size={20} className={currentView === 'home' ? 'stroke-[2.5]' : ''} />
-          <span>Beranda</span>
+          <Home size={19} className={currentView === 'home' ? 'stroke-[2.5]' : ''} />
+          <span className="text-[10px]">Beranda</span>
         </button>
 
         {/* Toko */}
@@ -29,8 +29,22 @@ export const MobileBottomNav = () => {
             currentView === 'shop' ? 'text-forest font-bold' : 'hover:text-forest'
           }`}
         >
-          <Store size={20} className={currentView === 'shop' ? 'stroke-[2.5]' : ''} />
-          <span>Toko</span>
+          <Store size={19} className={currentView === 'shop' ? 'stroke-[2.5]' : ''} />
+          <span className="text-[10px]">Toko</span>
+        </button>
+
+        {/* Story Generator */}
+        <button
+          onClick={() => navigateTo('story-generator')}
+          className={`flex flex-col items-center gap-1 transition-colors ${
+            currentView === 'story-generator' ? 'text-[#EE7C6B] font-bold' : 'hover:text-forest text-[#1C352D]'
+          }`}
+        >
+          <div className="relative">
+            <Sparkles size={19} className={currentView === 'story-generator' ? 'stroke-[2.5] text-[#EE7C6B]' : 'text-[#EE7C6B]'} />
+            <span className="absolute -top-1 -right-2 bg-[#EE7C6B] text-white text-[8px] font-black px-1 rounded-full">AI</span>
+          </div>
+          <span className="text-[10px]">Story AI</span>
         </button>
 
         {/* Keranjang */}
