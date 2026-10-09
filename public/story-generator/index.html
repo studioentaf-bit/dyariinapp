@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story In. AI — AI Storyboard & Video Kreator</title>
+    <title>Story Generator — AI Storyboard & Video Kreator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,13 +49,13 @@
         <aside id="mainSidebar" class="w-64 bg-white border-r border-[#e6e3da] flex flex-col justify-between shrink-0 z-30">
             <div class="flex flex-col h-full">
                 <div class="p-4 border-b border-[#f0eee6] flex items-center justify-between">
-                    <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('dashboard')">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="navStoryboardSub('commercial')">
                         <div class="w-9 h-9 rounded-xl bg-[#1e3d2f] text-white flex items-center justify-center text-sm shadow-sm">
                             <i class="fa-solid fa-play text-xs text-[#a3e6b5]"></i>
                         </div>
                         <div>
-                            <h1 class="font-black text-base tracking-tight text-[#191c1a] leading-none">story in. <span class="text-[#4e8a5c]">ai</span></h1>
-                            <p class="text-[10px] text-gray-500 font-medium mt-1">Creative Production Studio</p>
+                            <h1 class="font-black text-base tracking-tight text-[#191c1a] leading-none">story <span class="text-[#4e8a5c]">generator</span></h1>
+                            <p class="text-[10px] text-gray-500 font-medium mt-1">AI Video & Storyboard Creator</p>
                         </div>
                     </div>
                     <button onclick="toggleSidebar()" title="Sembunyikan Sidebar" class="w-8 h-8 rounded-lg hover:bg-[#f0eee6] text-gray-400 hover:text-gray-700 flex items-center justify-center text-xs transition cursor-pointer">
@@ -63,10 +63,6 @@
                     </button>
                 </div>
                 <nav class="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar text-xs">
-                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-bold text-gray-800 hover:bg-[#f0eee6] transition text-left cursor-pointer nav-item-active">
-                        <i class="fa-solid fa-compass text-sm w-4 text-center text-[#4e8a5c]"></i>
-                        <span>Dashboard</span>
-                    </button>
                     <!-- Storyboard Dropdown -->
                     <div class="space-y-1 pt-0.5">
                         <button onclick="toggleDropdown('storyboard')" id="nav-group-storyboard" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-gray-800 hover:bg-[#f0eee6] transition text-left group cursor-pointer">
@@ -160,7 +156,7 @@
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
                         <div class="min-w-0 flex-1">
-                            <p class="text-[10px] font-bold text-gray-800 truncate">Story In. AI Engine</p>
+                            <p class="text-[10px] font-bold text-gray-800 truncate">Story Generator Engine</p>
                             <p id="footerModelBadge" class="text-[9px] text-[#4e8a5c] font-semibold truncate">gemini-3.8-flash</p>
                         </div>
                     </div>
@@ -174,9 +170,9 @@
                         <i id="sidebarToggleIcon" class="fa-solid fa-bars-staggered"></i>
                     </button>
                     <div class="hidden sm:flex items-center gap-2 text-xs font-medium text-gray-500">
-                        <span class="hover:text-black cursor-pointer font-bold" onclick="switchView('dashboard')">Story In.</span>
+                        <span class="hover:text-black cursor-pointer font-bold" onclick="navStoryboardSub('commercial')">Story Generator</span>
                         <i class="fa-solid fa-chevron-right text-[9px] text-gray-400"></i>
-                        <span id="headerCurrentPage" class="text-gray-900 font-bold">Dashboard</span>
+                        <span id="headerCurrentPage" class="text-gray-900 font-bold">Storyboard: Video Iklan</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-nowrap">
@@ -200,174 +196,48 @@
 
                     <div class="w-px h-4 bg-gray-200 hidden sm:block"></div>
 
-                    <!-- Toko Dyari Link -->
-                    <a href="/#shop" target="_parent" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#e6e3da] bg-white text-[#1C352D] text-xs font-bold hover:bg-[#f0eee6] transition shadow-2xs" title="Kembali ke Toko Dyari">
-                        <i class="fa-solid fa-store text-[#4e8a5c]"></i>
-                        <span class="hidden sm:inline">Toko Dyari</span>
-                    </a>
-
                     <!-- Input API Key Button -->
-                    <button onclick="openSettingsModal()" id="headerApiKeyBtn" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#c5dccb] bg-[#e8f2ea] text-[#1e3d2f] text-xs font-bold hover:bg-[#d5e7d9] transition shadow-2xs cursor-pointer" title="Masukkan & Tes Google Gemini API Key">
+                    <button onclick="openSettingsModal()" id="headerApiKeyBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#c5dccb] bg-[#e8f2ea] text-[#1e3d2f] text-xs font-bold hover:bg-[#d5e7d9] transition shadow-2xs cursor-pointer" title="Masukkan & Tes Google Gemini API Key">
                         <i id="headerApiKeyIcon" class="fa-solid fa-key text-amber-500 text-xs"></i>
                         <span id="headerApiKeyLabel" class="inline">Input Key</span>
-                    </button>
-
-                    <!-- Settings Button -->
-                    <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl border border-[#e6e3da] hover:bg-[#f8f7f4] flex items-center justify-center text-gray-600 text-xs transition cursor-pointer" title="Pengaturan Sistem">
-                        <i class="fa-solid fa-sliders"></i>
                     </button>
                 </div>
             </header>
             <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-                <!-- SCREEN 1: DASHBOARD -->
-                <section id="view-dashboard" class="space-y-6">
-                    <div class="rounded-3xl p-6 md:p-8 relative overflow-hidden bg-gradient-to-r from-[#dceddf] via-[#eaf4ec] to-[#f5f9f6] border border-[#cbe0d0] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                        <div class="max-w-xl z-10 space-y-3">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-[#31573b] bg-[#c5dccb]/60 px-3 py-1 rounded-full">Workspace Kreator</span>
-                            <h2 class="text-3xl md:text-4xl font-black text-[#132117] tracking-tight leading-tight">Story In. AI Studio</h2>
-                            <p class="text-xs md:text-sm text-[#294631] leading-relaxed">Produksi video sinematik, naskah iklan persuasif, visual foto studio, dan dubbing suara alami secara terintegrasi dengan Google Gemini AI.</p>
-                            <div class="pt-2 flex flex-wrap gap-3">
-                                <button onclick="navStoryboardSub('commercial')" class="px-5 py-3 rounded-xl bg-[#1e3d2f] hover:bg-[#162f24] text-white text-xs font-bold transition shadow-md flex items-center gap-2">
-                                    <span>Mulai Storyboard Iklan</span>
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                                <button onclick="navImageGenSub('foto')" class="px-5 py-3 rounded-xl bg-white border border-[#cbe0d0] hover:bg-[#eaf4ec] text-[#1e3d2f] text-xs font-bold transition flex items-center gap-2">
-                                    <i class="fa-solid fa-camera text-xs"></i>
-                                    <span>Foto Studio AI</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="z-10 shrink-0 hidden lg:block">
-                            <div class="bg-white/80 backdrop-blur-xs rounded-2xl p-4 border border-white/60 shadow-sm text-center">
-                                <span class="text-[11px] font-extrabold text-[#31573b] block">Sinematik & Kontinu</span>
-                                <span class="text-base font-black text-[#1e3d2f] block">1-Klik Dari Prompt</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="bg-white rounded-2xl p-4 border border-[#e6e3da] shadow-xs space-y-1">
-                            <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-                                <span>Total Storyboard</span>
-                                <i class="fa-solid fa-photo-film text-[#4e8a5c]"></i>
-                            </div>
-                            <div class="text-2xl font-black text-[#191c1a]">18</div>
-                            <span class="text-[10px] text-[#4e8a5c] font-bold">↑ 5 mode aktif</span>
-                        </div>
-                        <div class="bg-white rounded-2xl p-4 border border-[#e6e3da] shadow-xs space-y-1">
-                            <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-                                <span>Visual Dirender</span>
-                                <i class="fa-solid fa-paintbrush text-pink-600"></i>
-                            </div>
-                            <div class="text-2xl font-black text-[#191c1a]">142</div>
-                            <span class="text-[10px] text-[#4e8a5c] font-bold">Ultra HD 8K</span>
-                        </div>
-                        <div class="bg-white rounded-2xl p-4 border border-[#e6e3da] shadow-xs space-y-1">
-                            <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-                                <span>Voice Over Dibuat</span>
-                                <i class="fa-solid fa-volume-high text-teal-600"></i>
-                            </div>
-                            <div class="text-2xl font-black text-[#191c1a]">35</div>
-                            <span class="text-[10px] text-[#4e8a5c] font-bold">6 Karakter Suara</span>
-                        </div>
-                        <div class="bg-white rounded-2xl p-4 border border-[#e6e3da] shadow-xs space-y-1">
-                            <div class="flex items-center justify-between text-xs text-gray-500 font-semibold">
-                                <span>Klip Video Gabungan</span>
-                                <i class="fa-solid fa-scissors text-amber-600"></i>
-                            </div>
-                            <div class="text-2xl font-black text-[#191c1a]">9</div>
-                            <span class="text-[10px] text-[#4e8a5c] font-bold">Siap Publikasi</span>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-base font-extrabold text-[#191c1a]">Jelajahi Fitur Produksi</h3>
-                            <span class="text-xs text-gray-500 font-semibold">Pilih modul kerja yang Anda inginkan</span>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div onclick="navStoryboardSub('commercial')" class="bg-white rounded-2xl p-5 border border-[#e6e3da] shadow-xs card-hover cursor-pointer space-y-3">
-                                <div class="w-10 h-10 rounded-xl bg-[#e8f2ea] text-[#1e3d2f] flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-rectangle-ad text-amber-500"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#191c1a]">Storyboard Video Iklan</h4>
-                                <p class="text-xs text-gray-500 mt-1">Formula hook kuat, problem, solution, CTA untuk TikTok & IG Ads.</p>
-                            </div>
-                            <div onclick="navStoryboardSub('drama')" class="bg-white rounded-2xl p-5 border border-[#e6e3da] shadow-xs card-hover cursor-pointer space-y-3">
-                                <div class="w-10 h-10 rounded-xl bg-[#e8f2ea] text-[#1e3d2f] flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-wand-magic-sparkles text-rose-500"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#191c1a]">Konten Kreatif & Drama</h4>
-                                <p class="text-xs text-gray-500 mt-1">Alur cerita emosional, drama komedi, horor, plot twist untuk video pendek.</p>
-                            </div>
-                            <div onclick="navStoryboardSub('animation')" class="bg-white rounded-2xl p-5 border border-[#e6e3da] shadow-xs card-hover cursor-pointer space-y-3">
-                                <div class="w-10 h-10 rounded-xl bg-[#e8f2ea] text-[#1e3d2f] flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-shapes text-cyan-500"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#191c1a]">Video Animasi</h4>
-                                <p class="text-xs text-gray-500 mt-1">Pembuatan video gaya 3D Pixar, Anime, 2D motion graphic konsisten.</p>
-                            </div>
-                            <div onclick="navImageGenSub('foto')" class="bg-white rounded-2xl p-5 border border-[#e6e3da] shadow-xs card-hover cursor-pointer space-y-3">
-                                <div class="w-10 h-10 rounded-xl bg-pink-50 text-pink-700 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-camera"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#191c1a]">Foto Studio AI</h4>
-                                <p class="text-xs text-gray-500 mt-1">Generator visual fotografi dengan kontrol lensa, studio lighting, dan mood.</p>
-                            </div>
-                            <div onclick="switchView('voiceover')" class="bg-white rounded-2xl p-5 border border-[#e6e3da] shadow-xs card-hover cursor-pointer space-y-3">
-                                <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-volume-high"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#191c1a]">Voice Over Studio</h4>
-                                <p class="text-xs text-gray-500 mt-1">Dubbing 6 karakter suara (Charon, Orus, Puck, Kore, Leda, Aoede).</p>
-                            </div>
-                            <div onclick="switchView('videomerge')" class="bg-white rounded-2xl p-5 border border-[#e6e3da] shadow-xs card-hover cursor-pointer space-y-3">
-                                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-scissors"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-[#191c1a]">Video Tools (Merger)</h4>
-                                <p class="text-xs text-gray-500 mt-1">Gabungkan shot per shot menjadi klip video utuh langsung di browser.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- SCREEN 6: HISTORY -->
+                <!-- SCREEN: HISTORY (LOCAL BROWSER ARCHIVE) -->
                 <section id="view-riwayat" class="hidden space-y-6">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#e6e3da] pb-4">
                         <div>
-                            <h2 class="text-xl font-black text-[#191c1a]">Riwayat Proyek & Arsip</h2>
-                            <p class="text-xs text-gray-500 mt-0.5">Daftar semua storyboard, visual, dan audio yang telah Anda hasilkan.</p>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl font-black text-[#191c1a]">Riwayat Hasil Generate</h2>
+                                <span class="px-2.5 py-0.5 rounded-full bg-[#e8f2ea] text-[#1e3d2f] font-bold text-[10px]">Tersimpan di Browser</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Semua storyboard, prompt studio, dan audio tersimpan di browser perangkat Anda tanpa memberatkan server.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="renderLocalHistory(currentHistoryFilter)" class="px-3 py-1.5 rounded-xl border border-[#e6e3da] bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+                                <i class="fa-solid fa-rotate text-xs"></i>
+                                <span>Segarkan</span>
+                            </button>
+                            <button onclick="clearLocalHistory()" class="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                <span>Hapus Semua</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-white rounded-3xl p-4 border border-[#e6e3da] shadow-xs space-y-3">
-                            <div class="aspect-video rounded-2xl overflow-hidden bg-gray-100">
-                                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <span class="px-2 py-0.5 rounded-full bg-[#e8f2ea] text-[#1e3d2f] font-bold text-[10px]">Iklan Komersial</span>
-                                <h4 class="font-extrabold text-sm text-[#191c1a] mt-1">Sneakers Sport Dynamic</h4>
-                                <p class="text-xs text-gray-400 mt-0.5">6 Adegan • 30 detik • Dibuat 2 jam lalu</p>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-3xl p-4 border border-[#e6e3da] shadow-xs space-y-3">
-                            <div class="aspect-video rounded-2xl overflow-hidden bg-gray-100">
-                                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-bold text-[10px]">Konten Kreatif</span>
-                                <h4 class="font-extrabold text-sm text-[#191c1a] mt-1">Drama Komedi Kantor</h4>
-                                <p class="text-xs text-gray-400 mt-0.5">4 Adegan • TikTok 9:16 • Dibuat kemarin</p>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-3xl p-4 border border-[#e6e3da] shadow-xs space-y-3">
-                            <div class="aspect-video rounded-2xl overflow-hidden bg-gray-100">
-                                <img src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <span class="px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 font-bold text-[10px]">Animasi</span>
-                                <h4 class="font-extrabold text-sm text-[#191c1a] mt-1">Petualangan Robot Gurun</h4>
-                                <p class="text-xs text-gray-400 mt-0.5">8 Adegan • 3D Pixar • Dibuat 3 hari lalu</p>
-                            </div>
-                        </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex items-center gap-1.5 p-1 bg-[#f0eee6] rounded-2xl w-fit overflow-x-auto max-w-full">
+                        <button onclick="filterHistoryTab('all', this)" id="hist-tab-all" class="hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold transition bg-[#1e3d2f] text-white cursor-pointer">Semua</button>
+                        <button onclick="filterHistoryTab('storyboard', this)" id="hist-tab-storyboard" class="hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-black transition cursor-pointer">Storyboard</button>
+                        <button onclick="filterHistoryTab('prompt_studio', this)" id="hist-tab-prompt_studio" class="hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-black transition cursor-pointer">Prompt Studio</button>
+                        <button onclick="filterHistoryTab('voiceover', this)" id="hist-tab-voiceover" class="hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-black transition cursor-pointer">Voice Over</button>
+                        <button onclick="filterHistoryTab('videomerge', this)" id="hist-tab-videomerge" class="hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-black transition cursor-pointer">Video Tools</button>
+                    </div>
+
+                    <!-- History List Grid Container -->
+                    <div id="historyListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Populated dynamically by renderLocalHistory() -->
                     </div>
                 </section>
 
@@ -536,7 +406,7 @@
                                     <span id="btnCreateSbText">CREATE STORYBOARD</span>
                                 </button>
                                 <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <button type="button" onclick="switchView('riwayat')" class="py-2.5 rounded-xl border border-[#e6e3da] bg-[#f8f7f4] hover:bg-gray-100 text-gray-700 font-bold transition flex items-center justify-center gap-1.5">
+                                    <button type="button" onclick="switchView('riwayat'); filterHistoryTab('storyboard', document.getElementById('hist-tab-storyboard'));" class="py-2.5 rounded-xl border border-[#e6e3da] bg-[#f8f7f4] hover:bg-gray-100 text-gray-700 font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
                                         <i class="fa-solid fa-box-archive text-gray-500"></i>History
                                     </button>
                                     <button type="button" onclick="resetStoryboardForm()" class="py-2.5 rounded-xl border border-[#e6e3da] bg-[#f8f7f4] hover:bg-gray-100 text-gray-700 font-bold transition flex items-center justify-center gap-1.5">
@@ -1704,7 +1574,7 @@
                     <i class="fa-solid fa-sliders text-[#a3e6b5]"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-extrabold text-[#191c1a]">Pengaturan Sistem Story In. AI</h3>
+                    <h3 class="text-base font-extrabold text-[#191c1a]">Pengaturan Story Generator</h3>
                     <p class="text-xs text-gray-500">Konfigurasi Google Gemini API Key (BYOK) & Model AI</p>
                 </div>
             </div>
@@ -1865,11 +1735,368 @@
             if (chev) chev.style.transform = state.openDropdowns[key] ? 'rotate(0deg)' : 'rotate(-90deg)';
         }
 
+        function ensureDropdownOpen(key) {
+            state.openDropdowns[key] = true;
+            const submenu = document.getElementById('submenu-' + key);
+            const chev = document.getElementById('chev-' + key);
+            if (submenu) {
+                submenu.classList.remove('submenu-closed');
+                submenu.classList.add('submenu-open');
+            }
+            if (chev) chev.style.transform = 'rotate(0deg)';
+        }
+
+        /* ================= BROWSER LOCAL HISTORY ENGINE ================= */
+        let currentHistoryFilter = 'all';
+
+        function getLocalHistory() {
+            try {
+                const raw = localStorage.getItem('storygen_local_history');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                console.error('Failed to parse local history:', e);
+                return [];
+            }
+        }
+
+        function saveToLocalHistory(item) {
+            try {
+                const list = getLocalHistory();
+                const record = {
+                    id: 'hist_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                    createdAt: new Date().toISOString(),
+                    ...item
+                };
+                list.unshift(record);
+                // Keep max 50 items to stay safely within browser storage quotas
+                const trimmed = list.slice(0, 50);
+                
+                try {
+                    localStorage.setItem('storygen_local_history', JSON.stringify(trimmed));
+                } catch (quotaErr) {
+                    console.warn('Storage quota reached, pruning older history items...', quotaErr);
+                    const smaller = trimmed.slice(0, 20);
+                    localStorage.setItem('storygen_local_history', JSON.stringify(smaller));
+                }
+
+                // If currently viewing riwayat, live-refresh the view
+                const viewRiwayat = document.getElementById('view-riwayat');
+                if (viewRiwayat && !viewRiwayat.classList.contains('hidden')) {
+                    renderLocalHistory(currentHistoryFilter);
+                }
+            } catch (err) {
+                console.error('saveToLocalHistory error:', err);
+            }
+        }
+
+        function deleteLocalHistoryItem(id) {
+            try {
+                let list = getLocalHistory();
+                list = list.filter(item => item.id !== id);
+                localStorage.setItem('storygen_local_history', JSON.stringify(list));
+                renderLocalHistory(currentHistoryFilter);
+                showFlowToast('Item riwayat berhasil dihapus.');
+            } catch (e) {
+                console.error('deleteLocalHistoryItem error:', e);
+            }
+        }
+
+        function clearLocalHistory() {
+            if (!confirm('Hapus seluruh riwayat generate dari browser ini? Semua catatan lokal akan dibersihkan.')) return;
+            try {
+                localStorage.removeItem('storygen_local_history');
+                renderLocalHistory(currentHistoryFilter);
+                showFlowToast('Seluruh riwayat lokal berhasil dibersihkan.');
+            } catch (e) {
+                console.error('clearLocalHistory error:', e);
+            }
+        }
+
+        function filterHistoryTab(filter, btnEl) {
+            currentHistoryFilter = filter;
+            document.querySelectorAll('.hist-filter-pill').forEach(btn => {
+                btn.className = 'hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:text-black transition cursor-pointer';
+            });
+            if (btnEl) {
+                btnEl.className = 'hist-filter-pill px-3 py-1.5 rounded-xl text-xs font-bold transition bg-[#1e3d2f] text-white cursor-pointer';
+            }
+            renderLocalHistory(filter);
+        }
+
+        function formatHistoryDate(isoString) {
+            try {
+                if (!isoString) return '';
+                const d = new Date(isoString);
+                return d.toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return isoString;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeJsString(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/\\/g, '\\\\')
+                .replace(/`/g, '\\`')
+                .replace(/\$/g, '\\$');
+        }
+
+        function renderLocalHistory(filter = 'all') {
+            const container = document.getElementById('historyListContainer');
+            if (!container) return;
+
+            const allItems = getLocalHistory();
+            const items = (filter === 'all') 
+                ? allItems 
+                : allItems.filter(item => item.type === filter);
+
+            if (!items.length) {
+                container.innerHTML = `
+                    <div class="col-span-full py-16 text-center space-y-3 bg-white rounded-3xl border border-[#e6e3da] p-8 shadow-2xs">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-[#f0eee6] flex items-center justify-center text-gray-400 text-2xl">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <h4 class="font-extrabold text-sm text-gray-800">Belum Ada Riwayat Generate (${filter === 'all' ? 'Semua' : filter.toUpperCase()})</h4>
+                        <p class="text-xs text-gray-500 max-w-sm mx-auto">Setiap kali Anda men-generate Storyboard, Prompt Studio, Voice Over, atau Video Tools, hasilnya akan tersimpan otomatis di browser lokal ini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const dateStr = formatHistoryDate(item.createdAt);
+                
+                if (item.type === 'storyboard') {
+                    const sceneCount = item.sceneCount || (item.scenes ? item.scenes.length : 0);
+                    const subLabel = STORYBOARD_MODES[item.subType]?.badge || (item.subType || 'Komersial');
+                    return `
+                        <div class="bg-white rounded-3xl p-5 border border-[#e6e3da] shadow-2xs space-y-3 flex flex-col justify-between hover:border-gray-300 transition">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-extrabold text-[10px] flex items-center gap-1">
+                                            <i class="fa-solid fa-clapperboard text-amber-600"></i> Storyboard
+                                        </span>
+                                        <span class="text-[10px] font-bold text-gray-400">•</span>
+                                        <span class="text-[10px] font-bold text-gray-500">${subLabel}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span class="text-[10px] text-gray-400 font-mono">${dateStr}</span>
+                                        <button onclick="deleteLocalHistoryItem('${item.id}')" class="p-1 text-gray-400 hover:text-red-600 transition cursor-pointer" title="Hapus dari riwayat">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 class="font-extrabold text-xs text-gray-900 line-clamp-2">${escapeHtml(item.title || 'Storyboard Video')}</h4>
+                                ${item.logline ? `<p class="text-[11px] text-gray-600 line-clamp-3 leading-relaxed">${escapeHtml(item.logline)}</p>` : ''}
+                                <div class="flex items-center gap-2 pt-1 text-[10px] font-bold text-gray-500">
+                                    <span class="px-2 py-0.5 rounded-md bg-[#f8f7f4] border border-[#e6e3da]">${sceneCount} Adegan</span>
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-[#f0eee6] flex items-center justify-between gap-2">
+                                <button onclick="loadStoryboardFromHistory('${item.id}')" class="flex-1 py-2 px-3 rounded-xl bg-[#1e3d2f] hover:bg-[#162f24] text-white font-bold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-eye text-[#a3e6b5]"></i> Muat ke Studio
+                                </button>
+                                <button onclick="copyStoryboardTextFromHistory('${item.id}', this)" class="py-2 px-3 rounded-xl border border-[#e6e3da] hover:bg-[#f0eee6] text-gray-700 font-bold text-[11px] transition flex items-center gap-1 cursor-pointer" title="Salin seluruh teks">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (item.type === 'prompt_studio') {
+                    const toolName = (item.subType || 'visual').toUpperCase();
+                    return `
+                        <div class="bg-white rounded-3xl p-5 border border-[#e6e3da] shadow-2xs space-y-3 flex flex-col justify-between hover:border-gray-300 transition">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-[10px] flex items-center gap-1">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i> Prompt Studio
+                                        </span>
+                                        <span class="text-[10px] font-bold text-gray-400">•</span>
+                                        <span class="text-[10px] font-bold text-gray-500">${toolName}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span class="text-[10px] text-gray-400 font-mono">${dateStr}</span>
+                                        <button onclick="deleteLocalHistoryItem('${item.id}')" class="p-1 text-gray-400 hover:text-red-600 transition cursor-pointer" title="Hapus dari riwayat">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 class="font-extrabold text-xs text-gray-900 line-clamp-1">${escapeHtml(item.title || 'Master Prompt Concept')}</h4>
+                                <div class="p-3 rounded-xl bg-[#191c1a] text-gray-200 font-mono text-[11px] line-clamp-4 leading-relaxed">
+                                    ${escapeHtml(item.prompt || item.concept || '')}
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-[#f0eee6] flex items-center justify-between gap-2">
+                                <button onclick="copyTextUniversal(\`${escapeJsString(item.prompt || '')}\`, this)" class="flex-1 py-2 px-3 rounded-xl bg-[#1e3d2f] hover:bg-[#162f24] text-white font-bold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-copy text-[#a3e6b5]"></i> Salin Prompt
+                                </button>
+                                <a href="https://labs.google/fx/tools/flow" target="_blank" rel="noopener noreferrer" class="py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] transition flex items-center gap-1 cursor-pointer" title="Buka di Google Flow">
+                                    <i class="fa-brands fa-google text-blue-600"></i> Flow
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (item.type === 'voiceover') {
+                    return `
+                        <div class="bg-white rounded-3xl p-5 border border-[#e6e3da] shadow-2xs space-y-3 flex flex-col justify-between hover:border-gray-300 transition">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-900 font-extrabold text-[10px] flex items-center gap-1">
+                                            <i class="fa-solid fa-volume-high text-teal-600"></i> Voice Over
+                                        </span>
+                                        <span class="text-[10px] font-bold text-gray-400">•</span>
+                                        <span class="text-[10px] font-bold text-gray-500">${escapeHtml(item.voiceName || 'Neural TTS')}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span class="text-[10px] text-gray-400 font-mono">${dateStr}</span>
+                                        <button onclick="deleteLocalHistoryItem('${item.id}')" class="p-1 text-gray-400 hover:text-red-600 transition cursor-pointer" title="Hapus dari riwayat">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 class="font-extrabold text-xs text-gray-900 line-clamp-1">${escapeHtml(item.title || 'Voice Over Audio')}</h4>
+                                <div class="p-2.5 rounded-xl bg-[#f8f7f4] border border-[#e6e3da] text-xs text-gray-700 line-clamp-3 leading-relaxed">
+                                    "${escapeHtml(item.script || '')}"
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-[#f0eee6] flex items-center justify-between gap-2">
+                                ${item.audioBase64 ? `
+                                    <button onclick="downloadVoiceOverFromHistory('${item.id}')" class="flex-1 py-2 px-3 rounded-xl bg-[#1e3d2f] hover:bg-[#162f24] text-white font-bold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-download text-[#a3e6b5]"></i> Unduh MP3
+                                    </button>
+                                ` : ''}
+                                <button onclick="copyTextUniversal(\`${escapeJsString(item.script || '')}\`, this)" class="py-2 px-3 rounded-xl border border-[#e6e3da] hover:bg-[#f0eee6] text-gray-700 font-bold text-[11px] transition flex items-center gap-1 cursor-pointer" title="Salin Naskah">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (item.type === 'videomerge') {
+                    return `
+                        <div class="bg-white rounded-3xl p-5 border border-[#e6e3da] shadow-2xs space-y-3 flex flex-col justify-between hover:border-gray-300 transition">
+                            <div class="space-y-2.5">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 font-extrabold text-[10px] flex items-center gap-1">
+                                            <i class="fa-solid fa-scissors text-purple-600"></i> Video Tools
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span class="text-[10px] text-gray-400 font-mono">${dateStr}</span>
+                                        <button onclick="deleteLocalHistoryItem('${item.id}')" class="p-1 text-gray-400 hover:text-red-600 transition cursor-pointer" title="Hapus dari riwayat">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 class="font-extrabold text-xs text-gray-900 line-clamp-1">${escapeHtml(item.title || 'Penggabungan Video')}</h4>
+                                <div class="p-2.5 rounded-xl bg-[#f8f7f4] border border-[#e6e3da] text-[11px] text-gray-600 space-y-1">
+                                    <div><span class="font-bold">Total Klip:</span> ${item.clipCount || 1} file</div>
+                                    ${item.filenames ? `<div class="truncate"><span class="font-bold">File:</span> ${escapeHtml(item.filenames)}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="pt-3 border-t border-[#f0eee6] flex items-center justify-between gap-2">
+                                <button onclick="switchView('videomerge')" class="flex-1 py-2 px-3 rounded-xl bg-[#1e3d2f] hover:bg-[#162f24] text-white font-bold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-arrow-right text-[#a3e6b5]"></i> Buka Video Tools
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return '';
+            }).join('');
+        }
+
+        function loadStoryboardFromHistory(id) {
+            const list = getLocalHistory();
+            const item = list.find(x => x.id === id);
+            if (!item || !item.scenes) {
+                alert('Data storyboard tidak ditemukan.');
+                return;
+            }
+            navStoryboardSub(item.subType || 'commercial');
+            const dataToRender = {
+                title: item.title,
+                logline: item.logline,
+                scenes: item.scenes,
+                socialPack: item.socialPack || {}
+            };
+            renderStoryboardResults(dataToRender, null);
+            document.getElementById('storyboardOutputView')?.scrollIntoView({ behavior: 'smooth' });
+            showFlowToast('Storyboard berhasil dimuat ke editor!');
+        }
+
+        function copyStoryboardTextFromHistory(id, btnEl) {
+            const list = getLocalHistory();
+            const item = list.find(x => x.id === id);
+            if (!item) return;
+            let text = `${item.title || 'Storyboard'}\n\nLogline: ${item.logline || '-'}\n\n`;
+            (item.scenes || []).forEach(sc => {
+                text += `Scene ${sc.sceneNumber || ''}: ${sc.sceneTitle || ''}\nNarasi: ${sc.narrative || ''}\nDialog: ${sc.dialogue || ''}\nImage Prompt: ${sc.masterImagePrompt || ''}\nVideo Prompt: ${sc.masterVideoPrompt || ''}\n\n`;
+            });
+            copyTextUniversal(text, btnEl, 'Tersalin! ✅');
+        }
+
+        function downloadVoiceOverFromHistory(id) {
+            const list = getLocalHistory();
+            const item = list.find(x => x.id === id);
+            if (!item || !item.audioBase64) {
+                alert('File audio tidak ditemukan di riwayat ini.');
+                return;
+            }
+            try {
+                const byteCharacters = atob(item.audioBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const audioBlob = new Blob([byteArray], { type: item.mimeType || 'audio/mp3' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const a = document.createElement('a');
+                a.href = audioUrl;
+                a.download = `VoiceOver_${Date.now()}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showFlowToast('File MP3 berhasil diunduh!');
+            } catch (e) {
+                alert('Gagal mengunduh audio: ' + e.message);
+            }
+        }
+
         function switchView(viewId) {
-            const views = ['dashboard', 'storyboard', 'fotokreasi', 'voiceover', 'videomerge', 'riwayat', 'admin'];
+            localStorage.setItem('storygen_active_view', viewId);
+            const views = ['storyboard', 'fotokreasi', 'voiceover', 'videomerge', 'riwayat'];
             views.forEach(v => { document.getElementById('view-' + v)?.classList.add('hidden'); });
 
             if (['foto', 'thumbnail', 'infographic', 'ugc', 'character', 'poster'].includes(viewId)) {
+                ensureDropdownOpen('imageGen');
                 document.getElementById('view-fotokreasi')?.classList.remove('hidden');
                 ['fotoGenForm', 'thumbnailGenForm', 'infographicGenForm', 'productAdsGenForm', 'characterGenForm', 'posterGenForm'].forEach(f => {
                     document.getElementById(f)?.classList.add('hidden');
@@ -1877,17 +2104,34 @@
                 const formMap = { foto: 'fotoGenForm', thumbnail: 'thumbnailGenForm', infographic: 'infographicGenForm', ugc: 'productAdsGenForm', character: 'characterGenForm', poster: 'posterGenForm' };
                 document.getElementById(formMap[viewId])?.classList.remove('hidden');
                 if (viewId === 'character') renderCharSlots();
+
+                document.querySelectorAll('.sb-subitem, .img-subitem').forEach(el => el.classList.remove('sub-nav-active'));
+                document.getElementById('sub-img-' + viewId)?.classList.add('sub-nav-active');
+            } else if (viewId === 'storyboard') {
+                ensureDropdownOpen('storyboard');
+                document.getElementById('view-storyboard')?.classList.remove('hidden');
             } else {
                 document.getElementById('view-' + viewId)?.classList.remove('hidden');
+                document.querySelectorAll('.sb-subitem, .img-subitem').forEach(el => el.classList.remove('sub-nav-active'));
             }
 
-            ['dashboard', 'voiceover', 'videomerge', 'riwayat', 'admin'].forEach(v => {
+            ['voiceover', 'videomerge', 'riwayat'].forEach(v => {
                 const btn = document.getElementById('nav-' + v);
                 if (btn) {
                     if (v === viewId) btn.classList.add('nav-item-active');
                     else btn.classList.remove('nav-item-active');
                 }
             });
+
+            const headerPage = document.getElementById('headerCurrentPage');
+            if (headerPage) {
+                if (viewId === 'voiceover') headerPage.textContent = 'Voice Over (TTS)';
+                else if (viewId === 'videomerge') headerPage.textContent = 'Video Tools';
+                else if (viewId === 'riwayat') {
+                    headerPage.textContent = 'Riwayat Generate';
+                    renderLocalHistory(currentHistoryFilter);
+                }
+            }
         }
 
         const STORYBOARD_MODES = {
@@ -1900,6 +2144,9 @@
 
         function navStoryboardSub(modeKey) {
             state.storyboardMode = modeKey;
+            localStorage.setItem('storygen_active_view', 'storyboard');
+            localStorage.setItem('storygen_active_sb_mode', modeKey);
+            ensureDropdownOpen('storyboard');
             switchView('storyboard');
             document.querySelectorAll('.sb-subitem, .img-subitem').forEach(el => el.classList.remove('sub-nav-active'));
             document.getElementById('sub-sb-' + modeKey)?.classList.add('sub-nav-active');
@@ -1924,6 +2171,9 @@
 
         function navImageGenSub(subKey) {
             state.imageGen.activeTool = subKey;
+            localStorage.setItem('storygen_active_view', subKey);
+            localStorage.setItem('storygen_active_img_tool', subKey);
+            ensureDropdownOpen('imageGen');
             switchView(subKey);
             document.querySelectorAll('.sb-subitem, .img-subitem').forEach(el => el.classList.remove('sub-nav-active'));
             document.getElementById('sub-img-' + subKey)?.classList.add('sub-nav-active');
@@ -2452,7 +2702,7 @@
                     resolution: '8K UHD Photorealistic'
                 };
                 const socialCaption = d.socialCaption || '';
-                const hashtags = Array.isArray(d.hashtags) ? d.hashtags : ['#StoryInAI', '#PromptEngineering', '#ContentCreator'];
+                const hashtags = Array.isArray(d.hashtags) ? d.hashtags : ['#StoryGenerator', '#PromptEngineering', '#ContentCreator'];
 
                 const container = document.getElementById(resultContainerId);
                 if (container) {
@@ -2577,6 +2827,16 @@
                         </div>
                     `;
                 }
+
+                // Simpan ke Browser Local History
+                saveToLocalHistory({
+                    type: 'prompt_studio',
+                    subType: tool,
+                    title: title || `${tool.toUpperCase()} Output Visual & Prompt`,
+                    prompt: masterPrompt,
+                    concept: conceptId,
+                    details: { cameraSettings, negativePrompt, socialCaption, hashtags, params }
+                });
             } catch(e) {
                 alert('Gagal merancang output teks: ' + e.message);
             } finally {
@@ -2645,6 +2905,17 @@
                 if (statusEl) statusEl.textContent = 'Audio Siap Diputar';
                 showVoiceOverNotice('Audio TTS berhasil digenerate dan siap diputar / diunduh!', 'success');
                 showFlowToast('Audio MP3 siap diputar!');
+
+                // Simpan ke Browser Local History
+                saveToLocalHistory({
+                    type: 'voiceover',
+                    title: script.length > 50 ? script.substring(0, 50) + '...' : script,
+                    script: script,
+                    voiceName: voiceSelect,
+                    language: lang,
+                    audioBase64: res.audioBase64,
+                    mimeType: res.mimeType || 'audio/mp3'
+                });
             } catch (err) {
                 console.error('TTS error:', err);
                 if (statusEl) statusEl.textContent = 'Gagal';
@@ -2684,10 +2955,13 @@
         }
 
         function openImageGenHistoryModal(tool) {
-            document.getElementById('historyModalTitle').textContent = 'Riwayat Render ' + tool.toUpperCase();
-            document.getElementById('imageGenHistoryModal')?.classList.remove('hidden');
+            switchView('riwayat');
+            const tabBtn = document.getElementById('hist-tab-prompt_studio');
+            filterHistoryTab('prompt_studio', tabBtn);
         }
-        function closeImageGenHistoryModal() { document.getElementById('imageGenHistoryModal')?.classList.add('hidden'); }
+        function closeImageGenHistoryModal() { 
+            document.getElementById('imageGenHistoryModal')?.classList.add('hidden'); 
+        }
 
         // Reference Storyboard Uploads
         function handleRefUpload(e, type) {
@@ -2773,6 +3047,18 @@
                 state.storyboardData = data;
                 renderStoryboardResults(data, json.notice);
                 showFlowToast('Storyboard sinematik berhasil diproduksi!');
+
+                // Simpan ke Browser Local History
+                saveToLocalHistory({
+                    type: 'storyboard',
+                    subType: state.storyboardMode || 'commercial',
+                    title: data.title || 'Storyboard Video',
+                    logline: data.logline || data.coreMessage || '',
+                    sceneCount: (data.scenes || []).length,
+                    scenes: data.scenes || [],
+                    socialPack: data.socialPack || {},
+                    payload: data
+                });
             } catch (err) {
                 alert('Error Storyboard: ' + err.message);
             } finally {
@@ -2874,7 +3160,7 @@
 
             const sp = data.socialPack || {};
             document.getElementById('outSocialCaption').textContent = sp.caption || (data.coreMessage || 'Visual Storyboard');
-            document.getElementById('outSocialTags').textContent = (sp.hashtags || ['#StoryInAI', '#Storyboard']).join(' ');
+            document.getElementById('outSocialTags').textContent = (sp.hashtags || ['#StoryGenerator', '#Storyboard']).join(' ');
 
             const aspectConf = getAspectConfig(state.settings.aspectRatio);
 
@@ -3086,7 +3372,7 @@
             const str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state.storyboardData, null, 2));
             const dl = document.createElement('a');
             dl.setAttribute('href', str);
-            dl.setAttribute('download', 'StoryIn_Storyboard.json');
+            dl.setAttribute('download', 'StoryGenerator_Storyboard.json');
             dl.click();
         }
 
@@ -3257,6 +3543,14 @@
                     if (progressWrap) progressWrap.classList.add('hidden');
                     if (resultBox) resultBox.classList.remove('hidden');
                     showFlowToast('Video siap diputar & diunduh!');
+
+                    // Simpan ke Browser Local History
+                    saveToLocalHistory({
+                        type: 'videomerge',
+                        title: `Klip Video: ${file.name}`,
+                        clipCount: 1,
+                        filenames: file.name
+                    });
                     return;
                 }
 
@@ -3276,6 +3570,14 @@
                 if (progressWrap) progressWrap.classList.add('hidden');
                 if (resultBox) resultBox.classList.remove('hidden');
                 showFlowToast('Semua klip video berhasil digabungkan!');
+
+                // Simpan ke Browser Local History
+                saveToLocalHistory({
+                    type: 'videomerge',
+                    title: `Penggabungan ${state.videoMergeFiles.length} Klip Video`,
+                    clipCount: state.videoMergeFiles.length,
+                    filenames: state.videoMergeFiles.map(f => f.name).join(', ')
+                });
             } catch (err) {
                 console.error('Video merge error:', err);
                 // Fallback to primary video preview if browser mediarecorder hit cross-codec limits
@@ -3437,6 +3739,22 @@
             initAllFormSelectors();
             updateKeyBadge();
             updateSummaryPill();
+
+            // Restore active view and mode from localStorage
+            try {
+                const savedView = localStorage.getItem('storygen_active_view');
+                if (!savedView || savedView === 'storyboard' || savedView === 'dashboard') {
+                    const savedSbMode = localStorage.getItem('storygen_active_sb_mode') || 'commercial';
+                    navStoryboardSub(savedSbMode);
+                } else if (['foto', 'thumbnail', 'infographic', 'ugc', 'character', 'poster'].includes(savedView)) {
+                    navImageGenSub(savedView);
+                } else {
+                    switchView(savedView);
+                }
+            } catch (err) {
+                console.error('Error restoring active view:', err);
+                navStoryboardSub('commercial');
+            }
 
             const handleFsChange = () => {
                 const doc = window.parent ? window.parent.document : document;
