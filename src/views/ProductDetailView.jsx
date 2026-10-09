@@ -31,7 +31,18 @@ export const ProductDetailView = () => {
 
   const images = product.gallery && product.gallery.length > 0 ? product.gallery : [product.image];
 
+  // Ketersediaan Stok
+  const hasAccountStock = Array.isArray(product.accountStock);
+  const availableStock = hasAccountStock 
+    ? product.accountStock.filter(s => !s.isSold).length 
+    : (product.stockCount !== undefined ? product.stockCount : 100);
+  const isOutOfStock = (hasAccountStock && availableStock <= 0) || (product.stockCount !== undefined && product.stockCount <= 0);
+
   const handleAddToCart = () => {
+    if (isOutOfStock) {
+      showToast('Stok Habis', `Mohon maaf, stok untuk produk "${product.name}" sedang habis.`);
+      return;
+    }
     setAddingState(true);
     setTimeout(() => {
       addToCart(product);
@@ -40,6 +51,10 @@ export const ProductDetailView = () => {
   };
 
   const handleBuyNow = () => {
+    if (isOutOfStock) {
+      showToast('Stok Habis', `Mohon maaf, stok untuk produk "${product.name}" sedang habis.`);
+      return;
+    }
     addToCart(product);
     navigateTo('checkout');
   };
@@ -172,6 +187,33 @@ export const ProductDetailView = () => {
             </p>
           </div>
 
+          {/* Keterangan Jumlah Stok Produk */}
+          {isOutOfStock ? (
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-rose-800">
+                  Status Ketersediaan: STOK HABIS
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-rose-700 bg-white border border-rose-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
+                0 Stok Ready
+              </span>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-emerald-900">
+                  Status Ketersediaan: STOK TERSEDIA
+                </span>
+              </div>
+              <span className="text-[11px] font-mono font-bold text-emerald-800 bg-white border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
+                {hasAccountStock ? `${availableStock} Stok Ready` : 'Tersedia Lengkap'}
+              </span>
+            </div>
+          )}
+
           {/* Guarantee Perks List */}
           <div className="space-y-2.5 bg-cream/70 p-4 rounded-dyari-sm border border-dyariborder/70 text-xs sm:text-sm font-medium text-forest">
             {product.perks?.map((perk, idx) => (
@@ -184,22 +226,44 @@ export const ProductDetailView = () => {
 
           {/* CTAs */}
           <div className="space-y-3 pt-2">
-            <button
-              onClick={handleBuyNow}
-              className="w-full bg-coral hover:bg-coral-hover text-forest font-heading font-bold py-4 px-6 rounded-dyari-sm shadow-md transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 text-base"
-            >
-              <Zap size={18} className="fill-forest" />
-              <span>BELI SEKARANG</span>
-            </button>
+            {isOutOfStock ? (
+              <>
+                <button
+                  disabled
+                  className="w-full bg-gray-200 text-gray-500 font-heading font-bold py-4 px-6 rounded-dyari-sm cursor-not-allowed flex items-center justify-center gap-2 text-base shadow-none select-none"
+                >
+                  <Zap size={18} className="fill-gray-400 text-gray-400" />
+                  <span>STOK HABIS (TIDAK DAPAT DIBELI)</span>
+                </button>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={addingState}
-              className="w-full border-2 border-forest bg-white hover:bg-sage text-forest font-heading font-bold py-3.5 px-6 rounded-dyari-sm transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 text-sm"
-            >
-              <ShoppingBag size={18} />
-              <span>{addingState ? 'MENAMBAHKAN...' : 'TAMBAH KE KERANJANG'}</span>
-            </button>
+                <button
+                  disabled
+                  className="w-full border-2 border-gray-200 bg-gray-100 text-gray-400 font-heading font-bold py-3.5 px-6 rounded-dyari-sm cursor-not-allowed flex items-center justify-center gap-2 text-sm select-none"
+                >
+                  <ShoppingBag size={18} />
+                  <span>TIDAK BISA DITAMBAHKAN KE KERANJANG</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleBuyNow}
+                  className="w-full bg-coral hover:bg-coral-hover text-forest font-heading font-bold py-4 px-6 rounded-dyari-sm shadow-md transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 text-base cursor-pointer"
+                >
+                  <Zap size={18} className="fill-forest" />
+                  <span>BELI SEKARANG</span>
+                </button>
+
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingState}
+                  className="w-full border-2 border-forest bg-white hover:bg-sage text-forest font-heading font-bold py-3.5 px-6 rounded-dyari-sm transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 text-sm cursor-pointer"
+                >
+                  <ShoppingBag size={18} />
+                  <span>{addingState ? 'MENAMBAHKAN...' : 'TAMBAH KE KERANJANG'}</span>
+                </button>
+              </>
+            )}
           </div>
 
           {/* Trust badges */}

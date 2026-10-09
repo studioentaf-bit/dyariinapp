@@ -3294,7 +3294,8 @@ export const AdminDashboardView = () => {
                           <tr>
                             <th className="py-3 px-4 font-semibold text-center w-14">Urutan</th>
                             <th className="py-3 px-4 font-semibold">Produk</th>
-                            <th className="py-3 px-4 font-semibold">Tipe & Mekanisme Stok</th>
+                            <th className="py-3 px-4 font-semibold text-center">Status & Jumlah Stok</th>
+                            <th className="py-3 px-4 font-semibold">Tipe & Mekanisme</th>
                             <th className="py-3 px-4 font-semibold">Kategori</th>
                             <th className="py-3 px-4 font-semibold">Harga Modal</th>
                             <th className="py-3 px-4 font-semibold">Harga Jual</th>
@@ -3324,7 +3325,7 @@ export const AdminDashboardView = () => {
                             if (paginatedAdminProducts.length === 0) {
                               return (
                                 <tr>
-                                  <td colSpan={8} className="py-8 text-center text-warmgray text-xs">
+                                  <td colSpan={9} className="py-8 text-center text-warmgray text-xs">
                                     Tidak ada produk yang sesuai dengan filter pencarian.
                                   </td>
                                 </tr>
@@ -3337,9 +3338,11 @@ export const AdminDashboardView = () => {
                                   ? 'LICENSE_TOOL' 
                                   : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
                               );
-                              const availableStock = p.accountStock 
+                              const hasAccountStock = Array.isArray(p.accountStock);
+                              const availableStock = hasAccountStock 
                                 ? p.accountStock.filter(s => !s.isSold).length 
-                                : (p.stockCount ?? 0);
+                                : (p.stockCount !== undefined ? p.stockCount : 100);
+                              const isOutOfStock = (hasAccountStock && availableStock <= 0) || (p.stockCount !== undefined && p.stockCount <= 0);
 
                               const globalIndex = (adminProductPage - 1) * adminProductsPerPage + index + 1;
 
@@ -3365,6 +3368,28 @@ export const AdminDashboardView = () => {
                                       <p className="text-[10px] text-warmgray truncate max-w-[200px]">{p.tagline || 'Produk digital siap pakai'}</p>
                                     </div>
                                   </td>
+
+                                  {/* Status & Jumlah Stok */}
+                                  <td className="py-3.5 px-4 text-center">
+                                    {isOutOfStock ? (
+                                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        <span>HABIS (0 Stok)</span>
+                                      </span>
+                                    ) : (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                          <span>{availableStock} Stok Ready</span>
+                                        </span>
+                                        {hasAccountStock && (
+                                          <span className="block text-[9px] text-warmgray font-mono">
+                                            ({p.accountStock.length} total baris)
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </td>
                                   
                                   {/* Tipe & Sifat Stok Column */}
                                   <td className="py-3.5 px-4">
@@ -3373,10 +3398,7 @@ export const AdminDashboardView = () => {
                                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-200">
                                           <span>📱 Aplikasi Premium</span>
                                         </span>
-                                        <p className="text-[10px] text-forest font-semibold">
-                                          Stok: <span className={`font-mono font-bold ${availableStock > 0 ? 'text-blue-700' : 'text-rose-600'}`}>{availableStock} Akun Ready</span>
-                                          <span className="text-warmgray block text-[9px]">1x pakai • Anti-duplikasi aktif</span>
-                                        </p>
+                                        <span className="text-warmgray block text-[9px]">1x pakai • Anti-duplikasi</span>
                                       </div>
                                     )}
                                     {pType === 'DIGITAL_PREMIUM' && (
@@ -3384,10 +3406,7 @@ export const AdminDashboardView = () => {
                                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200">
                                           <span>📦 Akses Member</span>
                                         </span>
-                                        <p className="text-[10px] text-emerald-800 font-semibold">
-                                          Akses Login Terdaftar
-                                          <span className="text-warmgray block text-[9px]">Tanpa input stok • Link shared master</span>
-                                        </p>
+                                        <span className="text-warmgray block text-[9px]">Akses Login Member</span>
                                       </div>
                                     )}
                                     {pType === 'LICENSE_TOOL' && (
@@ -3395,10 +3414,7 @@ export const AdminDashboardView = () => {
                                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200">
                                           <span>🔑 Tools AI Premium</span>
                                         </span>
-                                        <p className="text-[10px] text-purple-900 font-semibold">
-                                          Lisensi On-Demand
-                                          <span className="text-warmgray block text-[9px]">User login + Lisensi unik checkout</span>
-                                        </p>
+                                        <span className="text-warmgray block text-[9px]">Lisensi On-Demand</span>
                                       </div>
                                     )}
                                   </td>
@@ -3677,36 +3693,6 @@ export const AdminDashboardView = () => {
                   );
                 }
 
-                // Kalkulasi Dinamis Paket Bundling (Dihitung real-time dari stok produk satuan)
-                const geminiProd = products.find(p => p.name?.toLowerCase().includes('gemini') || p.id?.includes('gemini') || p.category === 'aplikasi');
-                const storyProd = products.find(p => p.name?.toLowerCase().includes('story') || p.id?.includes('story'));
-                const canvaProd = products.find(p => p.name?.toLowerCase().includes('canva') || p.category === 'aset-premium');
-
-                const geminiReady = (geminiProd?.accountStock || []).filter(s => !s.isSold).length;
-                const storyReady = Math.max((storyProd?.accountStock || []).filter(s => !s.isSold).length, 10);
-                const canvaReady = Math.max((canvaProd?.accountStock || []).filter(s => !s.isSold).length, 8);
-
-                const comboBundles = [
-                  {
-                    name: 'PAKET COMBO LISENSI 1 BULAN & GEMINI PRO',
-                    ready: Math.min(geminiReady, storyReady),
-                    items: [
-                      { name: geminiProd?.name || 'PROMO LIVE!!! GEMINI PRO 1.5 - BULANAN', qty: 1, ready: geminiReady },
-                      { name: storyProd?.name || 'STORY GENERATOR PRO AI LISENSI', qty: 1, ready: storyReady }
-                    ]
-                  },
-                  {
-                    name: 'PAKET BUNDLE HEMAT DIGITAL PREMIER',
-                    ready: Math.min(canvaReady, geminiReady),
-                    items: [
-                      { name: canvaProd?.name || 'MEGA BUNDLE CANVA & TEMPLATE ASET', qty: 1, ready: canvaReady },
-                      { name: geminiProd?.name || 'PROMO LIVE!!! GEMINI PRO 1.5', qty: 1, ready: geminiReady }
-                    ]
-                  }
-                ];
-
-                const readyBundleTotal = comboBundles.filter(b => b.ready > 0).length;
-
                 // Handle Checkbox Selection
                 const isAllSelected = displayedStock.length > 0 && displayedStock.every(s => selectedStockKeys.includes(`${s.productId}:::${s.id}`));
                 
@@ -3782,50 +3768,7 @@ export const AdminDashboardView = () => {
                       </button>
                     </div>
 
-                    {/* 2. CARD INTEGRASI KETERSEDIAAN STOK PAKET BUNDLING (TEMA DYARI.IN) */}
-                    <div className="bg-gradient-to-br from-[#F5F8F6] via-white to-sage/40 border border-[#D5E2D9] rounded-2xl p-5 space-y-3.5 shadow-2xs">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-lg bg-matcha-light text-forest flex items-center justify-center">
-                            <Layers3 size={14} />
-                          </div>
-                          <h3 className="font-heading font-extrabold text-sm text-forest">
-                            Integrasi Ketersediaan Stok Paket Bundling
-                          </h3>
-                        </div>
-                        <span className="bg-matcha-light text-forest border border-matcha/60 font-bold text-[11px] px-3 py-1 rounded-full self-start sm:self-auto shadow-2xs">
-                          {readyBundleTotal} dari {comboBundles.length} Paket Ready
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-warmgray -mt-1.5">
-                        Dihitung real-time dari stok produk satuan (Min Stok Komponen / Kebutuhan Qty)
-                      </p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                        {comboBundles.map((bundle, bIdx) => (
-                          <div key={bIdx} className="bg-white border border-[#E2EBE5] rounded-xl p-3.5 space-y-2 shadow-2xs hover:border-matcha transition-colors">
-                            <div className="flex items-center justify-between gap-2">
-                              <h4 className="font-heading font-bold text-xs text-forest truncate">
-                                {bundle.name}
-                              </h4>
-                              <span className="bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-extrabold px-2 py-0.5 rounded shrink-0">
-                                Ready: {bundle.ready} Paket
-                              </span>
-                            </div>
-                            <div className="space-y-1 text-[11px] text-warmgray">
-                              {bundle.items.map((item, itIdx) => (
-                                <div key={itIdx} className="flex items-center justify-between truncate">
-                                  <span className="truncate">• {item.name} ({item.qty}x)</span>
-                                  <span className="font-mono text-forest font-bold ml-2 shrink-0">{item.ready} ready</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 3. CONTROL & FILTER BAR (TEMA DYARI.IN) */}
+                    {/* 2. CONTROL & FILTER BAR (TEMA DYARI.IN) */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#FAFBF9] border border-[#E5EAE4] p-3 rounded-2xl shadow-2xs">
                       {/* Left: Product Selector Dropdown */}
                       <div className="flex items-center gap-2">

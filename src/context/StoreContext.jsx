@@ -660,6 +660,19 @@ export const StoreProvider = ({ children }) => {
   };
 
   const addToCart = (product) => {
+    // Cek ketersediaan stok produk
+    const currentProd = products.find(p => p.id === product.id) || product;
+    const hasAccountStock = Array.isArray(currentProd.accountStock);
+    const availableStock = hasAccountStock 
+      ? currentProd.accountStock.filter(s => !s.isSold).length 
+      : (currentProd.stockCount !== undefined ? currentProd.stockCount : 100);
+    const isOutOfStock = (hasAccountStock && availableStock <= 0) || (currentProd.stockCount !== undefined && currentProd.stockCount <= 0);
+
+    if (isOutOfStock) {
+      showToast('Stok Habis', `Mohon maaf, stok untuk "${product.name}" sedang habis.`);
+      return;
+    }
+
     setCart(prevCart => {
       const existing = prevCart.find(item => item.id === product.id);
       if (existing) {
