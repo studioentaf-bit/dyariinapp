@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialProducts, initialOrders, testimonials as initialTestimonials } from '../data/products';
 import { categories as initialCategories } from '../data/categories';
+import api from '../services/api';
 
 // --- UTILITY: KALKULASI TANGGAL & STATUS MASA BERLAKU LISENSI ---
 export const calculateLicenseExpiry = (durationStr = 'Selamanya (Lifetime)', startDateInput = new Date()) => {
@@ -179,6 +180,97 @@ export const getLicenseEffectiveStatus = (license) => {
     status: license.status || 'Aktif',
     remainingText: license.expiresAt || 'Aktif',
     badgeClass: 'bg-emerald-100 text-emerald-800'
+  };
+};
+
+// --- DEFAULT PAKET & TIER LISENSI STORY GENERATOR (BISA DIATUR, DITAMBAH & DIHAPUS OLEH ADMIN) ---
+export const defaultLicensePackages = [
+  {
+    id: 'starter',
+    name: 'Starter License',
+    subtitle: 'Cocok untuk eksperimen & proyek cepat',
+    price: 49000,
+    originalPrice: 99000,
+    duration: '30 Hari (1 Bulan)',
+    period: '1 Bulan Akses',
+    badge: '',
+    features: [
+      'Akses penuh Storyboard Sinematik (5 Mode)',
+      'Prompt Studio Imagen 3, Midjourney & Flux',
+      'Neural Voice Over (TTS Bahasa Indonesia & Global)',
+      'Client-side Video Tools & Merger',
+      'Sistem BYOK (Bring Your Own Key) tanpa limit',
+      'Riwayat generate tersimpan lokal di browser'
+    ],
+    isPopular: false
+  },
+  {
+    id: 'creator',
+    name: 'Pro Creator License',
+    subtitle: 'Pilihan paling populer kreator & agensi',
+    price: 199000,
+    originalPrice: 499000,
+    duration: '1 Tahun (365 Hari)',
+    period: '1 Tahun Akses',
+    badge: 'Paling Populer ⭐',
+    features: [
+      'Semua fitur Starter License',
+      'Masa aktif 1 Tahun penuh (Hemat 65%)',
+      'Hak komersial penuh untuk produksi konten klien',
+      'Bebas update fitur & formula prompt terbaru',
+      'Prioritas bantuan teknis WhatsApp',
+      'Integrasi 1-klik Google Flow & Veo prompt'
+    ],
+    isPopular: true
+  },
+  {
+    id: 'lifetime',
+    name: 'Lifetime Ultimate',
+    subtitle: 'Sekali bayar, nikmati akses selamanya',
+    price: 349000,
+    originalPrice: 799000,
+    duration: 'Selamanya (Lifetime)',
+    period: 'Sekali Bayar Selamanya',
+    badge: 'Best Value 💎',
+    features: [
+      'Akses seumur hidup (Lifetime) tanpa perpanjangan',
+      'Semua fitur Story Generator AI tanpa batas',
+      'Bebas gunakan untuk multi-proyek selamanya',
+      'Akses gratis ke seluruh upgrade engine masa depan',
+      'VIP Creator Support langsung dengan tim dyari.in',
+      'Aset panduan promosi video lengkap'
+    ],
+    isPopular: false
+  }
+];
+
+// --- UTILITY: MAPPING LISENSI DARI POSTGRESQL API ---
+export const mapBackendLicense = (lic) => {
+  const isLife = Boolean(lic.is_lifetime || (lic.duration_label && lic.duration_label.toLowerCase().includes('lifetime')));
+  const expFormatted = isLife 
+    ? 'Selamanya (Lifetime)' 
+    : (lic.expiry_date 
+        ? new Date(lic.expiry_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) 
+        : lic.duration_label || '30 Hari');
+
+  return {
+    id: (lic.id || `LIC-${Date.now()}`).toString(),
+    dbId: lic.id,
+    code: lic.license_key,
+    productId: lic.product_id ? `prod-${lic.product_id}` : 'story-generator',
+    productName: lic.product_title || 'Story Generator Pro AI',
+    customerName: lic.user_name || 'Member dyari.in',
+    customerEmail: (lic.user_email || '').trim().toLowerCase(),
+    type: lic.license_type || 'PERSONAL',
+    status: lic.status === 'AKTIF' ? 'Aktif' : (lic.status === 'DITANGGUHKAN' ? 'Dibekukan' : (lic.status === 'KADALUARSA' ? 'Kadaluarsa' : (lic.status || 'Aktif'))),
+    createdAt: lic.start_date 
+      ? new Date(lic.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) 
+      : (lic.created_at ? new Date(lic.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Hari Ini'),
+    startDate: lic.start_date || lic.created_at || new Date().toISOString(),
+    expiryDate: lic.expiry_date || null,
+    expiresAt: expFormatted,
+    isLifetime: isLife,
+    durationLabel: lic.duration_label || (isLife ? 'Selamanya' : '30 Hari')
   };
 };
 
@@ -414,73 +506,143 @@ export const StoreProvider = ({ children }) => {
     { id: 'CP-3', code: 'PROMO10K', discount: 10000, type: 'fixed', minSpend: 35000, usageCount: 0, status: 'Aktif' }
   ]);
 
-  // Licenses Management State (Kosong secara default)
-  const [licenses, setLicenses] = useState([]);
+  // Licenses Management State (Synchronized with localStorage & PostgreSQL API)
+  const [licenses, setLicenses] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dyari_licenses_cache_v2');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Reviews & Testimonials
   const [reviews, setReviews] = useState(initialTestimonials);
 
-  // Store General Settings (Enhanced with Branding, Contact, and Payment groups)
-  const [storeSettings, setStoreSettings] = useState({
-    // Flat properties for backward compatibility
-    storeName: 'dyari.in',
-    tagline: 'Produk digital untuk membuat keseharian lebih rapi, produktif, kreatif, dan terasa lebih mudah.',
-    whatsapp: '6282330626054',
-    email: 'halo@dyari.in',
-    announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
-    showAnnouncement: true,
-    heroTitle: 'Bikin keseharianmu jadi sedikit lebih mudah.',
-    heroSubtitle: 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
-    paymentQris: true,
-    paymentEwallet: true,
-    paymentTransfer: true,
-    bankAccounts: [
-      { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro' },
-      { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro' }
-    ],
-    // Structured sub-groups for dedicated admin settings tabs
-    branding: {
+  // Store General Settings (Enhanced with Branding, Contact, Payment, and Dynamic License Packages)
+  const [storeSettings, setStoreSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dyari_store_settings_v3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...parsed,
+            licensePackages: (Array.isArray(parsed.licensePackages) && parsed.licensePackages.length > 0)
+              ? parsed.licensePackages
+              : defaultLicensePackages
+          };
+        }
+      }
+    } catch (_) {}
+    return {
+      // Flat properties for backward compatibility
       storeName: 'dyari.in',
       tagline: 'Produk digital untuk membuat keseharian lebih rapi, produktif, kreatif, dan terasa lebih mudah.',
-      logoBadge: 'dy',
-      heroTitle: 'Bikin keseharianmu jadi sedikit lebih mudah.',
-      heroSubtitle: 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
-      announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
-      showAnnouncement: true,
-      primaryColor: '#B8D8C0',
-      accentColor: '#EE7C6B'
-    },
-    contact: {
       whatsapp: '6282330626054',
       email: 'halo@dyari.in',
-      instagram: '@dyari.in',
-      tiktok: '@dyari.in',
-      telegram: 't.me/dyari_community',
-      operationalHours: 'Senin - Minggu (08.00 - 22.00 WIB)'
-    },
-    payment: {
-      qrisActive: true,
-      qrisName: 'DYARI DIGITAL INDONESIA',
-      qrisNmid: 'ID1020304050607',
-      qrisImageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80',
-      gatewayActive: true,
-      gatewayProvider: 'Midtrans & Tripay Direct API',
-      gatewayMerchantId: 'G-DYARI-99182',
-      gatewayApiKey: 'SB-Mid-server-881920391283',
-      virtualAccounts: [
-        { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro (dyari.in)', active: true },
-        { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro (dyari.in)', active: true },
-        { bank: 'BNI', accNo: '0281928172', accName: 'Tony Anggoro (dyari.in)', active: true },
-        { bank: 'BRI', accNo: '00192837482910', accName: 'Tony Anggoro (dyari.in)', active: true }
+      announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
+      showAnnouncement: true,
+      heroTitle: 'Bikin keseharianmu jadi sedikit lebih mudah.',
+      heroSubtitle: 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
+      paymentQris: true,
+      paymentEwallet: true,
+      paymentTransfer: true,
+      licensePackages: defaultLicensePackages,
+      bankAccounts: [
+        { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro' },
+        { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro' }
       ],
-      ewallets: [
-        { name: 'GoPay', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true },
-        { name: 'OVO', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true },
-        { name: 'DANA', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true },
-        { name: 'ShopeePay', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true }
-      ]
-    }
+      // Structured sub-groups for dedicated admin settings tabs
+      branding: {
+        storeName: 'dyari.in',
+        tagline: 'Produk digital untuk membuat keseharian lebih rapi, produktif, kreatif, dan terasa lebih mudah.',
+        logoBadge: 'dy',
+        heroTitle: 'Bikin keseharianmu jadi sedikit lebih mudah.',
+        heroSubtitle: 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
+        announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
+        showAnnouncement: true,
+        primaryColor: '#B8D8C0',
+        accentColor: '#EE7C6B'
+      },
+      contact: {
+        whatsapp: '6282330626054',
+        email: 'halo@dyari.in',
+        instagram: '@dyari.in',
+        tiktok: '@dyari.in',
+        telegram: 't.me/dyari_community',
+        operationalHours: 'Senin - Minggu (08.00 - 22.00 WIB)'
+      },
+      payment: {
+        qrisActive: true,
+        qrisName: 'DYARI DIGITAL INDONESIA',
+        qrisNmid: 'ID1020304050607',
+        qrisImageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80',
+        gatewayActive: true,
+        gatewayProvider: 'Midtrans & Tripay Direct API',
+        gatewayMerchantId: 'G-DYARI-99182',
+        gatewayApiKey: 'SB-Mid-server-881920391283',
+        virtualAccounts: [
+          { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro (dyari.in)', active: true },
+          { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro (dyari.in)', active: true },
+          { bank: 'BNI', accNo: '0281928172', accName: 'Tony Anggoro (dyari.in)', active: true },
+          { bank: 'BRI', accNo: '00192837482910', accName: 'Tony Anggoro (dyari.in)', active: true }
+        ],
+        ewallets: [
+          { name: 'GoPay', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true },
+          { name: 'OVO', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true },
+          { name: 'DANA', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true },
+          { name: 'ShopeePay', phone: '082330626054', nameAccount: 'Tony Anggoro', active: true }
+        ]
+      }
+    };
   });
+
+  // Sync settings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('dyari_store_settings_v3', JSON.stringify(storeSettings));
+    } catch (_) {}
+  }, [storeSettings]);
+
+  // Synchronize licenses and settings with PostgreSQL backend API
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBackendData = async () => {
+      // 1. Fetch Licenses
+      try {
+        const licRes = await api.licenses.getAll();
+        if (licRes && Array.isArray(licRes.licenses) && isMounted) {
+          const mapped = licRes.licenses.map(mapBackendLicense);
+          setLicenses(mapped);
+          try {
+            localStorage.setItem('dyari_licenses_cache_v2', JSON.stringify(mapped));
+          } catch (_) {}
+        }
+      } catch (err) {
+        console.warn('API /api/licenses tidak terjangkau, menggunakan cache lokal.', err);
+      }
+
+      // 2. Fetch Settings
+      try {
+        const setRes = await api.settings.get();
+        if (setRes && setRes.settings && typeof setRes.settings === 'object' && isMounted) {
+          setStoreSettings(prev => ({
+            ...prev,
+            ...setRes.settings,
+            licensePackages: (Array.isArray(setRes.settings.licensePackages) && setRes.settings.licensePackages.length > 0)
+              ? setRes.settings.licensePackages
+              : (prev.licensePackages || defaultLicensePackages)
+          }));
+        }
+      } catch (err) {
+        console.warn('API /api/settings tidak terjangkau.', err);
+      }
+    };
+
+    fetchBackendData();
+    return () => { isMounted = false; };
+  }, []);
 
   // Toast Notification
   const [toast, setToast] = useState({ show: false, message: '', title: '' });
@@ -1278,16 +1440,109 @@ export const StoreProvider = ({ children }) => {
     showToast('Status Baris Diubah', 'Ketersediaan baris stok berhasil diperbarui.');
   };
 
-  // License Management Actions
-  const addLicense = (licenseData) => {
-    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const prefix = (licenseData.productName || 'PROD').substring(0, 5).toUpperCase().replace(/[^A-Z]/g, '');
-    const expiryCalc = calculateLicenseExpiry(licenseData.expiresAt || 'Selamanya (Lifetime)');
+  // --- DYNAMIC LICENSE PACKAGE TIERS MANAGEMENT (CRUD Bebas Tambah, Edit, Hapus) ---
+  const addLicensePackage = (newPkg) => {
+    const id = newPkg.id || `pkg-${Date.now()}`;
+    const pkg = {
+      ...newPkg,
+      id,
+      price: Number(newPkg.price || 0),
+      originalPrice: Number(newPkg.originalPrice || newPkg.price || 0),
+      features: Array.isArray(newPkg.features) 
+        ? newPkg.features 
+        : (typeof newPkg.features === 'string' ? newPkg.features.split('\n').map(s => s.trim()).filter(Boolean) : [])
+    };
+
+    setStoreSettings(prev => {
+      const currentList = prev.licensePackages || defaultLicensePackages;
+      const updated = {
+        ...prev,
+        licensePackages: [...currentList, pkg]
+      };
+      try {
+        localStorage.setItem('dyari_store_settings_v3', JSON.stringify(updated));
+        api.settings.update(updated).catch(() => {});
+      } catch (_) {}
+      return updated;
+    });
+
+    showToast('Paket Lisensi Ditambahkan', pkg.name);
+    return pkg;
+  };
+
+  const updateLicensePackage = (id, updatedFields) => {
+    setStoreSettings(prev => {
+      const currentList = prev.licensePackages || defaultLicensePackages;
+      const updatedList = currentList.map(p => {
+        if (p.id === id) {
+          return {
+            ...p,
+            ...updatedFields,
+            price: updatedFields.price !== undefined ? Number(updatedFields.price) : p.price,
+            originalPrice: updatedFields.originalPrice !== undefined ? Number(updatedFields.originalPrice) : p.originalPrice,
+            features: updatedFields.features !== undefined
+              ? (Array.isArray(updatedFields.features) 
+                  ? updatedFields.features 
+                  : (typeof updatedFields.features === 'string' ? updatedFields.features.split('\n').map(s => s.trim()).filter(Boolean) : p.features))
+              : p.features
+          };
+        }
+        return p;
+      });
+
+      const updated = {
+        ...prev,
+        licensePackages: updatedList
+      };
+
+      try {
+        localStorage.setItem('dyari_store_settings_v3', JSON.stringify(updated));
+        api.settings.update(updated).catch(() => {});
+      } catch (_) {}
+      return updated;
+    });
+
+    showToast('Paket Lisensi Diperbarui', 'Perubahan paket berhasil disimpan.');
+  };
+
+  const deleteLicensePackage = (id) => {
+    setStoreSettings(prev => {
+      const currentList = prev.licensePackages || defaultLicensePackages;
+      const target = currentList.find(p => p.id === id);
+      const updatedList = currentList.filter(p => p.id !== id);
+
+      const updated = {
+        ...prev,
+        licensePackages: updatedList
+      };
+
+      try {
+        localStorage.setItem('dyari_store_settings_v3', JSON.stringify(updated));
+        api.settings.update(updated).catch(() => {});
+      } catch (_) {}
+      return updated;
+    });
+
+    showToast('Paket Lisensi Dihapus', 'Paket telah dicabut dari penawaran.');
+  };
+
+  // --- LICENSE MANAGEMENT ACTIONS (Terkoneksi Backend PostgreSQL & Client Sync) ---
+  const addLicense = async (licenseData) => {
+    const randomHex = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+    const prefix = (licenseData.productName || 'STORY').substring(0, 5).toUpperCase().replace(/[^A-Z]/g, '');
+    const code = (licenseData.code || `DYARI-${prefix}-${randomHex()}-${randomHex()}`).trim().toUpperCase();
+    const expiryCalc = calculateLicenseExpiry(licenseData.expiresAt || licenseData.duration || 'Selamanya (Lifetime)');
+    
+    const localId = `LIC-${Date.now().toString().slice(-4)}`;
     const newLicense = {
-      id: `LIC-${Date.now().toString().slice(-4)}`,
-      code: licenseData.code || `DYARI-${prefix}-${randomHex}`,
+      id: localId,
+      code,
       status: 'Aktif',
-      ...licenseData,
+      customerName: licenseData.customerName || 'Member Baru',
+      customerEmail: (licenseData.customerEmail || '').trim().toLowerCase(),
+      productName: licenseData.productName || 'Story Generator Pro AI',
+      productId: licenseData.productId || 'story-generator',
+      type: licenseData.type || 'PERSONAL',
       startDate: expiryCalc.startDate,
       createdAt: expiryCalc.createdAt,
       expiryDate: expiryCalc.expiryDate,
@@ -1295,18 +1550,79 @@ export const StoreProvider = ({ children }) => {
       isLifetime: expiryCalc.isLifetime,
       durationLabel: expiryCalc.durationLabel
     };
-    setLicenses(prev => [newLicense, ...prev]);
-    showToast('Kunci Lisensi Diterbitkan', newLicense.code);
+
+    setLicenses(prev => {
+      const updated = [newLicense, ...prev];
+      try {
+        localStorage.setItem('dyari_licenses_cache_v2', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    // Kirim sinkronisasi ke PostgreSQL backend API
+    try {
+      const res = await api.licenses.generate({
+        license_key: code,
+        product_title: newLicense.productName,
+        user_name: newLicense.customerName,
+        user_email: newLicense.customerEmail,
+        license_type: newLicense.type,
+        duration: newLicense.durationLabel,
+        is_lifetime: newLicense.isLifetime
+      });
+      if (res && res.license) {
+        setLicenses(prev => {
+          const mapped = prev.map(l => l.id === localId ? { ...l, dbId: res.license.id, id: res.license.id.toString() } : l);
+          try {
+            localStorage.setItem('dyari_licenses_cache_v2', JSON.stringify(mapped));
+          } catch (_) {}
+          return mapped;
+        });
+      }
+    } catch (err) {
+      console.warn('Gagal menyimpan lisensi ke server PostgreSQL:', err);
+    }
+
+    showToast('Kunci Lisensi Diterbitkan', `${newLicense.customerName} (${newLicense.code})`);
     return newLicense;
   };
 
-  const updateLicenseStatus = (id, newStatus) => {
-    setLicenses(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
+  const updateLicenseStatus = async (id, newStatus) => {
+    setLicenses(prev => {
+      const updated = prev.map(l => l.id === id ? { ...l, status: newStatus } : l);
+      try {
+        localStorage.setItem('dyari_licenses_cache_v2', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      const target = licenses.find(l => l.id === id);
+      const dbId = target?.dbId || id;
+      const backendStatus = newStatus === 'Aktif' ? 'AKTIF' : (newStatus === 'Dibekukan' ? 'DITANGGUHKAN' : 'KADALUARSA');
+      await api.licenses.updateStatus(dbId, backendStatus);
+    } catch (e) {
+      console.warn('Gagal update status lisensi ke API:', e);
+    }
     showToast('Status Lisensi', `Status lisensi diubah menjadi ${newStatus}`);
   };
 
-  const deleteLicense = (id) => {
-    setLicenses(prev => prev.filter(l => l.id !== id));
+  const deleteLicense = async (id) => {
+    const target = licenses.find(l => l.id === id);
+    setLicenses(prev => {
+      const updated = prev.filter(l => l.id !== id);
+      try {
+        localStorage.setItem('dyari_licenses_cache_v2', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      const dbId = target?.dbId || id;
+      await api.licenses.delete(dbId);
+    } catch (e) {
+      console.warn('Gagal menghapus lisensi dari API:', e);
+    }
     showToast('Lisensi Dihapus', 'Kunci lisensi telah dicabut dari sistem.');
   };
 
@@ -1383,6 +1699,11 @@ export const StoreProvider = ({ children }) => {
       importMassStock,
       deleteStockItem,
       toggleStockSold,
+      // Dynamic License Package Management (Unlimited Tiers)
+      licensePackages: storeSettings.licensePackages || defaultLicensePackages,
+      addLicensePackage,
+      updateLicensePackage,
+      deleteLicensePackage,
       // Licenses management & utilities
       licenses,
       addLicense,

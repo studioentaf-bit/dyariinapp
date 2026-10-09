@@ -15,7 +15,7 @@ import {
 import api from '../services/api';
 
 export const LicensesView = () => {
-  const { navigateTo, showToast, storeSettings } = useStore();
+  const { navigateTo, showToast, storeSettings, licensePackages } = useStore();
   const [checkKey, setCheckKey] = useState('');
   const [checkEmail, setCheckEmail] = useState('');
   const [isChecking, setIsChecking] = useState(false);
@@ -60,69 +60,38 @@ export const LicensesView = () => {
     }
   };
 
-  const licenseTiers = [
-    {
-      id: 'starter',
-      name: 'Starter License',
-      subtitle: 'Cocok untuk eksperimen & proyek cepat',
-      price: 'Rp 49.000',
-      period: '1 Bulan Akses',
-      badge: null,
-      icon: Clock,
-      features: [
-        'Akses penuh Storyboard Sinematik (5 Mode)',
-        'Prompt Studio Imagen 3, Midjourney & Flux',
-        'Neural Voice Over (TTS Bahasa Indonesia & Global)',
-        'Client-side Video Tools & Merger',
-        'Sistem BYOK (Bring Your Own Key) tanpa limit',
-        'Riwayat generate tersimpan lokal di browser'
-      ],
-      ctaText: 'Pilih Starter 1 Bulan',
-      isPopular: false
-    },
-    {
-      id: 'creator',
-      name: 'Pro Creator License',
-      subtitle: 'Pilihan paling populer kreator & agensi',
-      price: 'Rp 199.000',
-      period: '1 Tahun Akses',
-      badge: 'Paling Populer ⭐',
-      icon: Sparkles,
-      features: [
-        'Semua fitur Starter License',
-        'Masa aktif 1 Tahun penuh (Hemat 65%)',
-        'Hak komersial penuh untuk produksi konten klien',
-        'Bebas update fitur & formula prompt terbaru',
-        'Prioritas bantuan teknis WhatsApp',
-        'Integrasi 1-klik Google Flow & Veo prompt'
-      ],
-      ctaText: 'Dapatkan Pro Creator 1 Tahun',
-      isPopular: true
-    },
-    {
-      id: 'lifetime',
-      name: 'Lifetime Ultimate',
-      subtitle: 'Sekali bayar, nikmati akses selamanya',
-      price: 'Rp 349.000',
-      period: 'Sekali Bayar Selamanya',
-      badge: 'Best Value 💎',
-      icon: Infinity,
-      features: [
-        'Akses seumur hidup (Lifetime) tanpa perpanjangan',
-        'Semua fitur Story Generator AI tanpa batas',
-        'Bebas gunakan untuk multi-proyek selamanya',
-        'Akses gratis ke seluruh upgrade engine masa depan',
-        'VIP Creator Support langsung dengan tim dyari.in',
-        'Aset panduan promosi video lengkap'
-      ],
-      ctaText: 'Miliki Akses Lifetime',
-      isPopular: false
-    }
-  ];
+  const rawPackages = (storeSettings?.licensePackages && storeSettings.licensePackages.length > 0)
+    ? storeSettings.licensePackages
+    : (licensePackages && licensePackages.length > 0 ? licensePackages : []);
+
+  const licenseTiers = rawPackages.map((pkg, idx) => {
+    let iconComp = Clock;
+    if (pkg.isPopular || idx === 1) iconComp = Sparkles;
+    else if (pkg.id === 'lifetime' || (pkg.duration && pkg.duration.toLowerCase().includes('lifetime')) || idx === 2) iconComp = Infinity;
+
+    const formattedPrice = typeof pkg.price === 'number' 
+      ? `Rp ${pkg.price.toLocaleString('id-ID')}` 
+      : (pkg.price?.toString().startsWith('Rp') ? pkg.price : `Rp ${pkg.price}`);
+
+    const periodStr = pkg.period || pkg.duration || 'Akses Berkelanjutan';
+    const featuresList = Array.isArray(pkg.features) 
+      ? pkg.features 
+      : (typeof pkg.features === 'string' ? pkg.features.split('\n').map(s => s.trim()).filter(Boolean) : []);
+
+    return {
+      ...pkg,
+      formattedPrice,
+      period: periodStr,
+      icon: iconComp,
+      features: featuresList,
+      ctaText: pkg.ctaText || `Pilih ${pkg.name}`,
+      isPopular: Boolean(pkg.isPopular)
+    };
+  });
 
   const handleOrderLicense = (tier) => {
-    const waNumber = storeSettings?.whatsapp || '6281234567890';
-    const message = `Halo dyari.in, saya ingin membeli Lisensi Resmi: *${tier.name} (${tier.period})* seharga *${tier.price}* untuk akses Story Generator. Mohon info nomor rekening & aktivasi serial kodenya. Terima kasih!`;
+    const waNumber = storeSettings?.whatsapp || '6282330626054';
+    const message = `Halo dyari.in, saya ingin membeli Lisensi Resmi: *${tier.name} (${tier.period})* seharga *${tier.formattedPrice}* untuk akses Story Generator. Mohon info nomor rekening & aktivasi serial kodenya. Terima kasih!`;
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${waNumber.replace(/[^0-9]/g, '')}?text=${encoded}`, '_blank');
   };
@@ -220,7 +189,7 @@ export const LicensesView = () => {
                   <div>
                     <div className="flex items-baseline gap-1.5">
                       <span className={`text-3xl sm:text-4xl font-heading font-black tracking-tight ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
-                        {tier.price}
+                        {tier.formattedPrice || tier.price}
                       </span>
                     </div>
                     <span className={`text-xs font-semibold block mt-1 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`}>

@@ -111,8 +111,12 @@ export const AdminDashboardView = () => {
     addLicense,
     updateLicenseStatus,
     deleteLicense,
-    getLicenseEffectiveStatus,
     calculateLicenseExpiry,
+    getLicenseEffectiveStatus,
+    licensePackages,
+    addLicensePackage,
+    updateLicensePackage,
+    deleteLicensePackage,
     categories,
     addCategory,
     updateCategory,
@@ -207,8 +211,21 @@ export const AdminDashboardView = () => {
   const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
   const [isInvoiceFullscreen, setIsInvoiceFullscreen] = useState(false);
   const [showAddLicenseModal, setShowAddLicenseModal] = useState(false);
-  const [isCustomLicenseDuration, setIsCustomLicenseDuration] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [isCustomPackageDuration, setIsCustomPackageDuration] = useState(false);
+  const [packageFormData, setPackageFormData] = useState({
+    id: '',
+    name: '',
+    subtitle: '',
+    duration: '30 Hari (1 Bulan)',
+    price: 49000,
+    originalPrice: 99000,
+    badge: '',
+    features: 'Akses penuh Storyboard Sinematik (5 Mode)\nPrompt Studio Imagen 3, Midjourney & Flux\nNeural Voice Over (TTS Bahasa Indonesia & Global)\nClient-side Video Tools & Merger\nSistem BYOK (Bring Your Own Key) tanpa limit\nRiwayat generate tersimpan lokal di browser',
+    isPopular: false
+  });
 
   // Dedicated Member & Product Access Modal States
   const [selectedMemberDetails, setSelectedMemberDetails] = useState(null);
@@ -859,27 +876,101 @@ export const AdminDashboardView = () => {
     }
   };
 
-  // Helper for generating new license
+  // --- HANDLERS UNTUK PAKET & TIER LISENSI (TAMBAH, EDIT, HAPUS BEBAS OLEH ADMIN) ---
+  const handleOpenAddPackage = () => {
+    setEditingPackage(null);
+    setIsCustomPackageDuration(false);
+    setPackageFormData({
+      id: '',
+      name: '',
+      subtitle: '',
+      duration: '30 Hari (1 Bulan)',
+      price: 49000,
+      originalPrice: 99000,
+      badge: '',
+      features: 'Akses penuh Storyboard Sinematik (5 Mode)\nPrompt Studio Imagen 3, Midjourney & Flux\nNeural Voice Over (TTS Bahasa Indonesia & Global)\nClient-side Video Tools & Merger\nSistem BYOK (Bring Your Own Key) tanpa limit\nRiwayat generate tersimpan lokal di browser',
+      isPopular: false
+    });
+    setShowPackageModal(true);
+  };
+
+  const handleOpenEditPackage = (pkg) => {
+    setEditingPackage(pkg);
+    setIsCustomPackageDuration(false);
+    setPackageFormData({
+      id: pkg.id,
+      name: pkg.name,
+      subtitle: pkg.subtitle || '',
+      duration: pkg.duration || pkg.period || '30 Hari',
+      price: pkg.price || 0,
+      originalPrice: pkg.originalPrice || pkg.price || 0,
+      badge: pkg.badge || '',
+      features: Array.isArray(pkg.features) ? pkg.features.join('\n') : (pkg.features || ''),
+      isPopular: Boolean(pkg.isPopular)
+    });
+    setShowPackageModal(true);
+  };
+
+  const handleSavePackage = (e) => {
+    e.preventDefault();
+    if (!packageFormData.name.trim()) return;
+
+    const feats = packageFormData.features
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const payload = {
+      name: packageFormData.name.trim(),
+      subtitle: packageFormData.subtitle.trim(),
+      duration: packageFormData.duration.trim(),
+      period: packageFormData.duration.trim(),
+      price: Number(packageFormData.price) || 0,
+      originalPrice: Number(packageFormData.originalPrice) || Number(packageFormData.price) || 0,
+      badge: packageFormData.badge.trim(),
+      features: feats,
+      isPopular: Boolean(packageFormData.isPopular)
+    };
+
+    if (editingPackage) {
+      updateLicensePackage(editingPackage.id, payload);
+    } else {
+      addLicensePackage({
+        id: `pkg-${Date.now()}`,
+        ...payload
+      });
+    }
+
+    setShowPackageModal(false);
+  };
+
+  const handleDeletePackage = (pkg) => {
+    if (window.confirm(`Hapus paket lisensi "${pkg.name}"? Paket ini tidak akan lagi tampil di halaman lisensi atau formulir.`)) {
+      deleteLicensePackage(pkg.id);
+    }
+  };
+
+  // Helper for generating new license / Story Generator member license
   const handleCreateLicense = (e) => {
     e.preventDefault();
     if (!licenseFormData.customerEmail) return;
 
-    const prod = products.find(p => p.id === licenseFormData.productId);
-    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const prefix = (prod?.name || 'DYARI').substring(0, 5).toUpperCase().replace(/[^A-Z]/g, '');
-    const code = licenseFormData.code.trim() || `DYARI-${prefix}-${randomHex}`;
+    const randomHex = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+    const prefix = 'STORY';
+    const code = (licenseFormData.code.trim() || `DYARI-${prefix}-${randomHex()}-${randomHex()}`).toUpperCase();
 
     addLicense({
       ...licenseFormData,
-      productName: prod?.name || licenseFormData.productName,
+      productName: licenseFormData.productName || 'Story Generator Pro AI',
+      productId: licenseFormData.productId || 'story-generator',
       code
     });
 
     setShowAddLicenseModal(false);
-    setIsCustomLicenseDuration(false);
+    setIsCustomPackageDuration(false);
     setLicenseFormData({
-      productId: products.find(p => p.category === 'tools-ai' || p.productType === 'LICENSE_TOOL')?.id || products[0]?.id || 'tools-pro',
-      productName: products.find(p => p.category === 'tools-ai' || p.productType === 'LICENSE_TOOL')?.name || products[0]?.name || 'Tools Pro',
+      productId: 'story-generator',
+      productName: 'Story Generator Pro AI',
       customerName: '',
       customerEmail: '',
       type: 'PERSONAL',
@@ -1099,9 +1190,9 @@ export const AdminDashboardView = () => {
     },
     { 
       id: 'member', 
-      label: 'Member', 
+      label: 'Member Story AI', 
       icon: Users,
-      badge: customers.length
+      badge: licenses.length
     },
     { 
       id: 'produk-lisensi', 
@@ -2746,168 +2837,283 @@ export const AdminDashboardView = () => {
           {/* ======================================================== */}
           {/* TAB 4: MEMBER                                            */}
           {/* ======================================================== */}
+          {/* ======================================================== */}
+          {/* TAB 4: MEMBER (STORY GENERATOR LICENSE MEMBERS)          */}
+          {/* ======================================================== */}
           {activeMenu === 'member' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAE4] pb-4">
                 <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      🎬 Story Generator Studio
+                    </span>
+                    <span className="text-xs text-warmgray">• Otentikasi Email & Lisensi</span>
+                  </div>
                   <h1 className="text-2xl font-heading font-extrabold text-[#1C352D]">
-                    Manajemen Member & Pelanggan
+                    Manajemen Member Story Generator
                   </h1>
                   <p className="text-xs text-[#737873] mt-0.5">
-                    Data pembeli terdaftar, status akun member, riwayat belanja, dan akses produk digital mereka.
+                    Daftar seluruh member terdaftar pemegang lisensi Story Generator AI. Member membuka studio AI menggunakan email dan kode lisensi yang terdata di sini.
                   </p>
                 </div>
 
-                <button
-                  onClick={() => setShowAddMemberModal(true)}
-                  className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 self-start sm:self-auto"
-                >
-                  <Plus size={14} />
-                  <span>+ Tambah Member</span>
-                </button>
-              </div>
-
-              {/* Member Search & Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-[#E5EAE4]">
-                  <span className="text-xs text-warmgray block">Total Member Terdaftar</span>
-                  <strong className="text-xl font-heading font-extrabold text-forest">
-                    {customers.length}
-                  </strong>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-[#E5EAE4]">
-                  <span className="text-xs text-warmgray block">Total Pesanan Sukses</span>
-                  <strong className="text-xl font-heading font-extrabold text-emerald-900">
-                    {paidOrders.length}
-                  </strong>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setLicenseFormData({
+                        productId: 'story-generator',
+                        productName: 'Story Generator Pro AI',
+                        customerName: '',
+                        customerEmail: '',
+                        type: 'PERSONAL',
+                        expiresAt: 'Selamanya (Lifetime)',
+                        code: ''
+                      });
+                      setShowAddLicenseModal(true);
+                    }}
+                    className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Plus size={14} />
+                    <span>+ Daftarkan Member Story Generator</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Members Table */}
+              {/* Story Generator Member Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-4 rounded-2xl border border-[#E5EAE4] shadow-2xs">
+                  <span className="text-xs text-warmgray block">Total Member Lisensi</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <strong className="text-2xl font-heading font-extrabold text-forest">
+                      {licenses.length}
+                    </strong>
+                    <span className="text-[11px] text-warmgray">pengguna</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-2xl border border-[#E5EAE4] shadow-2xs">
+                  <span className="text-xs text-warmgray block">Member Aktif (Siap Akses)</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <strong className="text-2xl font-heading font-extrabold text-emerald-700">
+                      {licenses.filter(l => !getLicenseEffectiveStatus(l).isLocked).length}
+                    </strong>
+                    <span className="text-[11px] text-emerald-600 font-medium">aktif</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-2xl border border-[#E5EAE4] shadow-2xs">
+                  <span className="text-xs text-warmgray block">Kadaluarsa / Dibekukan</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <strong className="text-2xl font-heading font-extrabold text-rose-700">
+                      {licenses.filter(l => getLicenseEffectiveStatus(l).isLocked).length}
+                    </strong>
+                    <span className="text-[11px] text-rose-600 font-medium">terkunci</span>
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-2xl border border-[#E5EAE4] shadow-2xs">
+                  <span className="text-xs text-warmgray block">Pilihan Paket Lisensi</span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <strong className="text-2xl font-heading font-extrabold text-purple-800">
+                      {(licensePackages || []).length}
+                    </strong>
+                    <span className="text-[11px] text-purple-600 font-medium">paket tersedia</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Story Generator Members Table */}
               <div className="bg-white rounded-2xl border border-[#E5EAE4] shadow-2xs overflow-hidden space-y-4 p-5">
-                <div className="relative max-w-sm">
-                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warmgray" />
-                  <input
-                    type="text"
-                    value={memberSearchQuery}
-                    onChange={(e) => setMemberSearchQuery(e.target.value)}
-                    placeholder="Cari nama atau email member..."
-                    className="w-full bg-[#F7F9F7] border border-[#E5EAE4] text-xs rounded-xl py-2 pl-9 pr-3 text-forest focus:outline-none"
-                  />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="relative max-w-sm w-full">
+                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warmgray" />
+                    <input
+                      type="text"
+                      value={memberSearchQuery}
+                      onChange={(e) => setMemberSearchQuery(e.target.value)}
+                      placeholder="Cari nama, email, atau kode lisensi member..."
+                      className="w-full bg-[#F7F9F7] border border-[#E5EAE4] text-xs rounded-xl py-2 pl-9 pr-3 text-forest focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="text-xs text-warmgray">
+                    Menampilkan <strong>{licenses.filter(l => (l.customerName || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) || (l.customerEmail || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) || (l.code || '').toLowerCase().includes(memberSearchQuery.toLowerCase())).length}</strong> member terdaftar
+                  </div>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="text-warmgray border-b border-[#F0F4F1]">
-                        <th className="py-3 font-semibold">ID Member</th>
-                        <th className="py-3 font-semibold">Nama & Email</th>
-                        <th className="py-3 font-semibold">WhatsApp</th>
-                        <th className="py-3 font-semibold">Produk Dibeli & Akses Lisensi</th>
-                        <th className="py-3 font-semibold">Total Belanja</th>
-                        <th className="py-3 font-semibold">Status</th>
+                        <th className="py-3 font-semibold">Nama Member</th>
+                        <th className="py-3 font-semibold">Email Login Terdaftar</th>
+                        <th className="py-3 font-semibold">Kunci Lisensi (Key)</th>
+                        <th className="py-3 font-semibold">Paket & Hak Akses</th>
+                        <th className="py-3 font-semibold">Masa Berlaku</th>
+                        <th className="py-3 font-semibold">Status Akses</th>
                         <th className="py-3 font-semibold text-right">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F0F4F1]">
-                      {customers
-                        .filter(c => c.name.toLowerCase().includes(memberSearchQuery.toLowerCase()) || c.email.toLowerCase().includes(memberSearchQuery.toLowerCase()))
-                        .map((c) => {
-                          const { purchasedProducts, memberLicenses } = getCustomerPurchasedData(c);
-                          const activeLicCount = memberLicenses.filter(l => !getLicenseEffectiveStatus(l).isLocked).length;
+                      {licenses
+                        .filter(l => 
+                          (l.customerName || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) || 
+                          (l.customerEmail || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+                          (l.code || '').toLowerCase().includes(memberSearchQuery.toLowerCase())
+                        )
+                        .map((lic) => {
+                          const effective = getLicenseEffectiveStatus(lic);
+                          const isLocked = effective.isLocked;
 
                           return (
-                            <tr key={c.id} className="hover:bg-[#FAFBF9] transition-colors">
-                              <td className="py-3.5 font-mono font-bold text-forest">{c.id}</td>
+                            <tr key={lic.id} className="hover:bg-[#FAFBF9] transition-colors">
+                              {/* NAMA MEMBER */}
                               <td className="py-3.5">
                                 <div className="flex items-center gap-2.5">
                                   <div className="w-8 h-8 rounded-full bg-forest/10 text-forest font-bold flex items-center justify-center text-xs shrink-0">
-                                    {c.name.slice(0, 2).toUpperCase()}
+                                    {(lic.customerName || 'M').slice(0, 2).toUpperCase()}
                                   </div>
                                   <div>
-                                    <p className="font-bold text-forest">{c.name}</p>
-                                    <p className="text-[11px] text-warmgray">{c.email}</p>
+                                    <p className="font-bold text-forest">{lic.customerName || 'Member dyari.in'}</p>
+                                    <p className="text-[10px] text-warmgray">Terdaftar: {lic.createdAt || 'Baru'}</p>
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-3.5 font-mono text-warmgray">{c.phone || '-'}</td>
 
-                              {/* KOLOM KHUSUS: PRODUK DIBELI & LISENSI */}
+                              {/* EMAIL LOGIN */}
                               <td className="py-3.5">
-                                {purchasedProducts.length === 0 ? (
-                                  <span className="text-[11px] text-warmgray italic">Belum ada produk</span>
-                                ) : (
+                                <div className="space-y-0.5">
+                                  <span className="font-mono text-xs font-semibold text-forest block">
+                                    {lic.customerEmail || '-'}
+                                  </span>
+                                  <span className="inline-block text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200">
+                                    Otentikasi Story Generator
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* KODE LISENSI */}
+                              <td className="py-3.5">
+                                <div className="inline-flex items-center gap-1.5 bg-[#F7F9F7] px-2.5 py-1 rounded-xl border border-[#E5EAE4] font-mono text-[11px] font-bold text-forest">
+                                  <span>{lic.code}</span>
                                   <button
-                                    onClick={() => setSelectedMemberDetails(c)}
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FAFBF9] hover:bg-[#E8F1EA] text-[#1C352D] border border-[#E5EAE4] hover:border-emerald-300 text-xs font-semibold transition-all shadow-2xs group"
-                                    title="Klik untuk melihat seluruh rincian produk, akses & lisensi"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(lic.code);
+                                      showToast('Kode Lisensi Disalin', lic.code);
+                                    }}
+                                    className="text-warmgray hover:text-forest transition-colors"
+                                    title="Salin Kode Lisensi"
                                   >
-                                    <Eye size={13} className="text-emerald-700 group-hover:scale-110 transition-transform shrink-0" />
-                                    <span className="truncate max-w-[190px]">
-                                      {purchasedProducts[0]?.name}
-                                    </span>
-                                    {purchasedProducts.length > 1 && (
-                                      <span className="bg-[#E8F1EA] text-forest text-[10px] px-1.5 py-0.2 rounded-full font-bold shrink-0">
-                                        +{purchasedProducts.length - 1}
-                                      </span>
-                                    )}
-                                    {activeLicCount > 0 && (
-                                      <span className="bg-purple-100 text-purple-900 text-[10px] px-1.5 py-0.2 rounded font-bold shrink-0">
-                                        🔑 {activeLicCount}
-                                      </span>
-                                    )}
+                                    <Copy size={12} />
                                   </button>
+                                </div>
+                              </td>
+
+                              {/* PAKET & HAK AKSES */}
+                              <td className="py-3.5">
+                                <div className="space-y-1">
+                                  <p className="font-semibold text-forest truncate max-w-[160px]">
+                                    {lic.productName || 'Story Generator Pro AI'}
+                                  </p>
+                                  <span className="inline-block bg-purple-100 text-purple-900 font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                                    {lic.type || 'PERSONAL'} • {lic.durationLabel || lic.expiresAt}
+                                  </span>
+                                </div>
+                              </td>
+
+                              {/* MASA BERLAKU */}
+                              <td className="py-3.5">
+                                {lic.isLifetime ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                    ♾️ Lifetime (Selamanya)
+                                  </span>
+                                ) : (
+                                  <div className="space-y-0.5">
+                                    <div className="flex items-center gap-1.5 text-forest font-medium text-[11px]">
+                                      <Clock size={11} className="text-purple-700 shrink-0" />
+                                      <span>{lic.expiresAt}</span>
+                                    </div>
+                                    <span className="text-[10px] text-warmgray block">
+                                      {effective.remainingText}
+                                    </span>
+                                  </div>
                                 )}
                               </td>
 
-                              <td className="py-3.5 font-semibold text-forest">
-                                Rp {(c.totalSpent || 0).toLocaleString('id-ID')}
-                              </td>
+                              {/* STATUS AKSES */}
                               <td className="py-3.5">
                                 <button
                                   onClick={() => {
-                                    const next = c.status === 'Aktif' ? 'Dibekukan' : 'Aktif';
-                                    updateCustomerStatus(c.id, next);
+                                    const next = lic.status === 'Aktif' ? 'Dibekukan' : 'Aktif';
+                                    updateLicenseStatus(lic.id, next);
                                   }}
-                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    c.status === 'Aktif' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${
+                                    !isLocked
+                                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                                      : 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200'
                                   }`}
+                                  title="Klik untuk mengubah status akses"
                                 >
-                                  ● {c.status}
+                                  ● {lic.status === 'Aktif' ? 'Aktif (Terbuka)' : (lic.status === 'Kadaluarsa' ? 'Kadaluarsa' : 'Dibekukan')}
                                 </button>
                               </td>
+
+                              {/* AKSI */}
                               <td className="py-3.5 text-right">
                                 <div className="flex items-center justify-end gap-1.5">
+                                  {/* Salin Info WA */}
                                   <button
-                                    onClick={() => handleOpenMemberArea(c)}
-                                    className="p-1.5 rounded-lg text-indigo-700 hover:bg-indigo-50 border border-indigo-200"
-                                    title="Buka Member Area (Login sebagai Member Ini)"
+                                    onClick={() => {
+                                      const text = `Halo Kak ${lic.customerName},\n\nBerikut rincian lisensi resmi Anda untuk membuka *Story Generator AI* di dyari.in:\n\n📧 *Email Terdaftar:* ${lic.customerEmail}\n🔑 *Kode Lisensi:* ${lic.code}\n📦 *Paket:* ${lic.productName} (${lic.durationLabel || lic.expiresAt})\n📌 *Status:* ${lic.status}\n\n🔗 *Akses Studio:* https://dyariapp.my.id/#story-generator\n\n_Silakan masukkan email dan kode lisensi di atas untuk langsung membuka studio AI. Selamat berkreasi!_`;
+                                      navigator.clipboard.writeText(text);
+                                      showToast('Rincian Akses Disalin', 'Pesan WhatsApp siap dikirim ke member.');
+                                    }}
+                                    className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 border border-emerald-200"
+                                    title="Salin Rincian Akses (Format WA)"
                                   >
-                                    <LogIn size={14} />
+                                    <MessageSquare size={13} />
                                   </button>
-                                  {c.phone && (
-                                    <a
-                                      href={`https://wa.me/${c.phone.replace(/[^0-9]/g, '')}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50"
-                                      title="Hubungi WhatsApp"
-                                    >
-                                      <Phone size={14} />
-                                    </a>
-                                  )}
+
+                                  {/* Ubah Status */}
                                   <button
-                                    onClick={() => deleteCustomer(c.id)}
-                                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
-                                    title="Hapus Member"
+                                    onClick={() => {
+                                      const next = lic.status === 'Aktif' ? 'Dibekukan' : 'Aktif';
+                                      updateLicenseStatus(lic.id, next);
+                                    }}
+                                    className="p-1.5 rounded-lg text-warmgray hover:text-forest hover:bg-gray-100 border border-gray-200 text-[10px] font-bold"
+                                    title={lic.status === 'Aktif' ? 'Bekukan Akses' : 'Aktifkan Akses'}
                                   >
-                                    <Trash2 size={14} />
+                                    {lic.status === 'Aktif' ? 'Bekukan' : 'Aktifkan'}
+                                  </button>
+
+                                  {/* Hapus Lisensi */}
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm(`Hapus member & lisensi ${lic.code} (${lic.customerName})?`)) {
+                                        deleteLicense(lic.id);
+                                      }
+                                    }}
+                                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 border border-rose-200"
+                                    title="Hapus Member & Lisensi"
+                                  >
+                                    <Trash2 size={13} />
                                   </button>
                                 </div>
                               </td>
                             </tr>
                           );
                         })}
+
+                      {licenses.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="py-10 text-center text-warmgray">
+                            <Key size={32} className="mx-auto mb-2 opacity-30" />
+                            <p className="font-bold text-forest">Belum ada member Story Generator terdaftar</p>
+                            <p className="text-xs mt-1">Klik "+ Daftarkan Member Story Generator" untuk menambahkan pengguna pertama.</p>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -2969,9 +3175,17 @@ export const AdminDashboardView = () => {
                 <div className="space-y-6 text-left">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAE4] pb-4">
                     <div>
-                      <h2 className="text-xl font-heading font-extrabold text-forest">Katalog Produk Toko</h2>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                          📦 Penjualan Langsung
+                        </span>
+                        <span className="text-xs text-warmgray">• Tanpa Wajib Daftar Akun</span>
+                      </div>
+                      <h2 className="text-xl font-heading font-extrabold text-forest">
+                        Kelola Produk Digital (Langsung Sesuai Stok)
+                      </h2>
                       <p className="text-xs text-warmgray">
-                        Kelola katalog produk berdasarkan 3 mekanisme stok: <strong>Aplikasi Premium</strong> (akun/link per baris, anti-duplikasi), <strong>Aset Digital</strong> (Akses Member / User Login), dan <strong>Tools AI Premium</strong> (User Login + Lisensi Unik).
+                        Produk digital dijual langsung sesuai stok yang tersedia. Pembeli tidak diwajibkan mendaftar akun dan langsung menerima akses link materi digital di invoice pesanan.
                       </p>
                     </div>
 
@@ -2981,7 +3195,7 @@ export const AdminDashboardView = () => {
                         className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-sm"
                       >
                         <Plus size={14} />
-                        <span>+ Tambah Produk Baru (Popup)</span>
+                        <span>+ Tambah Produk Baru</span>
                       </button>
                     </div>
                   </div>
@@ -3682,165 +3896,330 @@ export const AdminDashboardView = () => {
 
               {/* SUB-TAB 5C: KELOLA LISENSI */}
               {subTabProduk === 'kelola-lisensi' && (
-                <div className="space-y-6">
+                <div className="space-y-8">
+                  {/* Top Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAE4] pb-4">
                     <div>
-                      <h2 className="text-xl font-heading font-extrabold text-forest">Database Kunci Lisensi Member</h2>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900">
+                          🔑 Lisensi & Paket Dinamis
+                        </span>
+                        <span className="text-xs text-warmgray">• Tidak Terbatas 3 Jenis</span>
+                      </div>
+                      <h2 className="text-xl font-heading font-extrabold text-forest">
+                        Kelola Lisensi, Paket Harga & Member
+                      </h2>
                       <p className="text-xs text-warmgray">
-                        Generate kode lisensi aktivasi produk, monitor pembeli pemegang lisensi, dan kontrol hak akses.
+                        Atur jenis paket lisensi, tentukan harga dan durasi bebas, buat lisensi manual, dan kontrol member aktif.
                       </p>
                     </div>
 
-                    <button
-                      onClick={() => setShowAddLicenseModal(true)}
-                      className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 self-start sm:self-auto"
-                    >
-                      <Plus size={14} />
-                      <span>+ Terbitkan Lisensi Baru</span>
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={handleOpenAddPackage}
+                        className="btn-dyari-outline text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5"
+                      >
+                        <Plus size={14} />
+                        <span>+ Tambah Paket Lisensi Baru</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setLicenseFormData({
+                            productId: 'story-generator',
+                            productName: 'Story Generator Pro AI',
+                            customerName: '',
+                            customerEmail: '',
+                            type: 'PERSONAL',
+                            expiresAt: 'Selamanya (Lifetime)',
+                            code: ''
+                          });
+                          setShowAddLicenseModal(true);
+                        }}
+                        className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Key size={14} />
+                        <span>+ Buat Lisensi Manual</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Licenses Table */}
-                  <div className="bg-white rounded-2xl border border-[#E5EAE4] shadow-2xs overflow-hidden space-y-4 p-5">
-                    <div className="relative max-w-sm">
-                      <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warmgray" />
-                      <input
-                        type="text"
-                        value={licenseSearchQuery}
-                        onChange={(e) => setLicenseSearchQuery(e.target.value)}
-                        placeholder="Cari kode lisensi atau nama pemegang..."
-                        className="w-full bg-[#F7F9F7] border border-[#E5EAE4] text-xs rounded-xl py-2 pl-9 pr-3 text-forest focus:outline-none"
-                      />
+                  {/* ======================================================== */}
+                  {/* BAGIAN 1: PENGATURAN JENIS & HARGA PAKET LISENSI        */}
+                  {/* ======================================================== */}
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h3 className="text-base font-heading font-extrabold text-forest flex items-center gap-2">
+                          <span>📦 Pengaturan Jenis, Durasi & Harga Paket Lisensi</span>
+                          <span className="text-xs font-normal text-warmgray font-sans">
+                            ({(licensePackages || []).length} paket aktif)
+                          </span>
+                        </h3>
+                        <p className="text-xs text-warmgray">
+                          Paket ini langsung ditampilkan di halaman publik <strong>/lisensi</strong> dan pilihan terbit lisensi manual. Anda bebas menambah paket baru tanpa batas 3 tier.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={handleOpenAddPackage}
+                        className="text-xs font-bold text-forest hover:text-emerald-700 inline-flex items-center gap-1 self-start sm:self-auto"
+                      >
+                        <Plus size={13} />
+                        <span>Tambah Tier Baru</span>
+                      </button>
                     </div>
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="text-warmgray border-b border-[#F0F4F1]">
-                            <th className="py-3 font-semibold">Kode Lisensi</th>
-                            <th className="py-3 font-semibold">Produk & Hak Pakai</th>
-                            <th className="py-3 font-semibold">Pemegang Lisensi</th>
-                            <th className="py-3 font-semibold">Waktu Mulai (Terbit)</th>
-                            <th className="py-3 font-semibold">Tanggal Berakhir</th>
-                            <th className="py-3 font-semibold">Status & Sisa Waktu</th>
-                            <th className="py-3 font-semibold text-right">Aksi</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#F0F4F1]">
-                          {licenses
-                            .filter(l => 
-                              l.code.toLowerCase().includes(licenseSearchQuery.toLowerCase()) || 
-                              l.customerName.toLowerCase().includes(licenseSearchQuery.toLowerCase()) ||
-                              l.productName.toLowerCase().includes(licenseSearchQuery.toLowerCase())
-                            )
-                            .map((lic) => {
-                              const effective = getLicenseEffectiveStatus(lic);
-                              return (
-                                <tr key={lic.id} className="hover:bg-[#FAFBF9] transition-colors">
-                                  <td className="py-3.5">
-                                    <div className="inline-flex items-center gap-1.5 bg-[#F7F9F7] px-2.5 py-1 rounded-lg border border-[#E5EAE4] font-mono text-[11px] font-bold text-forest">
-                                      <span>{lic.code}</span>
-                                      <button
-                                        onClick={() => {
-                                          navigator.clipboard.writeText(lic.code);
-                                          showToast('Kode Lisensi Disalin', lic.code);
-                                        }}
-                                        className="text-warmgray hover:text-forest"
-                                        title="Salin Kode"
-                                      >
-                                        <Copy size={11} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                  <td className="py-3.5 max-w-[200px]">
-                                    <p className="font-bold text-forest truncate" title={lic.productName}>{lic.productName}</p>
-                                    <span className="inline-block mt-0.5 bg-purple-100 text-purple-900 font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
-                                      {lic.type || 'PERSONAL'}
+                    {/* License Packages Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {(licensePackages || []).map((pkg) => {
+                        const featuresList = Array.isArray(pkg.features)
+                          ? pkg.features
+                          : (typeof pkg.features === 'string' ? pkg.features.split('\n').filter(Boolean) : []);
+
+                        return (
+                          <div
+                            key={pkg.id}
+                            className={`rounded-2xl p-5 border transition-all flex flex-col justify-between relative bg-white shadow-2xs ${
+                              pkg.isPopular 
+                                ? 'border-[#EE7C6B] ring-2 ring-[#EE7C6B]/20' 
+                                : 'border-[#E5EAE4] hover:border-[#61A87D]'
+                            }`}
+                          >
+                            {pkg.badge && (
+                              <span className="absolute -top-2.5 right-4 px-2.5 py-0.5 rounded-full bg-[#EE7C6B] text-white font-extrabold text-[10px] shadow-xs">
+                                {pkg.badge}
+                              </span>
+                            )}
+
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <h4 className="font-heading font-extrabold text-base text-forest">
+                                    {pkg.name}
+                                  </h4>
+                                  <p className="text-xs text-warmgray mt-0.5 line-clamp-2">
+                                    {pkg.subtitle || 'Paket lisensi resmi Story Generator AI'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="bg-[#FAFBF9] rounded-xl p-3 border border-[#F0F4F1] space-y-1">
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-xl font-heading font-black text-forest">
+                                    Rp {(pkg.price || 0).toLocaleString('id-ID')}
+                                  </span>
+                                  {pkg.originalPrice && pkg.originalPrice > pkg.price && (
+                                    <span className="text-xs text-warmgray line-through">
+                                      Rp {pkg.originalPrice.toLocaleString('id-ID')}
                                     </span>
-                                  </td>
-                                  <td className="py-3.5">
-                                    <p className="font-semibold text-forest">{lic.customerName}</p>
-                                    <p className="text-[10px] text-warmgray font-mono">{lic.customerEmail}</p>
-                                  </td>
-                                  <td className="py-3.5">
-                                    <div className="flex items-center gap-1.5 text-forest">
-                                      <Calendar size={12} className="text-emerald-700 shrink-0" />
-                                      <span className="font-semibold text-[11px]">{lic.createdAt || 'Mulai Beli'}</span>
-                                    </div>
-                                  </td>
-                                  <td className="py-3.5">
-                                    {lic.isLifetime || lic.expiresAt === 'Selamanya' || lic.expiresAt === 'Selamanya (Lifetime)' ? (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                                        <span>♾️ Selamanya (Lifetime)</span>
-                                      </span>
-                                    ) : (
-                                      <div className="flex items-center gap-1.5 text-forest">
-                                        <Clock size={12} className="text-purple-700 shrink-0" />
-                                        <span className={`font-semibold text-[11px] ${effective.isLocked ? 'text-rose-700' : 'text-forest'}`}>
-                                          {lic.expiresAt}
-                                        </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+                                  <Clock size={12} className="shrink-0 text-emerald-700" />
+                                  <span>{pkg.duration || pkg.period || 'Masa Aktif Fleksibel'}</span>
+                                </div>
+                              </div>
+
+                              {/* Features Preview */}
+                              <div className="space-y-1.5 pt-1">
+                                <span className="text-[10px] font-bold text-warmgray uppercase tracking-wider block">
+                                  Fasilitas Paket ({featuresList.length}):
+                                </span>
+                                <ul className="space-y-1 text-xs text-forest">
+                                  {featuresList.slice(0, 4).map((f, idx) => (
+                                    <li key={idx} className="flex items-start gap-1.5">
+                                      <Check size={12} className="text-emerald-700 shrink-0 mt-0.5" />
+                                      <span className="line-clamp-1">{f}</span>
+                                    </li>
+                                  ))}
+                                  {featuresList.length > 4 && (
+                                    <li className="text-[10px] text-warmgray italic pl-4">
+                                      +{featuresList.length - 4} fasilitas lainnya...
+                                    </li>
+                                  )}
+                                </ul>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="pt-4 mt-4 border-t border-[#F0F4F1] flex items-center justify-between gap-2">
+                              <button
+                                onClick={() => handleOpenEditPackage(pkg)}
+                                className="flex-1 py-1.5 px-3 rounded-xl bg-gray-50 hover:bg-[#E8F1EA] text-forest border border-[#E5EAE4] hover:border-emerald-300 text-xs font-bold transition-all inline-flex items-center justify-center gap-1"
+                              >
+                                <Edit3 size={12} />
+                                <span>Edit Paket & Harga</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeletePackage(pkg)}
+                                className="p-1.5 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all"
+                                title="Hapus Paket Ini"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* ======================================================== */}
+                  {/* BAGIAN 2: DATABASE KUNCI LISENSI MEMBER TERDAFTAR       */}
+                  {/* ======================================================== */}
+                  <div className="space-y-4 pt-4 border-t border-[#E5EAE4]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-heading font-extrabold text-forest">
+                          Database Kunci Lisensi Member Terdaftar
+                        </h3>
+                        <p className="text-xs text-warmgray">
+                          Riwayat seluruh kunci lisensi yang aktif, dibekukan, atau kadaluarsa di sistem.
+                        </p>
+                      </div>
+
+                      <div className="relative max-w-sm w-full sm:w-72">
+                        <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-warmgray" />
+                        <input
+                          type="text"
+                          value={licenseSearchQuery}
+                          onChange={(e) => setLicenseSearchQuery(e.target.value)}
+                          placeholder="Cari kode lisensi, nama, atau email..."
+                          className="w-full bg-[#F7F9F7] border border-[#E5EAE4] text-xs rounded-xl py-2 pl-9 pr-3 text-forest focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Licenses Table */}
+                    <div className="bg-white rounded-2xl border border-[#E5EAE4] shadow-2xs overflow-hidden p-5">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="text-warmgray border-b border-[#F0F4F1]">
+                              <th className="py-3 font-semibold">Kode Lisensi</th>
+                              <th className="py-3 font-semibold">Paket & Hak Pakai</th>
+                              <th className="py-3 font-semibold">Pemegang Lisensi</th>
+                              <th className="py-3 font-semibold">Masa Berlaku</th>
+                              <th className="py-3 font-semibold">Status Akses</th>
+                              <th className="py-3 font-semibold text-right">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#F0F4F1]">
+                            {licenses
+                              .filter(l => 
+                                (l.code || '').toLowerCase().includes(licenseSearchQuery.toLowerCase()) || 
+                                (l.customerName || '').toLowerCase().includes(licenseSearchQuery.toLowerCase()) ||
+                                (l.customerEmail || '').toLowerCase().includes(licenseSearchQuery.toLowerCase()) ||
+                                (l.productName || '').toLowerCase().includes(licenseSearchQuery.toLowerCase())
+                              )
+                              .map((lic) => {
+                                const effective = getLicenseEffectiveStatus(lic);
+                                return (
+                                  <tr key={lic.id} className="hover:bg-[#FAFBF9] transition-colors">
+                                    <td className="py-3.5">
+                                      <div className="inline-flex items-center gap-1.5 bg-[#F7F9F7] px-2.5 py-1 rounded-xl border border-[#E5EAE4] font-mono text-[11px] font-bold text-forest">
+                                        <span>{lic.code}</span>
+                                        <button
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(lic.code);
+                                            showToast('Kode Lisensi Disalin', lic.code);
+                                          }}
+                                          className="text-warmgray hover:text-forest transition-colors"
+                                          title="Salin Kode"
+                                        >
+                                          <Copy size={11} />
+                                        </button>
                                       </div>
-                                    )}
-                                  </td>
-                                  <td className="py-3.5">
-                                    <div className="space-y-1">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                                          effective.status === 'Aktif'
-                                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                            : effective.status === 'Kadaluarsa'
-                                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                              : 'bg-rose-100 text-rose-800 border border-rose-300'
-                                        }`}>
-                                          {effective.status === 'Aktif' ? '● Aktif (Terbuka)' : (effective.status === 'Kadaluarsa' ? '🔒 Kadaluarsa (Terkunci)' : '⛔ Dibekukan')}
-                                        </span>
-                                      </div>
-                                      <span className="text-[10px] text-warmgray block">
-                                        {effective.remainingText || (lic.isLifetime ? 'Akses Seumur Hidup' : lic.expiresAt)}
+                                    </td>
+                                    <td className="py-3.5 max-w-[200px]">
+                                      <p className="font-bold text-forest truncate" title={lic.productName}>
+                                        {lic.productName || 'Story Generator Pro AI'}
+                                      </p>
+                                      <span className="inline-block mt-0.5 bg-purple-100 text-purple-900 font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                                        {lic.type || 'PERSONAL'} • {lic.durationLabel || lic.expiresAt}
                                       </span>
-                                    </div>
-                                  </td>
-                                  <td className="py-3.5 text-right">
-                                    <div className="flex items-center justify-end gap-2">
+                                    </td>
+                                    <td className="py-3.5">
+                                      <p className="font-semibold text-forest">{lic.customerName || 'Member dyari.in'}</p>
+                                      <p className="text-[10px] text-warmgray font-mono">{lic.customerEmail || '-'}</p>
+                                    </td>
+                                    <td className="py-3.5">
+                                      {lic.isLifetime ? (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                          ♾️ Lifetime (Selamanya)
+                                        </span>
+                                      ) : (
+                                        <div className="space-y-0.5">
+                                          <div className="flex items-center gap-1.5 text-forest font-medium text-[11px]">
+                                            <Clock size={12} className="text-purple-700 shrink-0" />
+                                            <span>{lic.expiresAt}</span>
+                                          </div>
+                                          <span className="text-[10px] text-warmgray block">
+                                            {effective.remainingText}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td className="py-3.5">
                                       <button
                                         onClick={() => {
                                           const next = lic.status === 'Aktif' ? 'Dibekukan' : 'Aktif';
                                           updateLicenseStatus(lic.id, next);
                                         }}
-                                        className="text-[10px] font-semibold text-warmgray hover:text-forest underline"
-                                        title="Ubah Status Kunci Lisensi"
+                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
+                                          effective.status === 'Aktif'
+                                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
+                                            : effective.status === 'Kadaluarsa'
+                                              ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                              : 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200'
+                                        }`}
+                                        title="Ubah Status Lisensi"
                                       >
-                                        {lic.status === 'Aktif' ? 'Bekukan' : 'Aktifkan'}
+                                        ● {lic.status === 'Aktif' ? 'Aktif' : (lic.status === 'Kadaluarsa' ? 'Kadaluarsa' : 'Dibekukan')}
                                       </button>
-                                      <button
-                                        onClick={() => {
-                                          const text = `Halo Kak ${lic.customerName},\n\nBerikut rincian Kunci Lisensi resmi Anda di dyari.in:\n📦 Produk: ${lic.productName}\n🔑 Kode Lisensi: ${lic.code}\n🛡️ Hak Pakai: ${lic.type}\n📅 Mulai Beli: ${lic.createdAt}\n⏳ Berakhir: ${lic.expiresAt}\n📌 Status: ${effective.status}\n\nTerima kasih telah berbelanja di dyari.in!`;
-                                          navigator.clipboard.writeText(text);
-                                          showToast('Rincian Lisensi Disalin', 'Format pesan WhatsApp siap dikirim.');
-                                        }}
-                                        className="text-xs font-semibold text-forest hover:text-coral"
-                                        title="Salin Rincian ke WA"
-                                      >
-                                        Salin Info
-                                      </button>
-                                      <button
-                                        onClick={() => {
-                                          if (window.confirm(`Cabut dan hapus lisensi ${lic.code}?`)) {
-                                            deleteLicense(lic.id);
-                                          }
-                                        }}
-                                        className="p-1 text-rose-500 hover:text-rose-700"
-                                        title="Cabut Lisensi"
-                                      >
-                                        <Trash2 size={13} />
-                                      </button>
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                        </tbody>
-                      </table>
+                                    </td>
+                                    <td className="py-3.5 text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <button
+                                          onClick={() => {
+                                            const next = lic.status === 'Aktif' ? 'Dibekukan' : 'Aktif';
+                                            updateLicenseStatus(lic.id, next);
+                                          }}
+                                          className="text-[10px] font-semibold text-warmgray hover:text-forest underline"
+                                          title="Ubah Status Kunci Lisensi"
+                                        >
+                                          {lic.status === 'Aktif' ? 'Bekukan' : 'Aktifkan'}
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const text = `Halo Kak ${lic.customerName},\n\nBerikut rincian Kunci Lisensi resmi Anda di dyari.in:\n📦 Produk: ${lic.productName}\n🔑 Kode Lisensi: ${lic.code}\n🛡️ Hak Pakai: ${lic.type}\n📅 Mulai Beli: ${lic.createdAt}\n⏳ Berakhir: ${lic.expiresAt}\n📌 Status: ${effective.status}\n\nTerima kasih telah berbelanja di dyari.in!`;
+                                            navigator.clipboard.writeText(text);
+                                            showToast('Rincian Lisensi Disalin', 'Format pesan WhatsApp siap dikirim.');
+                                          }}
+                                          className="text-xs font-semibold text-forest hover:text-coral"
+                                          title="Salin Rincian ke WA"
+                                        >
+                                          Salin Info
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            if (window.confirm(`Cabut dan hapus lisensi ${lic.code}?`)) {
+                                              deleteLicense(lic.id);
+                                            }
+                                          }}
+                                          className="p-1 text-rose-500 hover:text-rose-700"
+                                          title="Cabut Lisensi"
+                                        >
+                                          <Trash2 size={13} />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -4549,7 +4928,11 @@ export const AdminDashboardView = () => {
       {/* 3. MODALS (LICENSE, MEMBER, INVOICE)                     */}
       {/* ======================================================== */}
 
-      {/* MODAL: TERBITKAN LISENSI BARU */}
+      {/* ======================================================== */}
+      {/* 3. MODALS (LICENSE, PACKAGE, MEMBER, INVOICE)              */}
+      {/* ======================================================== */}
+
+      {/* MODAL: TERBITKAN LISENSI BARU / MANUAL */}
       {showAddLicenseModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5 border border-[#E5EAE4] shadow-2xl animate-scale-up">
@@ -4558,9 +4941,14 @@ export const AdminDashboardView = () => {
                 <div className="w-8 h-8 rounded-xl bg-forest text-white flex items-center justify-center">
                   <Key size={16} />
                 </div>
-                <h3 className="font-heading font-extrabold text-base text-forest">
-                  Terbitkan Kunci Lisensi Baru
-                </h3>
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-forest">
+                    Terbitkan Kunci Lisensi Manual
+                  </h3>
+                  <p className="text-[11px] text-warmgray">
+                    Daftarkan lisensi Story Generator atau tools AI untuk member.
+                  </p>
+                </div>
               </div>
               <button onClick={() => setShowAddLicenseModal(false)} className="text-warmgray hover:text-forest">
                 <X size={18} />
@@ -4569,75 +4957,93 @@ export const AdminDashboardView = () => {
 
             <form onSubmit={handleCreateLicense} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest">Pilih Produk</label>
+                <label className="text-xs font-bold text-forest">Pilih Paket Lisensi / Produk</label>
                 <select
                   value={licenseFormData.productId}
                   onChange={(e) => {
-                    const selected = products.find(p => p.id === e.target.value);
-                    setLicenseFormData({
-                      ...licenseFormData,
-                      productId: e.target.value,
-                      productName: selected ? selected.name : 'Produk Digital'
-                    });
+                    const selId = e.target.value;
+                    const matchedPkg = (licensePackages || []).find(p => p.id === selId);
+                    if (matchedPkg) {
+                      setLicenseFormData({
+                        ...licenseFormData,
+                        productId: matchedPkg.id,
+                        productName: matchedPkg.name,
+                        expiresAt: matchedPkg.duration || matchedPkg.period || 'Selamanya (Lifetime)'
+                      });
+                      setIsCustomPackageDuration(false);
+                    } else {
+                      const selected = products.find(p => p.id === selId);
+                      setLicenseFormData({
+                        ...licenseFormData,
+                        productId: selId,
+                        productName: selected ? selected.name : 'Story Generator Pro AI'
+                      });
+                    }
                   }}
                   className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3 py-2 text-xs text-forest focus:outline-none font-medium"
                 >
-                  <optgroup label="🌟 Tools AI & Software Berlisensi">
-                    {products.filter(p => p.category === 'tools-ai' || p.productType === 'LICENSE_TOOL').map(p => (
-                      <option key={p.id} value={p.id}>🔑 {p.name}</option>
+                  <optgroup label="🎬 Paket Lisensi Story Generator">
+                    {(licensePackages || []).map(pkg => (
+                      <option key={pkg.id} value={pkg.id}>
+                        ⭐ {pkg.name} ({pkg.duration || pkg.period}) - Rp {(pkg.price || 0).toLocaleString('id-ID')}
+                      </option>
                     ))}
                   </optgroup>
-                  <optgroup label="📦 Katalog Produk Lainnya">
-                    {products.filter(p => !(p.category === 'tools-ai' || p.productType === 'LICENSE_TOOL')).map(p => (
-                      <option key={p.id} value={p.id}>{p.name} ({p.categoryName || 'Produk'})</option>
+                  <optgroup label="📦 Tools & Produk Lainnya">
+                    {products.filter(p => p.category === 'tools-ai' || p.productType === 'LICENSE_TOOL').map(p => (
+                      <option key={p.id} value={p.id}>🔑 {p.name}</option>
                     ))}
                   </optgroup>
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest">Nama Pelanggan</label>
+                <label className="text-xs font-bold text-forest">Nama Member / Pelanggan</label>
                 <input
                   type="text"
                   required
                   value={licenseFormData.customerName}
                   onChange={(e) => setLicenseFormData({ ...licenseFormData, customerName: e.target.value })}
-                  placeholder="Nama Lengkap Pembeli"
+                  placeholder="Nama Lengkap Member"
                   className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-forest">Email Pelanggan</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-forest">Email Member Terdaftar</label>
+                  <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200">
+                    Kunci Login Story Generator
+                  </span>
+                </div>
                 <input
                   type="email"
                   required
                   value={licenseFormData.customerEmail}
                   onChange={(e) => setLicenseFormData({ ...licenseFormData, customerEmail: e.target.value })}
-                  placeholder="pembeli@gmail.com"
-                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none"
+                  placeholder="member@gmail.com"
+                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none font-mono"
                 />
+                <p className="text-[10px] text-warmgray">
+                  Member akan memasukkan email ini beserta kode lisensi untuk membuka Story Generator.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-forest">Tipe Lisensi</label>
-                    <span className="text-[10px] text-warmgray">Hak Pakai</span>
+                    <label className="text-xs font-bold text-forest">Tipe Hak Pakai</label>
                   </div>
                   <select
                     value={licenseFormData.type}
                     onChange={(e) => setLicenseFormData({ ...licenseFormData, type: e.target.value })}
                     className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3 py-2 text-xs text-forest focus:outline-none font-semibold"
                   >
-                    <option value="PERSONAL">PERSONAL (Pribadi / 1 User)</option>
-                    <option value="COMMERCIAL">COMMERCIAL (Bisnis / Klien)</option>
-                    <option value="AGENCY">AGENCY / TEAM (Multi-User Tim)</option>
-                    <option value="RESELLER">RESELLER (Hak Jual Ulang)</option>
+                    <option value="PERSONAL">PERSONAL (1 User)</option>
+                    <option value="COMMERCIAL">COMMERCIAL (Klien)</option>
+                    <option value="AGENCY">AGENCY (Tim)</option>
+                    <option value="RESELLER">RESELLER</option>
                   </select>
-                  <span className="text-[9px] text-warmgray block">
-                    Izin & batasan penggunaan tools
-                  </span>
                 </div>
 
                 <div className="space-y-1">
@@ -4646,13 +5052,13 @@ export const AdminDashboardView = () => {
                     <span className="text-[10px] text-purple-700 font-semibold">Durasi</span>
                   </div>
                   <select
-                    value={isCustomLicenseDuration ? 'CUSTOM' : licenseFormData.expiresAt}
+                    value={isCustomPackageDuration ? 'CUSTOM' : licenseFormData.expiresAt}
                     onChange={(e) => {
                       if (e.target.value === 'CUSTOM') {
-                        setIsCustomLicenseDuration(true);
+                        setIsCustomPackageDuration(true);
                         setLicenseFormData({ ...licenseFormData, expiresAt: '' });
                       } else {
-                        setIsCustomLicenseDuration(false);
+                        setIsCustomPackageDuration(false);
                         setLicenseFormData({ ...licenseFormData, expiresAt: e.target.value });
                       }
                     }}
@@ -4662,18 +5068,15 @@ export const AdminDashboardView = () => {
                     <option value="1 Tahun (365 Hari)">1 Tahun (365 Hari)</option>
                     <option value="6 Bulan (180 Hari)">6 Bulan (180 Hari)</option>
                     <option value="3 Bulan (90 Hari)">3 Bulan (90 Hari)</option>
-                    <option value="1 Bulan (30 Hari)">1 Bulan (30 Hari)</option>
+                    <option value="30 Hari (1 Bulan)">30 Hari (1 Bulan)</option>
                     <option value="14 Hari">14 Hari</option>
-                    <option value="7 Hari (Trial / Demo)">7 Hari (Trial / Demo)</option>
+                    <option value="7 Hari (Trial)">7 Hari (Trial)</option>
                     <option value="CUSTOM">✏️ Kustom (Input Sendiri)...</option>
                   </select>
-                  <span className="text-[9px] text-warmgray block">
-                    Masa aktif kunci lisensi software
-                  </span>
                 </div>
               </div>
 
-              {isCustomLicenseDuration && (
+              {isCustomPackageDuration && (
                 <div className="space-y-1.5 p-3 rounded-2xl bg-purple-50/70 border border-purple-200 animate-scale-up">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-purple-950 flex items-center gap-1.5">
@@ -4682,7 +5085,7 @@ export const AdminDashboardView = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        setIsCustomLicenseDuration(false);
+                        setIsCustomPackageDuration(false);
                         setLicenseFormData({ ...licenseFormData, expiresAt: 'Selamanya (Lifetime)' });
                       }}
                       className="text-[10px] text-purple-700 hover:underline font-semibold"
@@ -4699,11 +5102,22 @@ export const AdminDashboardView = () => {
                     className="w-full bg-white rounded-xl border border-purple-200 px-3.5 py-2 text-xs text-forest focus:outline-none font-medium"
                     autoFocus
                   />
-                  <p className="text-[10px] text-purple-800">
-                    💡 Anda bebas menentukan masa berlaku apa saja sesuai kebutuhan lisensi Anda.
-                  </p>
                 </div>
               )}
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-forest">Kode Lisensi Khusus (Opsional)</label>
+                  <span className="text-[10px] text-warmgray">Kosongkan jika ingin acak</span>
+                </div>
+                <input
+                  type="text"
+                  value={licenseFormData.code}
+                  onChange={(e) => setLicenseFormData({ ...licenseFormData, code: e.target.value.toUpperCase() })}
+                  placeholder="Contoh: DYARI-STORY-VIP-2026 (Opsional)"
+                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none font-mono"
+                />
+              </div>
 
               <div className="pt-2 flex justify-end gap-2">
                 <button
@@ -4717,7 +5131,186 @@ export const AdminDashboardView = () => {
                   type="submit"
                   className="btn-dyari text-xs px-5 py-2 font-bold"
                 >
-                  Terbitkan Lisensi
+                  Terbitkan Lisensi & Daftarkan Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: KELOLA PAKET LISENSI (TAMBAH / EDIT DINAMIS) */}
+      {showPackageModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-5 border border-[#E5EAE4] shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#F0F4F1] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center">
+                  <Tag size={16} />
+                </div>
+                <div>
+                  <h3 className="font-heading font-extrabold text-base text-forest">
+                    {editingPackage ? 'Edit Paket & Harga Lisensi' : 'Tambah Paket Lisensi Baru'}
+                  </h3>
+                  <p className="text-[11px] text-warmgray">
+                    Atur nama, durasi, harga jual, dan fasilitas paket yang tampil di website.
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setShowPackageModal(false)} className="text-warmgray hover:text-forest">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePackage} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-forest">Nama Paket Lisensi</label>
+                <input
+                  type="text"
+                  required
+                  value={packageFormData.name}
+                  onChange={(e) => setPackageFormData({ ...packageFormData, name: e.target.value })}
+                  placeholder="Contoh: Pro Creator License, Paket Agensi 6 Bulan"
+                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none font-semibold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-forest">Keterangan Singkat (Subtitle)</label>
+                <input
+                  type="text"
+                  value={packageFormData.subtitle}
+                  onChange={(e) => setPackageFormData({ ...packageFormData, subtitle: e.target.value })}
+                  placeholder="Contoh: Cocok untuk kreator konten & agensi video"
+                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-forest">Harga Jual (Rp)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={packageFormData.price}
+                    onChange={(e) => setPackageFormData({ ...packageFormData, price: e.target.value })}
+                    placeholder="Contoh: 199000"
+                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-forest">Harga Coret / Asli (Rp)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={packageFormData.originalPrice}
+                    onChange={(e) => setPackageFormData({ ...packageFormData, originalPrice: e.target.value })}
+                    placeholder="Contoh: 499000"
+                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-forest">Masa Berlaku / Durasi</label>
+                    <span className="text-[10px] text-purple-700 font-semibold">Durasi</span>
+                  </div>
+                  <select
+                    value={isCustomPackageDuration ? 'CUSTOM' : packageFormData.duration}
+                    onChange={(e) => {
+                      if (e.target.value === 'CUSTOM') {
+                        setIsCustomPackageDuration(true);
+                        setPackageFormData({ ...packageFormData, duration: '' });
+                      } else {
+                        setIsCustomPackageDuration(false);
+                        setPackageFormData({ ...packageFormData, duration: e.target.value });
+                      }
+                    }}
+                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3 py-2 text-xs text-forest focus:outline-none font-semibold"
+                  >
+                    <option value="30 Hari (1 Bulan)">30 Hari (1 Bulan)</option>
+                    <option value="3 Bulan (90 Hari)">3 Bulan (90 Hari)</option>
+                    <option value="6 Bulan (180 Hari)">6 Bulan (180 Hari)</option>
+                    <option value="1 Tahun (365 Hari)">1 Tahun (365 Hari)</option>
+                    <option value="Selamanya (Lifetime)">Selamanya (Lifetime)</option>
+                    <option value="14 Hari">14 Hari</option>
+                    <option value="7 Hari (Trial)">7 Hari (Trial)</option>
+                    <option value="CUSTOM">✏️ Kustom (Input Sendiri)...</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-forest">Badge Label (Opsional)</label>
+                  <input
+                    type="text"
+                    value={packageFormData.badge}
+                    onChange={(e) => setPackageFormData({ ...packageFormData, badge: e.target.value })}
+                    placeholder="Contoh: Paling Populer ⭐, Best Value 💎"
+                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {isCustomPackageDuration && (
+                <div className="space-y-1 p-3 rounded-2xl bg-purple-50/70 border border-purple-200 animate-scale-up">
+                  <label className="text-xs font-bold text-purple-950 block">Ketik Durasi Kustom:</label>
+                  <input
+                    type="text"
+                    required
+                    value={packageFormData.duration}
+                    onChange={(e) => setPackageFormData({ ...packageFormData, duration: e.target.value })}
+                    placeholder="Contoh: 45 Hari, 2 Tahun, 5 Bulan"
+                    className="w-full bg-white rounded-xl border border-purple-200 px-3.5 py-2 text-xs text-forest focus:outline-none font-medium"
+                    autoFocus
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isPopularPkg"
+                  checked={packageFormData.isPopular}
+                  onChange={(e) => setPackageFormData({ ...packageFormData, isPopular: e.target.checked })}
+                  className="rounded text-emerald-700 focus:ring-emerald-700"
+                />
+                <label htmlFor="isPopularPkg" className="text-xs font-semibold text-forest cursor-pointer">
+                  Sorot sebagai Paket Paling Populer / Unggulan (Highlight Card)
+                </label>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-forest">Fasilitas & Fitur Paket</label>
+                  <span className="text-[10px] text-warmgray">1 Baris = 1 Fitur</span>
+                </div>
+                <textarea
+                  rows={4}
+                  required
+                  value={packageFormData.features}
+                  onChange={(e) => setPackageFormData({ ...packageFormData, features: e.target.value })}
+                  placeholder="Ketik fasilitas paket, pisahkan dengan baris baru (Enter)..."
+                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2.5 text-xs text-forest focus:outline-none font-mono"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPackageModal(false)}
+                  className="btn-dyari-outline text-xs px-4 py-2"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-dyari text-xs px-5 py-2 font-bold"
+                >
+                  {editingPackage ? 'Simpan Perubahan Paket' : 'Tambah Paket Baru'}
                 </button>
               </div>
             </form>

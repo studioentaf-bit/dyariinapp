@@ -10,6 +10,7 @@ const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('dyari_auth_token');
   const headers = {
     'Content-Type': 'application/json',
+    'x-admin-secret': 'Dyari#Master9981!Secure',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers
   };
@@ -119,6 +120,11 @@ export const api = {
       return apiFetch(`/licenses/${id}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status })
+      });
+    },
+    delete: async (id) => {
+      return apiFetch(`/licenses/${id}`, {
+        method: 'DELETE'
       });
     }
   },

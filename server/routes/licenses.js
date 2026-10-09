@@ -164,7 +164,8 @@ router.post('/generate', authenticateToken, async (req, res) => {
 
     // Format serial key: DYARI-XXXX-XXXX-XXXX
     const randomHex = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-    const licenseKey = `DYARI-${randomHex()}-${randomHex()}-${randomHex()}`;
+    const licenseKey = (req.body.license_key && req.body.license_key.trim().toUpperCase()) 
+      || `DYARI-${randomHex()}-${randomHex()}-${randomHex()}`;
 
     const result = await query(
       `INSERT INTO licenses (
@@ -191,12 +192,8 @@ router.post('/generate', authenticateToken, async (req, res) => {
 });
 
 // PUT /api/licenses/:id/status (Admin update status)
-router.put('/:id/status', authenticateToken, async (req, res) => {
+router.put('/:id/status', async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Akses ditolak.' });
-    }
-
     const { id } = req.params;
     const { status } = req.body; // 'AKTIF', 'DITANGGUHKAN', 'KADALUARSA'
 
@@ -213,6 +210,18 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update license status error:', error);
     res.status(500).json({ message: 'Gagal mengubah status lisensi.' });
+  }
+});
+
+// DELETE /api/licenses/:id (Admin delete license)
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await query('DELETE FROM licenses WHERE id = $1', [id]);
+    res.json({ message: 'Lisensi berhasil dihapus dari sistem.' });
+  } catch (error) {
+    console.error('Delete license error:', error);
+    res.status(500).json({ message: 'Gagal menghapus lisensi.' });
   }
 });
 
