@@ -152,10 +152,6 @@
                         <i class="fa-solid fa-sliders text-xs w-4 text-center text-gray-500"></i>
                         <span>Setting</span>
                     </button>
-                    <button onclick="switchView('admin')" id="nav-admin" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold text-gray-600 hover:bg-[#f0eee6] hover:text-black transition text-left cursor-pointer">
-                        <i class="fa-solid fa-shield-halved text-xs w-4 text-center text-gray-500"></i>
-                        <span>Admin</span>
-                    </button>
                 </nav>
                 <div class="p-3 border-t border-[#f0eee6] bg-[#fbfaf8]">
                     <div class="p-2.5 rounded-xl bg-white border border-[#e6e3da] flex items-center gap-2.5 shadow-2xs">
@@ -183,22 +179,43 @@
                         <span id="headerCurrentPage" class="text-gray-900 font-bold">Dashboard</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2.5">
-                    <a href="/#shop" target="_parent" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#e6e3da] bg-white text-[#1C352D] text-xs font-bold hover:bg-[#f0eee6] transition shadow-2xs" title="Kembali ke Toko Dyari">
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-nowrap">
+                    <!-- Refresh Studio -->
+                    <button onclick="window.location.reload()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#e6e3da] bg-white hover:bg-[#f0eee6] text-gray-700 text-xs font-semibold transition shadow-2xs cursor-pointer" title="Muat Ulang Studio">
+                        <i class="fa-solid fa-rotate text-gray-500 text-xs"></i>
+                        <span class="hidden md:inline">Refresh</span>
+                    </button>
+
+                    <!-- Layar Penuh -->
+                    <button onclick="toggleStudioFullscreen()" id="btnFullscreenStudio" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#e6e3da] bg-white hover:bg-[#f0eee6] text-gray-700 text-xs font-semibold transition shadow-2xs cursor-pointer" title="Layar Penuh">
+                        <i id="iconFullscreenStudio" class="fa-solid fa-expand text-gray-500 text-xs"></i>
+                        <span class="hidden md:inline" id="labelFullscreenStudio">Layar Penuh</span>
+                    </button>
+
+                    <!-- Buka di Tab Baru -->
+                    <a href="/story-generator/index.html" target="_blank" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#e6e3da] bg-white hover:bg-[#f0eee6] text-[#1e3d2f] text-xs font-bold transition shadow-2xs" title="Buka Studio di Tab Baru">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[#4e8a5c] text-xs"></i>
+                        <span class="hidden md:inline">Tab Baru</span>
+                    </a>
+
+                    <div class="w-px h-4 bg-gray-200 hidden sm:block"></div>
+
+                    <!-- Toko Dyari Link -->
+                    <a href="/#shop" target="_parent" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#e6e3da] bg-white text-[#1C352D] text-xs font-bold hover:bg-[#f0eee6] transition shadow-2xs" title="Kembali ke Toko Dyari">
                         <i class="fa-solid fa-store text-[#4e8a5c]"></i>
                         <span class="hidden sm:inline">Toko Dyari</span>
                     </a>
-                    <button onclick="openSettingsModal()" id="headerApiKeyBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#c5dccb] bg-[#e8f2ea] text-[#1e3d2f] text-xs font-bold hover:bg-[#d5e7d9] transition shadow-2xs">
+
+                    <!-- Input API Key Button -->
+                    <button onclick="openSettingsModal()" id="headerApiKeyBtn" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-[#c5dccb] bg-[#e8f2ea] text-[#1e3d2f] text-xs font-bold hover:bg-[#d5e7d9] transition shadow-2xs cursor-pointer" title="Masukkan & Tes Google Gemini API Key">
                         <i id="headerApiKeyIcon" class="fa-solid fa-key text-amber-500 text-xs"></i>
-                        <span id="headerApiKeyLabel" class="hidden md:inline">Gemini Key</span>
+                        <span id="headerApiKeyLabel" class="inline">Input Key</span>
                     </button>
-                    <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl border border-[#e6e3da] hover:bg-[#f8f7f4] flex items-center justify-center text-gray-600 text-xs transition" title="Pengaturan">
+
+                    <!-- Settings Button -->
+                    <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl border border-[#e6e3da] hover:bg-[#f8f7f4] flex items-center justify-center text-gray-600 text-xs transition cursor-pointer" title="Pengaturan Sistem">
                         <i class="fa-solid fa-sliders"></i>
                     </button>
-                    <div class="flex items-center gap-2 pl-2 border-l border-[#e6e3da]">
-                        <div class="w-8 h-8 rounded-full bg-[#1e3d2f] text-white flex items-center justify-center font-bold text-xs shadow-xs">A</div>
-                        <span id="headerUserName" class="text-xs font-bold text-gray-800 hidden lg:inline">Admin</span>
-                    </div>
                 </div>
             </header>
             <main class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
@@ -351,20 +368,6 @@
                                 <p class="text-xs text-gray-400 mt-0.5">8 Adegan • 3D Pixar • Dibuat 3 hari lalu</p>
                             </div>
                         </div>
-                    </div>
-                </section>
-                <!-- SCREEN 7: ADMIN -->
-                <section id="view-admin" class="hidden space-y-6">
-                    <h2 class="text-xl font-black text-[#191c1a]">Panel Manajemen Admin</h2>
-                    <div class="bg-white rounded-3xl border border-[#e6e3da] shadow-xs overflow-hidden p-4">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-[#f8f7f4] text-gray-500 font-bold border-b border-[#e6e3da]">
-                                <tr><th class="p-3">Nama & Email</th><th class="p-3">Role</th><th class="p-3">Status</th></tr>
-                            </thead>
-                            <tbody class="divide-y divide-[#f0eee6]">
-                                <tr><td class="p-3 font-bold">Admin Utama <span class="text-gray-400 block font-normal">admin@storyin.ai</span></td><td class="p-3"><span class="px-2 py-0.5 rounded-full bg-[#e8f2ea] text-[#1e3d2f] font-bold text-[10px]">Superadmin</span></td><td class="p-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Aktif</span></td></tr>
-                            </tbody>
-                        </table>
                     </div>
                 </section>
 
@@ -3399,11 +3402,56 @@
             showFlowToast('Video berhasil diunduh ke komputer Anda!');
         }
 
+        function toggleStudioFullscreen() {
+            try {
+                const doc = window.parent ? window.parent.document : document;
+                const root = window.parent ? window.parent.document.documentElement : document.documentElement;
+                const isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+                if (!isFull) {
+                    if (root.requestFullscreen) root.requestFullscreen();
+                    else if (root.webkitRequestFullscreen) root.webkitRequestFullscreen();
+                    else if (root.mozRequestFullScreen) root.mozRequestFullScreen();
+                    else if (root.msRequestFullscreen) root.msRequestFullscreen();
+                    const icon = document.getElementById('iconFullscreenStudio');
+                    const label = document.getElementById('labelFullscreenStudio');
+                    if (icon) icon.className = 'fa-solid fa-compress text-gray-500 text-xs';
+                    if (label) label.textContent = 'Kecilkan';
+                } else {
+                    if (doc.exitFullscreen) doc.exitFullscreen();
+                    else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+                    else if (doc.mozCancelFullScreen) doc.mozCancelFullScreen();
+                    else if (doc.msExitFullscreen) doc.msExitFullscreen();
+                    const icon = document.getElementById('iconFullscreenStudio');
+                    const label = document.getElementById('labelFullscreenStudio');
+                    if (icon) icon.className = 'fa-solid fa-expand text-gray-500 text-xs';
+                    if (label) label.textContent = 'Layar Penuh';
+                }
+            } catch (e) {
+                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+                else document.exitFullscreen();
+            }
+        }
+
         // DOM Ready
         window.addEventListener('DOMContentLoaded', () => {
             initAllFormSelectors();
             updateKeyBadge();
             updateSummaryPill();
+
+            const handleFsChange = () => {
+                const doc = window.parent ? window.parent.document : document;
+                const isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+                const icon = document.getElementById('iconFullscreenStudio');
+                const label = document.getElementById('labelFullscreenStudio');
+                if (icon) icon.className = isFull ? 'fa-solid fa-compress text-gray-500 text-xs' : 'fa-solid fa-expand text-gray-500 text-xs';
+                if (label) label.textContent = isFull ? 'Kecilkan' : 'Layar Penuh';
+            };
+            document.addEventListener('fullscreenchange', handleFsChange);
+            try {
+                if (window.parent && window.parent.document) {
+                    window.parent.document.addEventListener('fullscreenchange', handleFsChange);
+                }
+            } catch (_) {}
         });
     
     </script>

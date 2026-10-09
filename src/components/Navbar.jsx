@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Search, ShoppingBag, User, X, Sparkles } from 'lucide-react';
+import { Search, ShoppingBag, User, X } from 'lucide-react';
 
 export const Navbar = () => {
   const { 
@@ -101,19 +101,9 @@ export const Navbar = () => {
             </button>
             <button 
               onClick={() => navigateTo('story-generator')}
-              className={`flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-full ${
-                currentView === 'story-generator'
-                  ? 'bg-[#1C352D] text-white font-bold shadow-xs'
-                  : 'text-[#1C352D] font-semibold hover:bg-[#EBEFEA]'
-              }`}
+              className={`transition-colors ${currentView === 'story-generator' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
-              <Sparkles size={13} className={currentView === 'story-generator' ? 'text-[#A3E6B5]' : 'text-[#EE7C6B]'} />
-              <span>Story Generator</span>
-              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
-                currentView === 'story-generator' ? 'bg-white/20 text-white' : 'bg-[#EE7C6B]/15 text-[#EE7C6B]'
-              }`}>
-                AI
-              </span>
+              Story Generator
             </button>
             <button 
               onClick={() => {
