@@ -76,18 +76,41 @@ router.get('/', authenticateToken, async (req, res) => {
 // POST /api/licenses/validate (Public / Member check license)
 router.post('/validate', async (req, res) => {
   try {
-    const { license_key } = req.body;
+    const { license_key, email } = req.body;
     if (!license_key) {
       return res.status(400).json({ isValid: false, message: 'Kode lisensi wajib diisi.' });
     }
 
     const cleanKey = license_key.trim().toUpperCase();
-    const result = await query('SELECT * FROM licenses WHERE license_key = $1', [cleanKey]);
+    const result = await query('SELECT * FROM licenses WHERE UPPER(license_key) = $1', [cleanKey]);
     if (result.rows.length === 0) {
       return res.status(404).json({ isValid: false, message: 'Kode lisensi tidak ditemukan di sistem.' });
     }
 
     const lic = result.rows[0];
+    const cleanEmail = (email || '').trim().toLowerCase();
+
+    // Verifikasi kepemilikan email
+    if (cleanEmail) {
+      const licEmail = (lic.user_email || '').trim().toLowerCase();
+      if (licEmail && licEmail !== cleanEmail) {
+        return res.status(403).json({
+          isValid: false,
+          message: 'Email tidak sesuai dengan lisensi ini. Harap gunakan email yang terdaftar di panel admin atau saat pembelian.'
+        });
+      }
+      // Jika lisensi belum diisi email (misal baru dibuat admin), kaitkan otomatis
+      if (!licEmail) {
+        await query('UPDATE licenses SET user_email = $1 WHERE id = $2', [cleanEmail, lic.id]);
+        lic.user_email = cleanEmail;
+      }
+    } else if (lic.user_email && lic.user_email.trim()) {
+      return res.status(400).json({
+        isValid: false,
+        message: 'Email terdaftar wajib diisi untuk memverifikasi lisensi ini.'
+      });
+    }
+
     const now = new Date();
 
     // Cek apakah masa berlaku habis
@@ -95,16 +118,16 @@ router.post('/validate', async (req, res) => {
       if (lic.status !== 'KADALUARSA') {
         await query('UPDATE licenses SET status = $1 WHERE id = $2', ['KADALUARSA', lic.id]);
       }
-      return res.json({
+      return res.status(403).json({
         isValid: false,
         status: 'KADALUARSA',
-        message: 'Masa berlaku lisensi ini telah berakhir. Akses produk dikunci.',
+        message: 'Masa berlaku lisensi ini telah berakhir. Akses fitur dikunci.',
         license: { ...lic, status: 'KADALUARSA' }
       });
     }
 
     if (lic.status === 'DITANGGUHKAN') {
-      return res.json({
+      return res.status(403).json({
         isValid: false,
         status: 'DITANGGUHKAN',
         message: 'Lisensi ini sedang ditangguhkan oleh admin.',

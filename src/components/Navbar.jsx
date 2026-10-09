@@ -73,105 +73,49 @@ export const Navbar = () => {
             </button>
           </div>
 
-          {/* Desktop Navigation Menu (Matching Image 1: Toko, Kategori, Bundel, Gratis, Tentang, Story Generator) */}
+          {/* Desktop Navigation Menu: Beranda | Shop | Lisensi | Story Generator | Tentang */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-xs sm:text-sm font-medium">
             <button 
-              onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-              className={`transition-colors ${currentView === 'shop' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
+              onClick={() => navigateTo('home')}
+              className={`transition-colors cursor-pointer ${currentView === 'home' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
-              Toko
+              Beranda
             </button>
             <button 
               onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-              className="text-[#616863] hover:text-[#1C352D] transition-colors"
+              className={`transition-colors cursor-pointer ${currentView === 'shop' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
-              Kategori
+              Shop
             </button>
             <button 
-              onClick={() => { setActiveCategory('bundel'); navigateTo('shop'); }}
-              className="text-[#616863] hover:text-[#1C352D] transition-colors"
+              onClick={() => navigateTo('licenses')}
+              className={`transition-colors cursor-pointer ${currentView === 'licenses' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
-              Bundel
-            </button>
-            <button 
-              onClick={() => { setActiveCategory('tools'); navigateTo('shop'); }}
-              className="text-[#616863] hover:text-[#1C352D] transition-colors"
-            >
-              Gratis
+              Lisensi
             </button>
             <button 
               onClick={() => navigateTo('story-generator')}
-              className={`transition-colors ${currentView === 'story-generator' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
+              className={`transition-colors cursor-pointer ${currentView === 'story-generator' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
               Story Generator
             </button>
             <button 
-              onClick={() => {
-                navigateTo('home');
-                setTimeout(() => {
-                  window.scrollTo({ top: 900, behavior: 'smooth' });
-                }, 100);
-              }}
-              className="text-[#616863] hover:text-[#1C352D] transition-colors"
+              onClick={() => navigateTo('about')}
+              className={`transition-colors cursor-pointer ${currentView === 'about' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
               Tentang
             </button>
           </nav>
 
-          {/* Right Action Icons: Search, Cart (Badge 2), User Avatar, Admin Switcher */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            {/* Search */}
+          {/* Right Action: Search Only (Cart and Masuk removed as requested) */}
+          <div className="flex items-center space-x-2">
             <button 
               onClick={() => setShowSearchModal(true)}
-              className="p-2 text-[#1C352D] hover:text-[#EE7C6B] transition-colors"
-              title="Cari Produk"
+              className="p-2 text-[#1C352D] hover:text-[#EE7C6B] transition-colors cursor-pointer"
+              title="Cari Produk & Lisensi"
             >
-              <Search size={19} />
+              <Search size={20} />
             </button>
-
-            {/* Cart with coral/red badge (Matching badge 2 in Image 1 & 2) */}
-            <button 
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2 text-[#1C352D] hover:text-[#EE7C6B] transition-colors"
-              title="Keranjang Belanja"
-            >
-              <ShoppingBag size={19} />
-              {totalItems > 0 && (
-                <span className="absolute 0 top-0.5 right-0.5 min-w-[17px] h-[17px] bg-[#EE7C6B] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-xs">
-                  {totalItems}
-                </span>
-              )}
-            </button>
-
-            {/* User Profile or Login Trigger */}
-            {user ? (
-              <button 
-                onClick={() => navigateTo('dashboard')}
-                className="p-1 rounded-full hover:ring-2 hover:ring-[#1C352D]/20 transition-all flex items-center justify-center cursor-pointer"
-                title={`Akun Member: ${user.name}`}
-              >
-                {user.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name} 
-                    className="w-7 h-7 rounded-full object-cover border border-[#E5EAE4]"
-                  />
-                ) : (
-                  <span className="w-7 h-7 rounded-full bg-[#1C352D] text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <button 
-                onClick={() => setIsAuthOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#DCE4DD] hover:border-forest text-xs font-bold text-forest transition-colors shadow-2xs hover:bg-[#F2F6F3] cursor-pointer"
-                title="Masuk atau Daftar Akun Member"
-              >
-                <User size={14} className="text-forest" />
-                <span className="hidden sm:inline">Masuk</span>
-              </button>
-            )}
           </div>
 
         </div>

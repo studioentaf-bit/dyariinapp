@@ -103,10 +103,10 @@ export const api = {
     getAll: async () => {
       return apiFetch('/licenses');
     },
-    validate: async (licenseKey) => {
+    validate: async (licenseKey, email) => {
       return apiFetch('/licenses/validate', {
         method: 'POST',
-        body: JSON.stringify({ license_key: licenseKey })
+        body: JSON.stringify({ license_key: licenseKey, email })
       });
     },
     generate: async (licenseData) => {

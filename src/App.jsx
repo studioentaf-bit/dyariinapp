@@ -17,6 +17,8 @@ import { UserDashboardView } from './views/UserDashboardView';
 import { AdminDashboardView } from './views/AdminDashboardView';
 import { PublicInvoiceView } from './views/PublicInvoiceView';
 import { StoryGeneratorView } from './views/StoryGeneratorView';
+import { LicensesView } from './views/LicensesView';
+import { AboutView } from './views/AboutView';
 
 const MainLayout = () => {
   const { currentView } = useStore();
@@ -27,6 +29,10 @@ const MainLayout = () => {
         return <HomeView />;
       case 'shop':
         return <ShopView />;
+      case 'licenses':
+        return <LicensesView />;
+      case 'about':
+        return <AboutView />;
       case 'product-detail':
         return <ProductDetailView />;
       case 'checkout':
@@ -46,7 +52,7 @@ const MainLayout = () => {
     }
   };
 
-  const showFooter = ['home', 'shop', 'product-detail'].includes(currentView);
+  const showFooter = ['home', 'shop', 'licenses', 'about', 'product-detail'].includes(currentView);
   const showNav = currentView !== 'admin';
 
   return (

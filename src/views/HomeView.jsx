@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { testimonials } from '../data/products';
 import { ProductCard } from '../components/ProductCard';
-import { ProductMockup } from '../components/ProductMockup';
 import { 
   ArrowRight, 
   Zap, 
   Sparkles, 
   Heart, 
-  ChevronLeft, 
-  ChevronRight, 
-  ArrowUp, 
-  Check 
+  KeyRound, 
+  Clapperboard, 
+  CheckCircle2, 
+  Volume2, 
+  Video, 
+  Layers, 
+  ShieldCheck,
+  Star
 } from 'lucide-react';
 
 export const HomeView = () => {
@@ -45,106 +48,121 @@ export const HomeView = () => {
     }
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <div className="space-y-16 md:space-y-20 pb-12 overflow-hidden bg-[#FCFAF5]">
+    <div className="space-y-16 md:space-y-24 pb-16 overflow-hidden bg-[#FCFAF5]">
       
       {/* 01 — HERO SECTION */}
       <section className="relative pt-8 pb-12 md:pt-14 md:pb-16 overflow-hidden">
-        {/* Decorative soft leaf vector illustrations */}
-        <div className="absolute top-6 left-6 text-[#2E5545] opacity-20 pointer-events-none hidden sm:block">
-          <svg width="60" height="60" viewBox="0 0 100 100" fill="currentColor">
+        {/* Soft decorative background accents */}
+        <div className="absolute top-10 left-10 text-[#2E5545] opacity-15 pointer-events-none hidden sm:block">
+          <svg width="70" height="70" viewBox="0 0 100 100" fill="currentColor">
             <path d="M50 10 C30 35, 20 65, 50 90 C80 65, 70 35, 50 10 Z" />
           </svg>
         </div>
-        <div className="absolute top-12 right-12 text-[#2E5545] opacity-20 pointer-events-none hidden sm:block">
-          <svg width="70" height="70" viewBox="0 0 100 100" fill="currentColor">
-            <path d="M50 10 C30 35, 20 65, 50 90 C80 65, 70 35, 50 10 Z" />
+        <div className="absolute top-16 right-16 text-[#EE7C6B] opacity-15 pointer-events-none hidden sm:block">
+          <svg width="80" height="80" viewBox="0 0 100 100" fill="currentColor">
+            <circle cx="50" cy="50" r="40" />
           </svg>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            {/* Left Hero Text */}
-            <div className="lg:col-span-6 space-y-5">
-              <span className="text-[11px] font-bold tracking-wider uppercase text-[#737873] block">
-                PRODUK DIGITAL UNTUK KESEHARIANMU.
-              </span>
+            {/* Left Hero Content */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8F2EA] border border-[#C5DCCB] text-[#1E3D2F] text-xs font-bold shadow-2xs">
+                <Sparkles size={13} className="text-[#4E8A5C]" />
+                <span>Ekosistem Produk Digital & AI Generatif Kreator</span>
+              </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-heading font-extrabold text-[#1C352D] leading-[1.14] tracking-tight">
-                {storeSettings?.heroTitle || 'Bikin keseharianmu jadi lebih mudah.'}
+              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-heading font-black text-[#1C352D] leading-[1.14] tracking-tight">
+                {storeSettings?.heroTitle || 'Bikin Keseharian & Karya Kreatifmu Lebih Cepat dan Mudah.'}
               </h1>
 
-              <p className="text-sm sm:text-base text-[#6E736E] max-w-lg leading-relaxed">
-                {storeSettings?.heroSubtitle || 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.'}
+              <p className="text-sm sm:text-base text-[#6E736E] max-w-xl leading-relaxed">
+                {storeSettings?.heroSubtitle || 'Koleksi template produktivitas terstruktur, sistem spreadsheet pintar, dan studio Story Generator AI sinematik—semua dirancang untuk membantu Anda bekerja lebih cerdas dan berkembang pesat.'}
               </p>
 
-              <div className="pt-2 flex items-center gap-3">
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button 
                   onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-                  className="bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-semibold text-sm px-6 py-3 rounded-full transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95"
+                  className="bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
                 >
-                  <span>Jelajahi Produk</span>
+                  <span>Jelajahi Shop</span>
                   <ArrowRight size={16} />
                 </button>
                 <button 
-                  onClick={() => { setActiveCategory('bundel'); navigateTo('shop'); }}
-                  className="border border-[#D1DDD3] bg-transparent hover:bg-white text-[#1C352D] font-heading font-semibold text-sm px-6 py-3 rounded-full transition-all duration-200 shadow-2xs active:scale-95"
+                  onClick={() => navigateTo('story-generator')}
+                  className="bg-[#1E3D2F] hover:bg-[#162F24] text-white font-heading font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
                 >
-                  <span>Lihat Bundel</span>
+                  <Sparkles size={16} className="text-[#A3E6B5]" />
+                  <span>Story Generator AI</span>
                 </button>
+                <button 
+                  onClick={() => navigateTo('licenses')}
+                  className="border border-[#D1DDD3] bg-white hover:bg-[#F0EEE6] text-[#1C352D] font-heading font-bold text-xs sm:text-sm px-5 py-3.5 rounded-full transition-all duration-200 shadow-2xs active:scale-95 cursor-pointer"
+                >
+                  <KeyRound size={15} className="inline mr-1.5 text-[#4E8A5C]" />
+                  <span>Lisensi Tools</span>
+                </button>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="pt-4 flex items-center gap-6 text-xs text-gray-500 font-medium">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <span>Akses Instan & Aman</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <span>Lisensi Komersial</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <span>Privasi Lokal Browser</span>
+                </div>
               </div>
             </div>
 
-            {/* Right Hero Visual: Floating product image cards (CyberTon-style) */}
-            <div className="lg:col-span-6 relative flex justify-center items-center py-4">
-              {/* Soft organic backdrop blob */}
+            {/* Right Hero Visual Cards */}
+            <div className="lg:col-span-5 relative flex justify-center items-center py-4">
               <div className="absolute inset-0 bg-[#E8F1EA] rounded-full filter blur-2xl opacity-70 transform scale-95 pointer-events-none"></div>
 
-              <div className="relative w-full max-w-md h-[340px] sm:h-[380px] flex items-center justify-center">
+              <div className="relative w-full max-w-md h-[360px] sm:h-[400px] flex items-center justify-center">
                 
-                {/* Card 1: Produk 1 (Top Left, tilted -6deg) */}
+                {/* Card 1: Story Generator Spotlight Card */}
+                <div 
+                  onClick={() => navigateTo('story-generator')}
+                  className="absolute top-2 left-2 sm:left-4 w-48 sm:w-56 bg-[#1E3D2F] text-white rounded-3xl p-4 shadow-2xl border border-[#2D5A45] transform -rotate-4 hover:rotate-0 hover:scale-105 transition-all duration-300 cursor-pointer z-20 space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-[#A3E6B5] text-[9px] font-bold">
+                      Studio AI Terintegrasi
+                    </span>
+                    <Sparkles size={14} className="text-[#A3E6B5]" />
+                  </div>
+                  <div>
+                    <h4 className="font-heading font-extrabold text-xs sm:text-sm text-white">Story Generator AI</h4>
+                    <p className="text-[10px] text-gray-300 mt-0.5">Storyboard, Prompt Studio & Voice Over TTS</p>
+                  </div>
+                  <div className="p-2 rounded-xl bg-black/30 border border-white/10 text-[9px] font-mono text-[#A3E6B5]">
+                    {'>'} Auto Hook & Narasi 8K
+                  </div>
+                </div>
+
+                {/* Card 2: Produk Template Card */}
                 {products[0] && (
                   <div 
                     onClick={() => navigateTo('product-detail', products[0].id)}
-                    className="absolute top-2 left-4 sm:left-8 w-44 sm:w-52 bg-white rounded-2xl shadow-xl border border-[#D5E3D8] transform -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-300 cursor-pointer z-10 overflow-hidden"
+                    className="absolute bottom-4 right-2 sm:right-4 w-48 sm:w-56 bg-white rounded-3xl shadow-xl border border-[#D5E3D8] transform rotate-3 hover:rotate-0 hover:scale-105 transition-all duration-300 cursor-pointer z-10 overflow-hidden"
                   >
-                    <img src={products[0].image} alt={products[0].name} className="w-full h-28 sm:h-32 object-cover" />
-                    <div className="p-2.5">
-                      <p className="font-heading font-bold text-xs sm:text-sm text-[#1C352D] leading-tight truncate">{products[0].name}</p>
-                      <p className="text-[9px] text-[#737873] mt-0.5">{products[0].categoryName || 'Aset Premium'}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Card 2: Produk 2 (Top Right, tilted +6deg) */}
-                {products[1] && (
-                  <div 
-                    onClick={() => navigateTo('product-detail', products[1].id)}
-                    className="absolute top-6 right-4 sm:right-8 w-44 sm:w-52 bg-white rounded-2xl shadow-xl border border-[#D5E3D8] transform rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-300 cursor-pointer z-10 overflow-hidden"
-                  >
-                    <img src={products[1].image} alt={products[1].name} className="w-full h-28 sm:h-32 object-cover" />
-                    <div className="p-2.5">
-                      <p className="font-heading font-bold text-xs sm:text-sm text-[#1C352D] leading-tight truncate">{products[1].name}</p>
-                      <p className="text-[9px] text-[#737873] mt-0.5">{products[1].categoryName || 'Produktifitas AI'}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Card 3: Produk 3 (Bottom Center, in front) */}
-                {products[3] && (
-                  <div 
-                    onClick={() => navigateTo('product-detail', products[3].id)}
-                    className="absolute bottom-2 sm:bottom-4 w-40 sm:w-48 bg-white rounded-2xl shadow-2xl border border-[#FADAD1] transform hover:scale-105 transition-all duration-300 cursor-pointer z-20 overflow-hidden"
-                  >
-                    <img src={products[3].image} alt={products[3].name} className="w-full h-24 sm:h-28 object-cover" />
-                    <div className="p-2.5">
-                      <p className="font-heading font-bold text-xs sm:text-sm text-[#1C352D] leading-tight truncate">{products[3].name}</p>
-                      <p className="text-[9px] text-[#EE7C6B] mt-0.5 font-medium">{products[3].categoryName || 'Template Produktifitas'}</p>
+                    <img src={products[0].image} alt={products[0].name} className="w-full h-28 object-cover" />
+                    <div className="p-3">
+                      <p className="font-heading font-bold text-xs text-[#1C352D] leading-tight truncate">{products[0].name}</p>
+                      <p className="text-[10px] text-[#EE7C6B] font-bold mt-1">
+                        Rp {products[0].price?.toLocaleString('id-ID')}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -156,24 +174,179 @@ export const HomeView = () => {
         </div>
       </section>
 
+      {/* 02 — FEATURED SPOTLIGHT: STORY GENERATOR AI STUDIO */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-[#1E3D2F] text-white rounded-3xl p-6 sm:p-10 md:p-12 shadow-xl border border-[#2D5A45] relative overflow-hidden">
+          {/* Subtle glow */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#4E8A5C]/20 rounded-full blur-3xl pointer-events-none"></div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div className="lg:col-span-7 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[#A3E6B5] text-xs font-bold">
+                <Clapperboard size={13} />
+                <span>Produksi Konten Sinematik</span>
+              </div>
+              
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-black tracking-tight text-white leading-tight">
+                Story Generator: Dari Konsep Menjadi Visual & Audio Siap Eksekusi
+              </h2>
 
-      {/* 02 — TEMUKAN YANG KAMU BUTUHKAN (CATEGORIES) */}
+              <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-xl">
+                Tidak perlu pusing memikirkan ide video iklan, plot drama, atau caption media sosial. 
+                Story Generator merancang storyboard adegan, formula prompt Imagen 3 / Veo berstandar studio, 
+                hingga sulih suara neural MP3 langsung di browser Anda.
+              </p>
+
+              {/* 4 Feature Badges */}
+              <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-2.5">
+                  <Clapperboard size={18} className="text-[#A3E6B5] shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-bold text-white">5 Mode Storyboard</h5>
+                    <p className="text-[10px] text-gray-300">Komersial, Drama, Animasi, Edukasi, Dokumenter</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-2.5">
+                  <Sparkles size={18} className="text-[#A3E6B5] shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-bold text-white">Prompt Studio 8K</h5>
+                    <p className="text-[10px] text-gray-300">Foto, Thumbnail, Infografis, UGC & Karakter</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-2.5">
+                  <Volume2 size={18} className="text-[#A3E6B5] shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-bold text-white">Neural Voice Over</h5>
+                    <p className="text-[10px] text-gray-300">Suara natural Bahasa Indonesia & Inggris (MP3)</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-2.5">
+                  <Video size={18} className="text-[#A3E6B5] shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-bold text-white">Video Tools Merger</h5>
+                    <p className="text-[10px] text-gray-300">Jahit multi-klip langsung di browser tanpa upload</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => navigateTo('story-generator')}
+                  className="px-6 py-3 rounded-2xl bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-sm cursor-pointer active:scale-95"
+                >
+                  <Sparkles size={16} />
+                  <span>Buka Story Generator</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('licenses')}
+                  className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-heading font-bold text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <KeyRound size={15} />
+                  <span>Beli Lisensi Akses</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right Interactive Card */}
+            <div className="lg:col-span-5 bg-[#162F24] rounded-2xl p-6 border border-[#2D5A45] space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="text-xs font-bold text-[#A3E6B5]">Preview Output AI</span>
+                <span className="text-[10px] text-gray-400 font-mono">DYARI-ENGINE v3.8</span>
+              </div>
+              <div className="space-y-2 font-mono text-xs">
+                <div className="p-2.5 rounded-xl bg-black/40 text-gray-200">
+                  <span className="text-amber-400 font-bold block mb-1">🎬 Scene 01: Hook 3s</span>
+                  "Extreme close-up shot of hands cracking an egg, cinematic morning light, 8k..."
+                </div>
+                <div className="p-2.5 rounded-xl bg-black/40 text-gray-200">
+                  <span className="text-teal-400 font-bold block mb-1">🗣 Voice Over TTS</span>
+                  "Capek mikirin konten setiap hari? Sekarang bikin iklan cuma butuh 1 klik..."
+                </div>
+              </div>
+              <div className="pt-2 flex items-center justify-between text-[11px] text-gray-300">
+                <span>🔑 Akses Lisensi: Aktif</span>
+                <span className="text-emerald-400 font-bold">Siap Dipakai</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 03 — 4 PILAR YANG DITAWARKAN DYARI.IN */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1C352D]">
+            Apa yang Ditawarkan dyari.in untuk Anda?
+          </h2>
+          <p className="text-xs sm:text-sm text-gray-500">
+            Kombinasi produk digital siap pakai dan generative tools yang dirancang untuk kebutuhan nyata.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-3xl p-6 border border-[#E6E3DA] shadow-xs space-y-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#E8F2EA] text-[#1E3D2F] flex items-center justify-center">
+              <Clapperboard size={20} className="text-[#4E8A5C]" />
+            </div>
+            <h4 className="font-heading font-bold text-sm text-[#191C1A]">AI Story Generator</h4>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Otomasi konsep video, visual prompt, naskah drama, dan suara neural dalam hitungan detik.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 border border-[#E6E3DA] shadow-xs space-y-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#FDF0EC] text-[#EE7C6B] flex items-center justify-center">
+              <Layers size={20} />
+            </div>
+            <h4 className="font-heading font-bold text-sm text-[#191C1A]">Template Produktivitas</h4>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Template Notion, Google Sheets keuangan, planner harian, dan habit tracker yang minimalis & fungsional.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 border border-[#E6E3DA] shadow-xs space-y-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#E8F2EA] text-[#1E3D2F] flex items-center justify-center">
+              <KeyRound size={20} className="text-[#4E8A5C]" />
+            </div>
+            <h4 className="font-heading font-bold text-sm text-[#191C1A]">Lisensi Jelas & Hemat</h4>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Beli sekali atau langganan hemat tanpa biaya server tersembunyi. Bebas digunakan untuk komersial.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 border border-[#E6E3DA] shadow-xs space-y-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#F0EEE6] text-[#1E3D2F] flex items-center justify-center">
+              <ShieldCheck size={20} />
+            </div>
+            <h4 className="font-heading font-bold text-sm text-[#191C1A]">Privasi & Penyimpanan Lokal</h4>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Hasil generate dan API Key tersimpan aman di browser Anda tanpa dipungut biaya per token.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 04 — TEMUKAN YANG KAMU BUTUHKAN (CATEGORIES) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1C352D]">
-            Temukan yang kamu butuhkan.
-          </h2>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1C352D]">
+              Kategori Produk Digital
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">Pilih kategori aset sesuai kebutuhan alur kerja Anda.</p>
+          </div>
           <button 
             onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-            className="text-xs font-semibold text-[#1C352D] hover:text-[#EE7C6B] flex items-center gap-1 transition-colors"
+            className="text-xs font-semibold text-[#1C352D] hover:text-[#EE7C6B] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>Lihat Semua</span>
             <ArrowRight size={14} />
           </button>
         </div>
 
-        {/* 6 Pastel Category Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
           {categories.map((cat) => (
             <div
@@ -198,27 +371,26 @@ export const HomeView = () => {
         </div>
       </section>
 
-      {/* 03 — PRODUK PILIHAN */}
+      {/* 05 — PRODUK PILIHAN DI SHOP */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1C352D]">
-              Produk Pilihan
+              Produk Terpopuler
             </h2>
             <p className="text-xs text-[#737873] mt-0.5">
-              Dibuat untuk keseharianmu.
+              Pilihan favorit kreator dan pebisnis digital.
             </p>
           </div>
           <button 
             onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-            className="text-xs font-semibold text-[#1C352D] hover:text-[#EE7C6B] flex items-center gap-1 transition-colors"
+            className="text-xs font-semibold text-[#1C352D] hover:text-[#EE7C6B] flex items-center gap-1 transition-colors cursor-pointer"
           >
-            <span>Lihat Semua Produk</span>
+            <span>Buka Semua di Shop</span>
             <ArrowRight size={14} />
           </button>
         </div>
 
-        {/* Product Cards Grid (CyberTon style 2-col mobile, 4-col desktop) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
           {products.slice(0, 8).map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -226,288 +398,95 @@ export const HomeView = () => {
         </div>
       </section>
 
-      {/* 04 — KENAPA DYARI? (Wide rounded card with 3 columns) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#E4ECE6] rounded-3xl p-6 sm:p-8 border border-[#D2DFD5]">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left Header with Leaf Icon */}
-            <div className="lg:col-span-4 flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-full bg-[#D1E2D6] flex items-center justify-center text-xl shrink-0 text-[#1C352D]">
-                🌿
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1C352D]">
-                  Kenapa dyari?
-                </h3>
-                <p className="text-xs text-[#526357] leading-relaxed">
-                  Produk digital sederhana,<br />dibuat untuk kehidupan nyata.
+      {/* 06 — BUNDLE HIGHLIGHT */}
+      {bundleProduct && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-[#FDF0EC] rounded-3xl p-6 sm:p-10 border border-[#F5DDD6]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-6 space-y-4">
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-white bg-[#EE7C6B] px-3 py-1 rounded-full">
+                  SUPER BUNDEL HEMAT
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1C352D] leading-tight">
+                  Satu Paket Lengkap untuk Seluruh Kebutuhan Digitalmu.
+                </h2>
+                <p className="text-xs sm:text-sm text-[#6E736E] leading-relaxed">
+                  Dapatkan ratusan template, formula prompt, dan panduan komprehensif dalam satu paket sekali bayar dengan potongan harga istimewa.
                 </p>
-              </div>
-            </div>
-
-            {/* 3 Pillars with Circular Badges */}
-            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
-              
-              {/* Pilar 1: Akses Instan */}
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#D1E2D6] text-[#1C352D] flex items-center justify-center shrink-0">
-                  <Zap size={18} className="fill-[#1C352D]" />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-[#1C352D]">Akses Instan</h4>
-                  <p className="text-[11px] text-[#55665A] mt-0.5 leading-snug">
-                    Produk langsung tersedia setelah pembayaran.
-                  </p>
-                </div>
-              </div>
-
-              {/* Pilar 2: Mudah Digunakan */}
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#D1E2D6] text-[#1C352D] flex items-center justify-center shrink-0">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-[#1C352D]">Mudah Digunakan</h4>
-                  <p className="text-[11px] text-[#55665A] mt-0.5 leading-snug">
-                    Tanpa setup yang ribet.
-                  </p>
-                </div>
-              </div>
-
-              {/* Pilar 3: Pilihan Terpilih */}
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#D1E2D6] text-[#1C352D] flex items-center justify-center shrink-0">
-                  <Heart size={18} className="fill-[#1C352D]" />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-sm text-[#1C352D]">Pilihan Terpilih</h4>
-                  <p className="text-[11px] text-[#55665A] mt-0.5 leading-snug">
-                    Produk yang benar-benar berguna untuk membantu masalah nyata.
-                  </p>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 05 — BAGIAN BUNDEL (Productivity Starter Pack) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#FDF0EC] rounded-3xl p-6 sm:p-10 border border-[#F5DDD6]">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left Info */}
-            <div className="lg:col-span-5 space-y-3.5">
-              <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-white bg-[#EE7C6B] px-3 py-0.5 rounded-full">
-                BUNDEL
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#1C352D] leading-tight">
-                Lebih lengkap,<br />lebih hemat.
-              </h2>
-              <p className="text-xs sm:text-sm text-[#6E736E] max-w-sm leading-relaxed">
-                Paket pilihan untuk membantu kamu lebih produktif dan terorganisir.
-              </p>
-              <div className="pt-1">
-                <button
-                  onClick={() => { setActiveCategory('bundel'); navigateTo('shop'); }}
-                  className="bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
-                >
-                  <span>Lihat Semua Bundel</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* Right Card: Bundle Product Details + Visual Mockups */}
-            <div className="lg:col-span-7 bg-white rounded-2xl p-5 sm:p-6 border border-[#F2D7D0] shadow-sm grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
-              
-              {/* Checklist & Price */}
-              <div className="sm:col-span-6 space-y-3">
-                <h3 className="font-heading font-bold text-base text-[#1C352D]">
-                  {bundleProduct?.name || 'Paket Bundel Spesial'}
-                </h3>
-
-                <ul className="space-y-1.5 text-xs text-[#2E473C]">
-                  {(bundleProduct?.features?.slice(0, 4) || [
-                    '700+ File Produk Digital Lengkap',
-                    'Format PLR Bebas Dijual Kembali',
-                    'Folder Google Drive Terstruktur',
-                    'Akses Cloud Selamanya'
-                  ]).map((item, i) => (
-                    <li key={i} className="flex items-center gap-1.5 font-medium">
-                      <span className="text-[#3E865D] font-bold">✓</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="pt-2">
-                  <div className="flex items-center gap-2">
-                    {bundleProduct?.originalPrice && (
-                      <span className="text-xs text-[#9CA3AF] line-through">
-                        Rp {bundleProduct.originalPrice.toLocaleString('id-ID')}
-                      </span>
-                    )}
-                    <span className="font-heading font-extrabold text-xl text-[#1C352D]">
-                      Rp {(bundleProduct?.price || 89000).toLocaleString('id-ID')}
-                    </span>
-                    {bundleProduct?.originalPrice && bundleProduct.originalPrice > bundleProduct.price && (
-                      <span className="text-[10px] font-bold text-white bg-[#EE7C6B] px-1.5 py-0.5 rounded">
-                        -{Math.round((1 - bundleProduct.price / bundleProduct.originalPrice) * 100)}%
-                      </span>
-                    )}
-                  </div>
-
+                <div className="pt-2 flex items-center gap-3">
                   <button
                     onClick={() => {
-                      if (bundleProduct) {
-                        addToCart(bundleProduct);
-                        navigateTo('checkout');
-                      }
+                      addToCart(bundleProduct);
+                      navigateTo('checkout');
                     }}
-                    className="mt-3 w-full bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-semibold text-xs py-2.5 rounded-full transition-all flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+                    className="bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-bold text-xs sm:text-sm px-6 py-3 rounded-full transition-all active:scale-95 shadow-sm cursor-pointer"
                   >
-                    <span>Ambil Bundelnya</span>
-                    <ArrowRight size={14} />
+                    Beli Paket Bundel Sekarang
+                  </button>
+                  <button
+                    onClick={() => { setActiveCategory('bundel'); navigateTo('shop'); }}
+                    className="text-xs font-bold text-[#1C352D] hover:underline cursor-pointer"
+                  >
+                    Lihat Pilihan Bundel Lain →
                   </button>
                 </div>
               </div>
 
-              {/* Product Image */}
-              <div className="sm:col-span-6 relative flex items-center justify-center p-2">
-                <div className="relative w-full max-w-[220px] rounded-2xl overflow-hidden shadow-md border border-[#F2D7D0]">
-                  <div className="absolute -top-0 -right-0 z-20 text-[10px] font-serif italic text-[#EE7C6B] bg-[#FFF3F0] px-2.5 py-1 rounded-bl-xl border-b border-l border-[#FADAD1]">
-                    Akses Sekali Bayar!
-                  </div>
-                  <img 
-                    src={bundleProduct?.image} 
-                    alt={bundleProduct?.name}
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="bg-white p-3 space-y-1">
-                    <p className="font-heading font-bold text-sm text-[#1C352D] truncate">{bundleProduct?.name}</p>
-                    <p className="text-[10px] text-[#737873] truncate">{bundleProduct?.tagline || 'Koleksi aset terlengkap'}</p>
-                  </div>
-                </div>
+              <div className="lg:col-span-6 flex justify-center">
+                <img 
+                  src={bundleProduct.image} 
+                  alt={bundleProduct.name}
+                  className="rounded-2xl max-h-64 object-cover shadow-lg border border-[#F5DDD6]"
+                />
               </div>
-
             </div>
-
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* 06 — CERITA MEREKA TENTANG DYARI. (3 Testimonial Cards in a Row) */}
+      {/* 07 — TESTIMONI PENGGUNA */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
           <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-[#1C352D]">
-            Cerita mereka tentang dyari.
+            Cerita Mereka Tentang dyari.in
           </h2>
-          <button 
-            onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-            className="text-xs font-semibold text-[#1C352D] hover:text-[#EE7C6B] flex items-center gap-1 transition-colors"
-          >
-            <span>Lihat Semua Testimoni</span>
-            <ArrowRight size={14} />
-          </button>
+          <p className="text-xs text-gray-500">
+            Dipercaya oleh ribuan kreator konten, desainer, dan pemilik bisnis.
+          </p>
         </div>
 
-        <div className="relative">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {(reviews || testimonials).slice(0, 3).map((testi) => (
-              <div 
-                key={testi.id}
-                className="bg-white rounded-2xl border border-[#E5EAE4] p-5 shadow-2xs space-y-3.5 flex flex-col justify-between"
-              >
-                <div className="flex items-start gap-3">
-                  <img 
-                    src={testi.avatar} 
-                    alt={testi.author} 
-                    className="w-10 h-10 rounded-full object-cover border border-[#E5EAE4]"
-                  />
-                  <p className="text-xs text-[#525954] italic leading-relaxed">
-                    "{testi.quote}"
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-[#F0F4F1] flex items-center justify-between">
-                  <span className="font-heading font-bold text-xs text-[#1C352D]">
-                    {testi.author}
-                  </span>
-                  <div className="flex text-[#F59E0B] text-xs">
-                    {'★'.repeat(testi.stars)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Left/Right nav buttons matching mockup */}
-          <button 
-            onClick={() => showToast('Testimoni', 'Menampilkan testimoni lainnya.')}
-            className="hidden lg:flex absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-[#DDE3DC] shadow-sm items-center justify-center text-[#1C352D] hover:bg-[#F0F4F1]"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <button 
-            onClick={() => showToast('Testimoni', 'Menampilkan testimoni lainnya.')}
-            className="hidden lg:flex absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-[#DDE3DC] shadow-sm items-center justify-center text-[#1C352D] hover:bg-[#F0F4F1]"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </section>
-
-      {/* 07 — NEWSLETTER (Dark Forest Green Pill Container) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#1C352D] text-white rounded-2xl p-6 sm:p-8 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-xl shrink-0">
-              🌿
-            </div>
-            <div>
-              <h3 className="font-heading font-extrabold text-base sm:text-lg text-white">
-                Jangan ketinggalan.
-              </h3>
-              <p className="text-xs text-white/70 mt-0.5">
-                Produk baru, resource bermanfaat, dan sesekali ada freebies buat kamu.
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleNewsletterSubmit} className="flex items-center gap-2 bg-white rounded-full p-1 max-w-md w-full">
-            <input
-              type="email"
-              required
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="Masukkan email kamu"
-              className="flex-1 bg-transparent px-4 py-2 text-xs text-[#1C352D] placeholder:text-[#9CA3AF] focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-bold text-xs px-5 py-2.5 rounded-full transition-all active:scale-95 shrink-0"
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          {(reviews || testimonials).slice(0, 3).map((testi) => (
+            <div 
+              key={testi.id}
+              className="bg-white rounded-2xl border border-[#E5EAE4] p-5 shadow-2xs space-y-3.5 flex flex-col justify-between"
             >
-              Berlangganan
-            </button>
-          </form>
+              <div className="space-y-3">
+                <div className="flex text-[#F59E0B] text-xs">
+                  {'★'.repeat(testi.stars || 5)}
+                </div>
+                <p className="text-xs text-[#525954] italic leading-relaxed">
+                  "{testi.quote}"
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-[#F0F4F1] flex items-center gap-3">
+                <img 
+                  src={testi.avatar} 
+                  alt={testi.author} 
+                  className="w-8 h-8 rounded-full object-cover border border-[#E5EAE4]"
+                />
+                <span className="font-heading font-bold text-xs text-[#1C352D]">
+                  {testi.author}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
-
-      {/* Back to top floating button */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end">
-        <button
-          onClick={scrollToTop}
-          className="w-10 h-10 rounded-full bg-[#1C352D] text-white shadow-md flex items-center justify-center hover:bg-[#2A4C40] transition-colors"
-          title="Kembali ke atas"
-        >
-          <ArrowUp size={18} />
-        </button>
-      </div>
 
     </div>
   );
 };
+
+export default HomeView;
