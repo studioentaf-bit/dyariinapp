@@ -100,6 +100,29 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/orders/status/:id (Public order status lookup by invoice or id)
+router.get('/status/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cleanId = id.replace('#', '').trim();
+    const isNum = !isNaN(parseInt(cleanId, 10)) && /^\d+$/.test(cleanId);
+    const sql = isNum
+      ? 'SELECT * FROM orders WHERE id = $1 OR invoice_number = $2'
+      : 'SELECT * FROM orders WHERE invoice_number = $1';
+    const params = isNum ? [parseInt(cleanId, 10), cleanId] : [cleanId];
+    const orderRes = await query(sql, params);
+    if (orderRes.rows.length === 0) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+    }
+    const order = orderRes.rows[0];
+    const itemsRes = await query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+    const licensesRes = await query('SELECT * FROM licenses WHERE user_email = $1 ORDER BY id DESC', [order.customer_email]);
+    res.json({ order, items: itemsRes.rows, licenses: licensesRes.rows });
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal mengecek status pesanan: ' + err.message });
+  }
+});
+
 // PUT /api/orders/:id/status (Admin updates status to LUNAS / BATAL)
 router.put('/:id/status', authenticateToken, async (req, res) => {
   try {

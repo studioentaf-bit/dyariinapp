@@ -3,35 +3,24 @@ import { useStore, getProductAvailableStock } from '../context/StoreContext';
 import { ShoppingBag, Star, Check, ExternalLink } from 'lucide-react';
 
 export const ProductCard = ({ product }) => {
-  const { addToCart, navigateTo, showToast } = useStore();
-  const [btnState, setBtnState] = useState('idle');
+  const { openInstantCheckout, showToast } = useStore();
   const [imgLoaded, setImgLoaded] = useState(false);
 
   // Ketersediaan Stok Sinkron & Valid dari Manajemen Stok (Default 0 / Habis jika belum diinput)
   const availableStock = getProductAvailableStock(product);
   const isOutOfStock = availableStock <= 0;
 
-  const handleAddToCart = (e) => {
-    e.stopPropagation();
+  const handleCardClick = () => {
     if (isOutOfStock) {
       showToast('Stok Habis', `Mohon maaf, stok untuk produk "${product.name}" sedang habis.`);
       return;
     }
-    if (btnState !== 'idle') return;
-
-    setBtnState('adding');
-    setTimeout(() => {
-      addToCart(product);
-      setBtnState('added');
-      setTimeout(() => {
-        setBtnState('idle');
-      }, 1500);
-    }, 300);
+    openInstantCheckout(product, 'product');
   };
 
   return (
     <div 
-      onClick={() => navigateTo('product-detail', product.id)}
+      onClick={handleCardClick}
       className="group cursor-pointer bg-white rounded-2xl sm:rounded-3xl border border-[#E5E9E4] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-[#B8D8C0]/20 hover:border-[#B8D8C0]/50 flex flex-col relative"
     >
       {/* Product Image */}
@@ -126,34 +115,27 @@ export const ProductCard = ({ product }) => {
             )}
           </div>
 
-          {/* Cart Icon Button */}
+          {/* Action Button: Beli Sekarang */}
           {isOutOfStock ? (
             <button
               disabled
               onClick={(e) => e.stopPropagation()}
-              className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+              className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
               title="Stok Habis"
             >
               Habis
             </button>
           ) : (
             <button
-              onClick={handleAddToCart}
-              disabled={btnState !== 'idle'}
-              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                btnState === 'added'
-                  ? 'bg-[#1C352D] text-white shadow-sm'
-                  : 'bg-[#E7F0E9] text-[#1C352D] hover:bg-[#1C352D] hover:text-white shadow-xs'
-              }`}
-              title="Tambah ke Keranjang"
+              onClick={(e) => {
+                e.stopPropagation();
+                openInstantCheckout(product, 'product');
+              }}
+              className="px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold bg-[#1C352D] text-white hover:bg-[#2A4D3E] active:scale-95 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+              title="Beli Produk Langsung"
             >
-              {btnState === 'added' ? (
-                <Check size={14} className="stroke-[3]" />
-              ) : btnState === 'adding' ? (
-                <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <ShoppingBag size={14} />
-              )}
+              <ShoppingBag size={13} />
+              <span>Beli Sekarang</span>
             </button>
           )}
         </div>

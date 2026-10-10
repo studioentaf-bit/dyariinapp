@@ -22,7 +22,8 @@ export const ProductDetailView = () => {
     addToCart, 
     setActiveCategory,
     showToast,
-    getProductAvailableStock
+    getProductAvailableStock,
+    openInstantCheckout
   } = useStore();
 
   const product = products.find(p => p.id === selectedProductId) || products[0];
@@ -54,8 +55,7 @@ export const ProductDetailView = () => {
       showToast('Stok Habis', `Mohon maaf, stok untuk produk "${product.name}" sedang habis.`);
       return;
     }
-    addToCart(product);
-    navigateTo('checkout');
+    openInstantCheckout(product, 'product');
   };
 
   return (

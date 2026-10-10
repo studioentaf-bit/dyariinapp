@@ -15,7 +15,7 @@ import {
 import api from '../services/api';
 
 export const LicensesView = () => {
-  const { navigateTo, showToast, storeSettings, licensePackages } = useStore();
+  const { navigateTo, showToast, storeSettings, licensePackages, openInstantCheckout } = useStore();
   const [checkKey, setCheckKey] = useState('');
   const [checkEmail, setCheckEmail] = useState('');
   const [isChecking, setIsChecking] = useState(false);
@@ -214,14 +214,14 @@ export const LicensesView = () => {
 
                 <div className="pt-8">
                   <button
-                    onClick={() => handleOrderLicense(tier)}
+                    onClick={() => openInstantCheckout(tier, 'license')}
                     className={`w-full py-3.5 px-6 rounded-2xl font-heading font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95 ${
                       tier.isPopular 
                         ? 'bg-[#EE7C6B] hover:bg-[#E26A59] text-white' 
                         : 'bg-[#1E3D2F] hover:bg-[#162F24] text-white'
                     }`}
                   >
-                    <span>{tier.ctaText}</span>
+                    <span>{tier.ctaText || 'Beli Lisensi'}</span>
                     <ArrowRight size={16} />
                   </button>
                 </div>

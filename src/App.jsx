@@ -6,6 +6,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { Toast } from './components/Toast';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { AuthModal } from './components/AuthModal';
+import { InstantCheckoutModal } from './components/InstantCheckoutModal';
 
 // Views
 import { HomeView } from './views/HomeView';
@@ -66,6 +67,7 @@ const MainLayout = () => {
       {showFooter && <Footer />}
 
       {/* Global Interactive Overlays */}
+      <InstantCheckoutModal />
       <CartDrawer />
       <AuthModal />
       <Toast />

@@ -589,8 +589,148 @@ export const StoreProvider = ({ children }) => {
     return () => { isMounted = false; };
   }, []);
 
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dyari_orders_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return initialOrders;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('dyari_orders_v2', JSON.stringify(orders));
+    } catch (_) {}
+  }, [orders]);
+
   const [lastOrder, setLastOrder] = useState(null);
+
+  // Instant Checkout Modal State
+  const [instantCheckout, setInstantCheckout] = useState({
+    isOpen: false,
+    item: null,
+    type: 'product', // 'product' | 'license'
+    qty: 1,
+    step: 'form', // 'form' | 'qris' | 'success'
+    order: null
+  });
+
+  const openInstantCheckout = (item, type = 'product') => {
+    if (!item) return;
+    if (type === 'product' && isProductOutOfStock(item)) {
+      showToast('Stok Habis', `Mohon maaf, stok untuk "${item.name}" sedang habis.`);
+      return;
+    }
+    setInstantCheckout({
+      isOpen: true,
+      item,
+      type,
+      qty: 1,
+      step: 'form',
+      order: null
+    });
+  };
+
+  const closeInstantCheckout = () => {
+    setInstantCheckout(prev => ({
+      ...prev,
+      isOpen: false
+    }));
+  };
+
+  const submitInstantOrder = async ({ name, email, phone, qty = 1 }) => {
+    if (!instantCheckout.item) return null;
+    const item = instantCheckout.item;
+    const type = instantCheckout.type;
+    const unitPrice = Number(item.price || 0);
+    const orderQty = type === 'license' ? 1 : Math.max(1, Number(qty) || 1);
+    const total = unitPrice * orderQty;
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const randSuffix = Math.floor(1000 + Math.random() * 9000);
+    const newOrderId = `#INV-${dateStr}-${randSuffix}`;
+    const orderDate = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+    let orderItem;
+    if (type === 'license') {
+      orderItem = {
+        id: item.id || `lic-${Date.now()}`,
+        name: `Lisensi: ${item.name}`,
+        title: item.name,
+        price: unitPrice,
+        quantity: 1,
+        subtotal: total,
+        productType: 'LICENSE_TOOL',
+        licenseDuration: item.duration || item.period || 'Selamanya (Lifetime)',
+        afterPurchaseMessage: 'Kunci lisensi aktif untuk Story Generator AI.'
+      };
+    } else {
+      orderItem = {
+        id: item.id,
+        name: item.name,
+        title: item.name,
+        price: unitPrice,
+        quantity: orderQty,
+        subtotal: total,
+        image: item.image,
+        productType: item.productType || 'DIGITAL_PREMIUM',
+        accessUrl: item.accessUrl || '',
+        afterPurchaseMessage: item.afterPurchaseMessage || ''
+      };
+    }
+
+    const newOrder = {
+      id: newOrderId,
+      date: orderDate,
+      items: [orderItem],
+      total,
+      paymentMethod: 'QRIS',
+      customer: name,
+      customerName: name,
+      email: email.trim().toLowerCase(),
+      phone: phone || '',
+      status: 'Menunggu Konfirmasi',
+      createdAt: new Date().toISOString()
+    };
+
+    // Update local state orders & lastOrder
+    setOrders(prev => [newOrder, ...prev]);
+    setLastOrder(newOrder);
+
+    // Kirim ke backend PostgreSQL
+    try {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: name,
+          customer_email: email.trim().toLowerCase(),
+          customer_phone: phone || '',
+          payment_method: 'QRIS',
+          items: [{
+            id: orderItem.id,
+            name: orderItem.name,
+            title: orderItem.name,
+            price: unitPrice,
+            quantity: orderQty
+          }],
+          notes: type === 'license' ? `Pembelian Lisensi ${item.name}` : `Pembelian Langsung Produk ${item.name}`
+        })
+      }).catch(() => {});
+    } catch (_) {}
+
+    // Update instantCheckout modal state to 'qris'
+    setInstantCheckout(prev => ({
+      ...prev,
+      order: newOrder,
+      step: 'qris'
+    }));
+
+    return newOrder;
+  };
 
   // Purchased products list (Kosong secara default untuk pengguna baru)
   const [purchasedProductIds, setPurchasedProductIds] = useState([]);
@@ -1938,7 +2078,13 @@ export const StoreProvider = ({ children }) => {
       getLicenseEffectiveStatus,
       // Stock calculations
       getProductAvailableStock,
-      isProductOutOfStock
+      isProductOutOfStock,
+      // Instant Direct Checkout (Modal Popup Tanpa Pindah Halaman)
+      instantCheckout,
+      setInstantCheckout,
+      openInstantCheckout,
+      closeInstantCheckout,
+      submitInstantOrder
     }}>
       {children}
     </StoreContext.Provider>

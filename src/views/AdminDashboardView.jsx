@@ -2781,8 +2781,10 @@ export const AdminDashboardView = () => {
                                     : 'bg-amber-100 text-amber-900 border-amber-300'
                                 }`}
                               >
-                                <option value="Menunggu Verifikasi">Pending (Menunggu)</option>
-                                <option value="Lunas">Terbayar (Lunas)</option>
+                                <option value="Menunggu Konfirmasi">Pending (Menunggu Konfirmasi)</option>
+                                <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+                                <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
+                                <option value="Lunas">Terbayar (Lunas / Approved)</option>
                                 <option value="Dibatalkan">Dibatalkan</option>
                               </select>
                             </td>
@@ -2790,6 +2792,20 @@ export const AdminDashboardView = () => {
                             {/* 6. Invoice & Share Actions */}
                             <td className="py-2.5 px-3 text-center">
                               <div className="inline-flex items-center gap-1">
+                                {ord.status !== 'Lunas' && ord.status !== 'Terbayar' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateOrderStatus(ord.id, 'Lunas');
+                                      showToast('Pesanan Disetujui!', `${ord.id} telah disetujui (Lunas). Kredensial & lisensi aktif.`);
+                                    }}
+                                    className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition font-bold text-[11px] inline-flex items-center gap-1 shadow-2xs cursor-pointer mr-1"
+                                    title="Setujui / Approve Pembayaran Pesanan Ini"
+                                  >
+                                    <Check size={12} className="stroke-[3]" />
+                                    <span>Approve</span>
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => {
