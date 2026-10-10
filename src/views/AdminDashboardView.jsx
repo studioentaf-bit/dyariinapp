@@ -122,7 +122,8 @@ export const AdminDashboardView = () => {
     categories,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    syncOrdersFromBackend
   } = useStore();
 
   // Navigation & Sub-tabs State (Persisten saat browser di-refresh)
@@ -283,6 +284,31 @@ export const AdminDashboardView = () => {
   useEffect(() => {
     setAdminProductPage(1);
   }, [adminProductSearch, productTypeFilter]);
+
+  const [isRefreshingQueue, setIsRefreshingQueue] = useState(false);
+
+  // Auto-sync antrian order every 4 seconds when in Antrian Order tab
+  useEffect(() => {
+    if (activeMenu === 'antrian-order' && syncOrdersFromBackend) {
+      syncOrdersFromBackend();
+      const interval = setInterval(() => {
+        syncOrdersFromBackend();
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [activeMenu, syncOrdersFromBackend]);
+
+  const handleRefreshQueue = async () => {
+    setIsRefreshingQueue(true);
+    try {
+      if (syncOrdersFromBackend) await syncOrdersFromBackend();
+      showToast('Sinkronisasi Sukses', 'Data antrian pesanan terbaru berhasil dimuat!');
+    } catch (_) {
+      showToast('Info', 'Gagal memuat antrian terbaru.');
+    } finally {
+      setTimeout(() => setIsRefreshingQueue(false), 500);
+    }
+  };
 
   // Dedicated State for Manajemen & Kontrol Stok Produk (Dark UI Form)
   const [stockProductFilter, setStockProductFilter] = useState('ALL');
@@ -2673,11 +2699,13 @@ export const AdminDashboardView = () => {
                 </div>
 
                 <button
-                  onClick={() => showToast('Sinkronisasi Antrian', 'Memuat data order terbaru dari payment gateway...')}
-                  className="btn-dyari-outline text-xs px-3.5 py-2 inline-flex items-center gap-1.5 self-start sm:self-auto"
+                  type="button"
+                  onClick={handleRefreshQueue}
+                  disabled={isRefreshingQueue}
+                  className="btn-dyari-outline text-xs px-3.5 py-2 inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
                 >
-                  <RefreshCw size={14} />
-                  <span>Refresh Antrian</span>
+                  <RefreshCw size={14} className={isRefreshingQueue ? 'animate-spin text-emerald-600' : ''} />
+                  <span>{isRefreshingQueue ? 'Menyinkronkan...' : 'Refresh Antrian'}</span>
                 </button>
               </div>
 

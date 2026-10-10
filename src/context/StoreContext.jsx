@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { initialProducts, initialOrders, testimonials as initialTestimonials } from '../data/products';
 import { categories as initialCategories } from '../data/categories';
 import api from '../services/api';
@@ -600,6 +600,119 @@ export const StoreProvider = ({ children }) => {
     return initialOrders;
   });
 
+  // Sync orders with PostgreSQL Backend
+  const syncOrdersFromBackend = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('dyari_auth_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/orders', { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !Array.isArray(data.orders)) return;
+
+      setOrders(prevOrders => {
+        const backendOrders = data.orders.map(bo => {
+          const formattedId = bo.invoice_number 
+            ? (bo.invoice_number.startsWith('#') ? bo.invoice_number : `#${bo.invoice_number}`)
+            : `#INV-${bo.id}`;
+
+          let normStatus = 'Menunggu Konfirmasi';
+          if (bo.status === 'LUNAS' || bo.status === 'Lunas' || bo.status === 'TERBAYAR') {
+            normStatus = 'Lunas';
+          } else if (bo.status === 'BATAL' || bo.status === 'Batal') {
+            normStatus = 'Batal';
+          } else if (bo.status === 'MENUNGGU_PEMBAYARAN' || bo.status === 'PENDING') {
+            normStatus = 'Menunggu Konfirmasi';
+          } else if (bo.status) {
+            normStatus = bo.status;
+          }
+
+          const orderDate = bo.created_at
+            ? new Date(bo.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+            : new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+          const mappedItems = (bo.items || []).map(it => ({
+            id: it.product_id || it.id,
+            name: it.product_title || 'Produk Digital',
+            title: it.product_title || 'Produk Digital',
+            price: Number(it.product_price || 0),
+            quantity: Number(it.quantity || 1),
+            subtotal: Number(it.subtotal || 0),
+            generatedLicense: it.license_key || null
+          }));
+
+          return {
+            id: formattedId,
+            dbId: bo.id,
+            date: orderDate,
+            items: mappedItems,
+            total: Number(bo.total_amount || 0),
+            paymentMethod: bo.payment_method || 'QRIS',
+            customer: bo.customer_name || 'Pembeli',
+            customerName: bo.customer_name || 'Pembeli',
+            email: bo.customer_email || '',
+            phone: bo.customer_phone || '',
+            status: normStatus,
+            notes: bo.notes || '',
+            createdAt: bo.created_at || new Date().toISOString()
+          };
+        });
+
+        // Merge backend orders with existing orders (avoid duplicates)
+        const combined = [...backendOrders];
+        const backendIds = new Set(backendOrders.map(o => (o.id || '').toLowerCase().replace('#', '').trim()));
+
+        (prevOrders || []).forEach(localOrd => {
+          const cleanLocalId = (localOrd.id || '').toLowerCase().replace('#', '').trim();
+          if (!backendIds.has(cleanLocalId)) {
+            combined.push(localOrd);
+          }
+        });
+
+        try {
+          localStorage.setItem('dyari_orders_v2', JSON.stringify(combined));
+        } catch (_) {}
+
+        return combined;
+      });
+    } catch (err) {
+      console.warn('Sync orders from backend error:', err);
+    }
+  }, []);
+
+  // Multi-tab sync & Initial sync
+  useEffect(() => {
+    syncOrdersFromBackend();
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'dyari_orders_v2' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setOrders(parsed);
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    const handleOrderCreatedEvent = () => {
+      syncOrdersFromBackend();
+    };
+    window.addEventListener('dyari_order_created', handleOrderCreatedEvent);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('dyari_order_created', handleOrderCreatedEvent);
+    };
+  }, [syncOrdersFromBackend]);
+
   useEffect(() => {
     try {
       localStorage.setItem('dyari_orders_v2', JSON.stringify(orders));
@@ -696,16 +809,31 @@ export const StoreProvider = ({ children }) => {
       createdAt: new Date().toISOString()
     };
 
-    // Update local state orders & lastOrder
-    setOrders(prev => [newOrder, ...prev]);
+    // Update local state orders & lastOrder immediately
+    setOrders(prev => {
+      const updated = [newOrder, ...prev.filter(o => o.id !== newOrderId)];
+      try {
+        localStorage.setItem('dyari_orders_v2', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
     setLastOrder(newOrder);
 
-    // Kirim ke backend PostgreSQL
+    // Kirim ke backend PostgreSQL dengan await agar tersimpan di DB
     try {
-      fetch('/api/orders', {
+      const token = localStorage.getItem('dyari_auth_token');
+      const headers = { 
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
+          invoice_number: newOrderId.replace('#', '').trim(),
           customer_name: name,
           customer_email: email.trim().toLowerCase(),
           customer_phone: phone || '',
@@ -719,7 +847,21 @@ export const StoreProvider = ({ children }) => {
           }],
           notes: type === 'license' ? `Pembelian Lisensi ${item.name}` : `Pembelian Langsung Produk ${item.name}`
         })
-      }).catch(() => {});
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.order) {
+          newOrder.dbId = data.order.id;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend order insert warning:', err);
+    }
+
+    // Trigger update untuk listener / tab admin yang sedang terbuka
+    try {
+      window.dispatchEvent(new Event('dyari_order_created'));
     } catch (_) {}
 
     // Update instantCheckout modal state to 'qris'
@@ -1447,18 +1589,57 @@ export const StoreProvider = ({ children }) => {
   };
 
   // Order Management
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(prev => prev.map(o => {
-      if (o.id === orderId) {
-        let updated = { ...o, status: newStatus };
-        if (newStatus === 'Lunas' || newStatus === 'Terbayar') {
-          updated = fulfillOrderCredentials(updated);
+  const updateOrderStatus = async (orderId, newStatus) => {
+    let targetUpdatedOrder = null;
+
+    setOrders(prev => {
+      const updatedList = prev.map(o => {
+        if (o.id === orderId) {
+          let updated = { ...o, status: newStatus };
+          if (newStatus === 'Lunas' || newStatus === 'Terbayar') {
+            updated = fulfillOrderCredentials(updated);
+          }
+          targetUpdatedOrder = updated;
+          return updated;
         }
-        return updated;
-      }
-      return o;
-    }));
+        return o;
+      });
+
+      try {
+        localStorage.setItem('dyari_orders_v2', JSON.stringify(updatedList));
+      } catch (_) {}
+
+      return updatedList;
+    });
+
+    // Kirim pembaruan status ke backend PostgreSQL
+    try {
+      const cleanId = String(orderId).replace('#', '').trim();
+      const token = localStorage.getItem('dyari_auth_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const backendStatus = (newStatus === 'Lunas' || newStatus === 'Terbayar') 
+        ? 'LUNAS' 
+        : (newStatus === 'Batal' ? 'BATAL' : 'MENUNGGU_PEMBAYARAN');
+
+      fetch(`/api/orders/${cleanId}/status`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: backendStatus })
+      }).catch(() => {});
+    } catch (_) {}
+
+    try {
+      window.dispatchEvent(new Event('dyari_order_created'));
+    } catch (_) {}
+
     showToast('Status Pesanan Diperbarui', `${orderId} diubah menjadi "${newStatus}"`);
+    return targetUpdatedOrder;
   };
 
   const deleteOrder = (orderId) => {
@@ -2084,7 +2265,8 @@ export const StoreProvider = ({ children }) => {
       setInstantCheckout,
       openInstantCheckout,
       closeInstantCheckout,
-      submitInstantOrder
+      submitInstantOrder,
+      syncOrdersFromBackend
     }}>
       {children}
     </StoreContext.Provider>

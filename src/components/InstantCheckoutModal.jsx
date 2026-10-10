@@ -226,7 +226,7 @@ export const InstantCheckoutModal = () => {
     navigateTo('story-generator');
   };
 
-  const isOrderApproved = currentOrder && (currentOrder.status === 'Lunas' || currentOrder.status === 'Terbayar');
+  const isOrderApproved = currentOrder && (currentOrder.status === 'Lunas' || currentOrder.status === 'Terbayar' || currentOrder.status === 'LUNAS');
   const activeStep = isOrderApproved ? 'success' : step;
 
   // Extract credentials from fulfilled order items

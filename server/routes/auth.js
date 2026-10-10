@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dyari-secret-key-2026';
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  const adminSecret = req.headers['x-admin-secret'];
+  const adminSecret = req.headers['x-admin-secret'] || req.headers['x-admin-key'];
   const masterPass = process.env.ADMIN_PASSWORD || 'Dyari#Master9981!Secure';
 
   // Akses admin via admin secret key
