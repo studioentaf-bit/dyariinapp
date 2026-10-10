@@ -1,27 +1,66 @@
 #!/usr/bin/env bash
 # ========================================================
-# QUICK UPDATE SCRIPT FOR DYARI STORE ON VPS
+# AUTO UPDATE & RE-DEPLOY SCRIPT FOR DYARI STORE ON VPS
+# Domain: dyariapp.my.id
 # ========================================================
 
 set -e
 
-echo "🚀 [1/4] Mengambil kode terbaru dari GitHub (git pull)..."
-cd /var/www/dyariapp.my.id || exit 1
-git pull origin main
-
-echo "📦 [2/4] Build Frontend React (Vite)..."
-npm install
-npm run build
-
-echo "⚙️ [3/4] Update Backend Dependencies..."
-cd /var/www/dyariapp.my.id/server
-npm install
-
-echo "🔄 [4/4] Restarting PM2 process (dyari-api)..."
-cd /var/www/dyariapp.my.id
-pm2 restart dyari-api || pm2 start deploy/ecosystem.config.cjs
+APP_DIR="/var/www/dyariapp.my.id"
 
 echo "=========================================================="
-echo "✅ DEPLOY UPDATE BERHASIL!"
-echo "Website & Antrian Order terbaru sudah aktif di dyariapp.my.id"
+echo "🚀 MEMULAI UPDATE & DEPLOY DYARI STORE DI VPS"
+echo "=========================================================="
+
+# 1. Pastikan folder aplikasi ada
+if [ ! -d "$APP_DIR" ]; then
+  echo "❌ Direktori $APP_DIR tidak ditemukan!"
+  echo "Pastikan Anda sudah meng-clone repository ke $APP_DIR"
+  exit 1
+fi
+
+cd "$APP_DIR"
+
+# 2. Ambil update terbaru dari GitHub
+echo "📥 [1/5] Mengambil commit terbaru dari branch main..."
+git stash || true
+git fetch origin main
+git reset --hard origin/main
+
+# 3. Build Frontend Vite
+echo "📦 [2/5] Menginstal dependensi & build Frontend React (Vite)..."
+npm install --no-audit --no-fund
+npm run build
+
+# 4. Update Backend Express & PostgreSQL
+echo "⚙️ [3/5] Menginstal dependensi Backend (Node.js & PG)..."
+cd "$APP_DIR/server"
+npm install --no-audit --no-fund
+
+# 5. Restart proses PM2
+echo "🔄 [4/5] Me-restart proses backend PM2 (dyari-api)..."
+cd "$APP_DIR"
+if pm2 list | grep -q "dyari-api"; then
+  pm2 restart dyari-api
+else
+  pm2 start deploy/ecosystem.config.cjs
+fi
+pm2 save
+
+# 6. Reload Nginx (jika tersedia)
+echo "🌐 [5/5] Memeriksa & reload Nginx..."
+if command -v nginx >/dev/null 2>&1; then
+  sudo nginx -t && sudo systemctl reload nginx || echo "⚠️ Nginx reload dilewati."
+fi
+
+echo ""
+echo "=========================================================="
+echo "🎉 DEPLOY UPDATE BERHASIL 100%!"
+echo "----------------------------------------------------------"
+echo "Status PM2 Service:"
+pm2 status dyari-api
+echo "----------------------------------------------------------"
+echo "Silakan cek langsung di browser Anda:"
+echo "👉 https://dyariapp.my.id"
+echo "👉 Panel Admin: https://dyariapp.my.id/#admin"
 echo "=========================================================="

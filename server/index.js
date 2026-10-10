@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-gemini-key', 'x-admin-secret']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-gemini-key', 'x-admin-secret', 'x-admin-key']
 }));
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
