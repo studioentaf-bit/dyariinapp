@@ -20,7 +20,9 @@ export const ProductDetailView = () => {
     selectedProductId, 
     navigateTo, 
     addToCart, 
-    setActiveCategory 
+    setActiveCategory,
+    showToast,
+    getProductAvailableStock
   } = useStore();
 
   const product = products.find(p => p.id === selectedProductId) || products[0];
@@ -31,12 +33,9 @@ export const ProductDetailView = () => {
 
   const images = product.gallery && product.gallery.length > 0 ? product.gallery : [product.image];
 
-  // Ketersediaan Stok
-  const hasAccountStock = Array.isArray(product.accountStock);
-  const availableStock = hasAccountStock 
-    ? product.accountStock.filter(s => !s.isSold).length 
-    : (product.stockCount !== undefined ? product.stockCount : 100);
-  const isOutOfStock = (hasAccountStock && availableStock <= 0) || (product.stockCount !== undefined && product.stockCount <= 0);
+  // Ketersediaan Stok Sinkron & Valid dari Manajemen Stok (Default 0 / Habis jika belum diinput)
+  const availableStock = getProductAvailableStock ? getProductAvailableStock(product) : (Array.isArray(product.accountStock) ? product.accountStock.filter(s => !s.isSold).length : (Number(product.stockCount) || 0));
+  const isOutOfStock = availableStock <= 0;
 
   const handleAddToCart = () => {
     if (isOutOfStock) {
@@ -209,7 +208,7 @@ export const ProductDetailView = () => {
                 </span>
               </div>
               <span className="text-[11px] font-mono font-bold text-emerald-800 bg-white border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
-                {hasAccountStock ? `${availableStock} Stok Ready` : 'Tersedia Lengkap'}
+                {availableStock} Stok Ready
               </span>
             </div>
           )}

@@ -12,6 +12,20 @@ export const clearProductsCache = () => {
   productsCache.clear();
 };
 
+// Auto-migrate columns for account_stock & stock_count
+const ensureStockColumns = async () => {
+  try {
+    await query(`
+      ALTER TABLE products 
+      ADD COLUMN IF NOT EXISTS account_stock JSONB DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS stock_count INT DEFAULT 0;
+    `);
+  } catch (err) {
+    console.warn('Notice: ensureStockColumns migration:', err.message);
+  }
+};
+ensureStockColumns();
+
 // GET /api/products (Public list with in-memory caching)
 router.get('/', async (req, res) => {
   try {
@@ -147,7 +161,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const {
       title, price, original_price, badge, category_id, category_name,
-      type, image, access_link, features, license_required, description, is_active
+      type, image, access_link, features, license_required, description, is_active,
+      account_stock, stock_count
     } = req.body;
 
     let validCatId = category_id;
@@ -168,7 +183,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
-    const whereClause = isNum ? 'WHERE id = $14' : 'WHERE slug = $14';
+    const whereClause = isNum ? 'WHERE id = $16' : 'WHERE slug = $16';
 
     const result = await query(
       `UPDATE products SET
@@ -185,13 +200,18 @@ router.put('/:id', authenticateToken, async (req, res) => {
         license_required = COALESCE($11, license_required),
         description = COALESCE($12, description),
         is_active = COALESCE($13, is_active),
+        account_stock = CASE WHEN $14::jsonb IS NOT NULL THEN $14::jsonb ELSE account_stock END,
+        stock_count = COALESCE($15, stock_count),
         updated_at = CURRENT_TIMESTAMP
        ${whereClause}
        RETURNING *`,
       [
         title, price, original_price, badge, validCatId, category_name,
         type, image, access_link, features ? JSON.stringify(features) : null,
-        license_required, description, is_active, id
+        license_required, description, is_active,
+        account_stock !== undefined ? JSON.stringify(account_stock) : null,
+        stock_count !== undefined ? Number(stock_count) : null,
+        id
       ]
     );
 
@@ -204,6 +224,36 @@ router.put('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update product error:', error);
     res.status(500).json({ message: 'Gagal memperbarui produk: ' + (error.message || error) });
+  }
+});
+
+// PUT /api/products/:id/stock (Update stock lines & count)
+router.put('/:id/stock', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { account_stock, stock_count } = req.body;
+    const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
+    const whereClause = isNum ? 'WHERE id = $3' : 'WHERE slug = $3';
+
+    const safeStock = Array.isArray(account_stock) ? account_stock : [];
+    const count = stock_count !== undefined ? Number(stock_count) : safeStock.filter(s => !s.isSold).length;
+
+    const result = await query(
+      `UPDATE products 
+       SET account_stock = $1::jsonb, 
+           stock_count = $2, 
+           stock_status = CASE WHEN $2 > 0 THEN 'TERSEDIA' ELSE 'HABIS' END,
+           updated_at = CURRENT_TIMESTAMP
+       ${whereClause}
+       RETURNING *`,
+      [JSON.stringify(safeStock), count, id]
+    );
+
+    clearProductsCache();
+    res.json({ success: true, product: result.rows[0] });
+  } catch (error) {
+    console.error('Update product stock error:', error);
+    res.status(500).json({ message: 'Gagal memperbarui stok di server: ' + (error.message || error) });
   }
 });
 

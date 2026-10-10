@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useStore } from '../context/StoreContext';
+import { useStore, getProductAvailableStock } from '../context/StoreContext';
 import { 
   Home, 
   Package, 
@@ -477,8 +477,8 @@ export const AdminDashboardView = () => {
     badgeColor: 'bg-[#61A87D] text-white',
     image: '',
     accessUrl: '',
-    stockType: 'unlimited',
-    stockCount: 100,
+    stockType: 'link_based',
+    stockCount: 0,
     description: '',
     features: ['Akses Instan Seumur Hidup', 'Format File Kompatibel', 'Panduan Penggunaan Lengkap']
   });
@@ -630,8 +630,8 @@ export const AdminDashboardView = () => {
       badgeColor: prod.badgeColor || 'bg-coral text-white',
       image: prod.image || '',
       accessUrl: prod.accessUrl || '',
-      stockType: prod.stockType || (pType === 'APPS_PREMIUM' ? 'link_based' : 'unlimited'),
-      stockCount: prod.stockCount || (pType === 'APPS_PREMIUM' ? (prod.accountStock?.filter(s => !s.isSold).length || 0) : 100),
+      stockType: prod.stockType || 'link_based',
+      stockCount: getProductAvailableStock(prod),
       accountStock: prod.accountStock || [],
       massStockInput: '',
       description: prod.description || '',
@@ -667,8 +667,8 @@ export const AdminDashboardView = () => {
       badgeColor: 'bg-[#61A87D] text-white',
       image: '',
       accessUrl: '',
-      stockType: 'unlimited',
-      stockCount: 999,
+      stockType: 'link_based',
+      stockCount: 0,
       accountStock: [],
       massStockInput: '',
       description: '',
@@ -736,8 +736,8 @@ export const AdminDashboardView = () => {
       stockType = 'license';
       stockCount = 'Unlimited';
     } else {
-      stockType = 'unlimited';
-      stockCount = productFormData.stockCount || 999;
+      stockType = 'link_based';
+      stockCount = accountStock.filter(s => !s.isSold).length;
     }
 
     const payload = {
@@ -746,7 +746,7 @@ export const AdminDashboardView = () => {
       stockType,
       stockCount,
       accountStock,
-      isAvailable: productFormData.productType === 'APPS_PREMIUM' ? stockCount > 0 : true,
+      isAvailable: stockType === 'license' ? true : (stockCount > 0),
       badge: productFormData.badge === 'NONE' ? '' : productFormData.badge,
       badgeColor: bColor
     };
@@ -3338,11 +3338,9 @@ export const AdminDashboardView = () => {
                                   ? 'LICENSE_TOOL' 
                                   : (p.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
                               );
-                              const hasAccountStock = Array.isArray(p.accountStock);
-                              const availableStock = hasAccountStock 
-                                ? p.accountStock.filter(s => !s.isSold).length 
-                                : (p.stockCount !== undefined ? p.stockCount : 100);
-                              const isOutOfStock = (hasAccountStock && availableStock <= 0) || (p.stockCount !== undefined && p.stockCount <= 0);
+                              const availableStock = getProductAvailableStock(p);
+                              const isOutOfStock = availableStock <= 0;
+                              const hasAccountStock = Array.isArray(p.accountStock) && p.accountStock.length > 0;
 
                               const globalIndex = (adminProductPage - 1) * adminProductsPerPage + index + 1;
 

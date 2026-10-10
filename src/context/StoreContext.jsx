@@ -274,36 +274,104 @@ export const mapBackendLicense = (lic) => {
   };
 };
 
+// --- UTILITY: KALKULASI STOK PRODUK REAL-TIME & PERSISTENSI ---
+export const getProductAvailableStock = (product) => {
+  if (!product) return 0;
+  if (Array.isArray(product.accountStock)) {
+    return product.accountStock.filter(s => !s.isSold).length;
+  }
+  if (product.stockCount !== undefined && product.stockCount !== null) {
+    return Math.max(0, Number(product.stockCount) || 0);
+  }
+  return 0; // Default mutlak 0 (HABIS) jika belum ada stok yang dimasukkan
+};
+
+export const isProductOutOfStock = (product) => {
+  return getProductAvailableStock(product) <= 0;
+};
+
+export const getStoredProductStocks = () => {
+  try {
+    const raw = localStorage.getItem('dyari_product_stocks_v2');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch (_) {}
+  return {};
+};
+
+export const saveStoredProductStocks = (stocksMap) => {
+  try {
+    localStorage.setItem('dyari_product_stocks_v2', JSON.stringify(stocksMap));
+  } catch (_) {}
+};
+
+// Helper sinkronisasi stok ke PostgreSQL backend API
+const syncStockToBackend = (productId, stockList) => {
+  if (!productId) return;
+  const safeStock = Array.isArray(stockList) ? stockList : [];
+  const readyCount = safeStock.filter(s => !s.isSold).length;
+  fetch(`/api/products/${productId}/stock`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ account_stock: safeStock, stock_count: readyCount })
+  }).catch(() => {
+    // Tetap aman jika server offline
+  });
+};
+
 // --- UTILITY: MAPPING PRODUK DARI POSTGRESQL API ---
-export const mapBackendProduct = (row) => ({
-  id: row.slug || `prod-${row.id}`,
-  dbId: row.id,
-  name: row.title,
-  tagline: row.description || '',
-  category: row.category_id || 'aset-premium',
-  categoryName: row.category_name || 'Mega Bundle & Canva',
-  subcategory: row.category_name || 'Aset Digital',
-  type: row.type || 'DIGITAL_PREMIUM',
-  badge: row.badge || '',
-  badgeColor: row.badge === 'NEW' ? 'bg-[#61A87D] text-white' : (row.badge ? 'bg-amber-600 text-white' : ''),
-  mockupType: 'app',
-  price: Number(row.price),
-  originalPrice: Number(row.original_price || row.price),
-  rating: Number(row.rating || 5.0),
-  reviewsCount: Number(row.sales_count || 0),
-  productType: 'DIGITAL_PREMIUM',
-  afterPurchaseMessage: 'Petunjuk Akses: Buka tautan di atas untuk langsung mengakses materi digital secara lengkap.',
-  image: row.image || '',
-  accessUrl: row.access_link || '',
-  gallery: [row.image || ''],
-  description: row.description || '',
-  features: Array.isArray(row.features) ? row.features : (typeof row.features === 'string' ? JSON.parse(row.features || '[]') : []),
-  perks: [
-    'Akses Langsung Instan Tanpa Menunggu',
-    'Lisensi Personal & Belajar Lengkap',
-    'Update Konten Berkala'
-  ]
-});
+export const mapBackendProduct = (row) => {
+  let parsedStock = [];
+  if (Array.isArray(row.account_stock)) {
+    parsedStock = row.account_stock;
+  } else if (typeof row.account_stock === 'string') {
+    try {
+      parsedStock = JSON.parse(row.account_stock);
+    } catch (_) {
+      parsedStock = [];
+    }
+  }
+
+  const readyCount = parsedStock.length > 0 
+    ? parsedStock.filter(s => !s.isSold).length 
+    : (row.stock_count !== undefined && row.stock_count !== null ? Math.max(0, Number(row.stock_count) || 0) : 0);
+
+  return {
+    id: row.slug || `prod-${row.id}`,
+    dbId: row.id,
+    name: row.title,
+    tagline: row.description || '',
+    category: row.category_id || 'aset-premium',
+    categoryName: row.category_name || 'Mega Bundle & Canva',
+    subcategory: row.category_name || 'Aset Digital',
+    type: row.type || 'DIGITAL_PREMIUM',
+    badge: row.badge || '',
+    badgeColor: row.badge === 'NEW' ? 'bg-[#61A87D] text-white' : (row.badge ? 'bg-amber-600 text-white' : ''),
+    mockupType: 'app',
+    price: Number(row.price),
+    originalPrice: Number(row.original_price || row.price),
+    rating: Number(row.rating || 5.0),
+    reviewsCount: Number(row.sales_count || 0),
+    productType: 'DIGITAL_PREMIUM',
+    afterPurchaseMessage: 'Petunjuk Akses: Buka tautan di atas untuk langsung mengakses materi digital secara lengkap.',
+    image: row.image || '',
+    accessUrl: row.access_link || '',
+    gallery: [row.image || ''],
+    description: row.description || '',
+    features: Array.isArray(row.features) ? row.features : (typeof row.features === 'string' ? JSON.parse(row.features || '[]') : []),
+    perks: [
+      'Akses Langsung Instan Tanpa Menunggu',
+      'Lisensi Personal & Belajar Lengkap',
+      'Update Konten Berkala'
+    ],
+    accountStock: parsedStock,
+    stockCount: readyCount,
+    stockType: 'link_based',
+    isAvailable: readyCount > 0
+  };
+};
 
 const StoreContext = createContext();
 
@@ -458,14 +526,27 @@ export const StoreProvider = ({ children }) => {
 
   // Products & Orders List
   const [products, setProducts] = useState(() => {
+    const savedStocks = getStoredProductStocks();
+    let baseProducts = initialProducts;
     try {
       const cached = localStorage.getItem('dyari_products_cache_v1');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) baseProducts = parsed;
       }
     } catch (_) {}
-    return initialProducts;
+
+    return baseProducts.map(p => {
+      const stockItems = savedStocks[p.id] || (Array.isArray(p.accountStock) ? p.accountStock : []);
+      const readyCount = stockItems.filter(s => !s.isSold).length;
+      return {
+        ...p,
+        accountStock: stockItems,
+        stockCount: readyCount,
+        stockType: 'link_based',
+        isAvailable: readyCount > 0
+      };
+    });
   });
 
   // Sinkronisasi data produk langsung dari PostgreSQL Database
@@ -477,7 +558,25 @@ export const StoreProvider = ({ children }) => {
         if (res.ok) {
           const data = await res.json();
           if (data && Array.isArray(data.products) && data.products.length > 0 && isMounted) {
-            const mapped = data.products.map(mapBackendProduct);
+            const savedStocks = getStoredProductStocks();
+            const mapped = data.products.map(row => {
+              const p = mapBackendProduct(row);
+              const localStock = savedStocks[p.id];
+              // Prioritaskan stok lokal yang tersimpan jika ada, atau gunakan stok dari database
+              const finalStock = (localStock && localStock.length > 0) ? localStock : (p.accountStock || []);
+              const readyCount = finalStock.filter(s => !s.isSold).length;
+              if (finalStock.length > 0) {
+                savedStocks[p.id] = finalStock;
+              }
+              return {
+                ...p,
+                accountStock: finalStock,
+                stockCount: readyCount,
+                stockType: 'link_based',
+                isAvailable: readyCount > 0
+              };
+            });
+            saveStoredProductStocks(savedStocks);
             setProducts(mapped);
             localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
           }
@@ -660,15 +759,11 @@ export const StoreProvider = ({ children }) => {
   };
 
   const addToCart = (product) => {
-    // Cek ketersediaan stok produk
+    // Cek ketersediaan stok produk secara real-time
     const currentProd = products.find(p => p.id === product.id) || product;
-    const hasAccountStock = Array.isArray(currentProd.accountStock);
-    const availableStock = hasAccountStock 
-      ? currentProd.accountStock.filter(s => !s.isSold).length 
-      : (currentProd.stockCount !== undefined ? currentProd.stockCount : 100);
-    const isOutOfStock = (hasAccountStock && availableStock <= 0) || (currentProd.stockCount !== undefined && currentProd.stockCount <= 0);
+    const availableStock = getProductAvailableStock(currentProd);
 
-    if (isOutOfStock) {
+    if (availableStock <= 0) {
       showToast('Stok Habis', `Mohon maaf, stok untuk "${product.name}" sedang habis.`);
       return;
     }
@@ -1310,28 +1405,32 @@ export const StoreProvider = ({ children }) => {
 
   // Product Stock Management
   const updateProductStock = (id, stockData) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id === id) {
-        const stockType = stockData.stockType || p.stockType || 'unlimited';
-        const stockLinks = stockData.stockLinks !== undefined ? stockData.stockLinks : (p.stockLinks || []);
-        let count = stockData.stockCount !== undefined ? Number(stockData.stockCount) : (p.stockCount ?? 100);
-        if (stockType === 'link_based') {
-          count = p.accountStock ? p.accountStock.filter(s => !s.isSold).length : stockLinks.length;
-        }
-        const isAvailable = stockData.isAvailable !== undefined 
-          ? stockData.isAvailable 
-          : (stockType === 'link_based' ? count > 0 : true);
+    setProducts(prev => {
+      const next = prev.map(p => {
+        if (p.id === id) {
+          const stockType = stockData.stockType || p.stockType || 'link_based';
+          const stockLinks = stockData.stockLinks !== undefined ? stockData.stockLinks : (p.stockLinks || []);
+          let count = stockData.stockCount !== undefined ? Number(stockData.stockCount) : (p.accountStock ? p.accountStock.filter(s => !s.isSold).length : 0);
+          if (stockType === 'link_based') {
+            count = p.accountStock ? p.accountStock.filter(s => !s.isSold).length : stockLinks.length;
+          }
+          const isAvailable = count > 0;
 
-        return {
-          ...p,
-          stockType,
-          stockLinks,
-          stockCount: count,
-          isAvailable
-        };
-      }
-      return p;
-    }));
+          return {
+            ...p,
+            stockType,
+            stockLinks,
+            stockCount: count,
+            isAvailable
+          };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
     showToast('Stok Produk Diperbarui', 'Perubahan kuota & stok produk disimpan.');
   };
 
@@ -1367,54 +1466,66 @@ export const StoreProvider = ({ children }) => {
     let addedCount = 0;
     let rejectedCount = 0;
 
-    setProducts(prev => prev.map(p => {
-      if (p.id !== productId) return p;
+    setProducts(prev => {
+      const savedStocks = getStoredProductStocks();
+      const next = prev.map(p => {
+        if (p.id !== productId) return p;
 
-      const existingStock = p.accountStock || [];
-      // Set berisi semua stok yang sudah ada, baik isSold: true maupun isSold: false
-      const existingSet = new Set(mode === 'replace' ? [] : existingStock.map(s => norm(s.text)));
-      const seenInBatch = new Set();
-      const validLines = [];
+        const existingStock = p.accountStock || [];
+        // Set berisi semua stok yang sudah ada, baik isSold: true maupun isSold: false
+        const existingSet = new Set(mode === 'replace' ? [] : existingStock.map(s => norm(s.text)));
+        const seenInBatch = new Set();
+        const validLines = [];
 
-      for (const line of rawLines) {
-        const n = norm(line);
-        // Cegah duplikasi dengan stok yang sudah ada (sold & unsold) dan duplikasi dalam 1 batch input
-        if (existingSet.has(n) || seenInBatch.has(n)) {
-          rejectedCount++;
-        } else {
-          seenInBatch.add(n);
-          validLines.push(line);
+        for (const line of rawLines) {
+          const n = norm(line);
+          // Cegah duplikasi dengan stok yang sudah ada (sold & unsold) dan duplikasi dalam 1 batch input
+          if (existingSet.has(n) || seenInBatch.has(n)) {
+            rejectedCount++;
+          } else {
+            seenInBatch.add(n);
+            validLines.push(line);
+          }
         }
-      }
 
-      addedCount = validLines.length;
+        addedCount = validLines.length;
 
-      const todayStr = new Date().toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric'
+        const todayStr = new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'numeric',
+          year: 'numeric'
+        });
+        const newItems = validLines.map((line, idx) => ({
+          id: `stk-${Date.now()}-${idx}-${Math.floor(100 + Math.random() * 900)}`,
+          text: line,
+          isSold: false,
+          soldTo: null,
+          soldToEmail: null,
+          soldAt: null,
+          addedAt: todayStr
+        }));
+
+        const updatedList = mode === 'replace' ? newItems : [...existingStock, ...newItems];
+        const availableCount = updatedList.filter(s => !s.isSold).length;
+
+        savedStocks[productId] = updatedList;
+        syncStockToBackend(productId, updatedList);
+
+        return {
+          ...p,
+          accountStock: updatedList,
+          stockCount: availableCount,
+          stockType: 'link_based',
+          isAvailable: availableCount > 0
+        };
       });
-      const newItems = validLines.map((line, idx) => ({
-        id: `stk-${Date.now()}-${idx}-${Math.floor(100 + Math.random() * 900)}`,
-        text: line,
-        isSold: false,
-        soldTo: null,
-        soldToEmail: null,
-        soldAt: null,
-        addedAt: todayStr
-      }));
 
-      const updatedList = mode === 'replace' ? newItems : [...existingStock, ...newItems];
-      const availableCount = updatedList.filter(s => !s.isSold).length;
-
-      return {
-        ...p,
-        accountStock: updatedList,
-        stockCount: availableCount,
-        stockType: 'link_based',
-        isAvailable: availableCount > 0
-      };
-    }));
+      saveStoredProductStocks(savedStocks);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
 
     if (addedCount === 0 && rejectedCount > 0) {
       showToast('Gagal: Duplikasi Terdeteksi', `Semua ${rejectedCount} baris ditolak karena sudah pernah ada di stok (sold/unsold).`);
@@ -1430,63 +1541,96 @@ export const StoreProvider = ({ children }) => {
 
   // Delete a single stock item
   const deleteStockItem = (productId, stockItemId) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id !== productId) return p;
-      const updatedList = (p.accountStock || []).filter(s => s.id !== stockItemId);
-      const availableCount = updatedList.filter(s => !s.isSold).length;
-      return {
-        ...p,
-        accountStock: updatedList,
-        stockCount: availableCount,
-        isAvailable: availableCount > 0
-      };
-    }));
+    setProducts(prev => {
+      const savedStocks = getStoredProductStocks();
+      const next = prev.map(p => {
+        if (p.id !== productId) return p;
+        const updatedList = (p.accountStock || []).filter(s => s.id !== stockItemId);
+        const availableCount = updatedList.filter(s => !s.isSold).length;
+        savedStocks[productId] = updatedList;
+        syncStockToBackend(productId, updatedList);
+        return {
+          ...p,
+          accountStock: updatedList,
+          stockCount: availableCount,
+          stockType: 'link_based',
+          isAvailable: availableCount > 0
+        };
+      });
+      saveStoredProductStocks(savedStocks);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
     showToast('Item Stok Dihapus', '1 baris stok berhasil dihapus.');
   };
 
   // Toggle sold status of a stock item
   const toggleStockSold = (productId, stockItemId) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id !== productId) return p;
-      const updatedList = (p.accountStock || []).map(s => {
-        if (s.id === stockItemId) {
-          const nextSold = !s.isSold;
-          return {
-            ...s,
-            isSold: nextSold,
-            soldTo: nextSold ? '#$SHP-MANUAL' : null,
-            soldAt: nextSold ? new Date().toLocaleDateString('id-ID') : null
-          };
-        }
-        return s;
+    setProducts(prev => {
+      const savedStocks = getStoredProductStocks();
+      const next = prev.map(p => {
+        if (p.id !== productId) return p;
+        const updatedList = (p.accountStock || []).map(s => {
+          if (s.id === stockItemId) {
+            const nextSold = !s.isSold;
+            return {
+              ...s,
+              isSold: nextSold,
+              soldTo: nextSold ? '#$SHP-MANUAL' : null,
+              soldAt: nextSold ? new Date().toLocaleDateString('id-ID') : null
+            };
+          }
+          return s;
+        });
+        const availableCount = updatedList.filter(s => !s.isSold).length;
+        savedStocks[productId] = updatedList;
+        syncStockToBackend(productId, updatedList);
+        return {
+          ...p,
+          accountStock: updatedList,
+          stockCount: availableCount,
+          stockType: 'link_based',
+          isAvailable: availableCount > 0
+        };
       });
-      const availableCount = updatedList.filter(s => !s.isSold).length;
-      return {
-        ...p,
-        accountStock: updatedList,
-        stockCount: availableCount,
-        isAvailable: availableCount > 0
-      };
-    }));
+      saveStoredProductStocks(savedStocks);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
     showToast('Status Baris Diubah', 'Ketersediaan baris stok berhasil diperbarui.');
   };
 
   // Clear all sold stock (or specific product sold stock)
   const clearSoldStock = (targetProductId = null) => {
     let clearedTotal = 0;
-    setProducts(prev => prev.map(p => {
-      if (targetProductId && p.id !== targetProductId) return p;
-      const stock = p.accountStock || [];
-      const soldItems = stock.filter(s => s.isSold);
-      clearedTotal += soldItems.length;
-      const remaining = stock.filter(s => !s.isSold);
-      return {
-        ...p,
-        accountStock: remaining,
-        stockCount: remaining.length,
-        isAvailable: remaining.length > 0
-      };
-    }));
+    setProducts(prev => {
+      const savedStocks = getStoredProductStocks();
+      const next = prev.map(p => {
+        if (targetProductId && p.id !== targetProductId) return p;
+        const stock = p.accountStock || [];
+        const soldItems = stock.filter(s => s.isSold);
+        clearedTotal += soldItems.length;
+        const remaining = stock.filter(s => !s.isSold);
+        savedStocks[p.id] = remaining;
+        syncStockToBackend(p.id, remaining);
+        return {
+          ...p,
+          accountStock: remaining,
+          stockCount: remaining.length,
+          stockType: 'link_based',
+          isAvailable: remaining.length > 0
+        };
+      });
+      saveStoredProductStocks(savedStocks);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
     showToast('Stok Terjual Dibersihkan', `${clearedTotal} baris stok berstatus TERJUAL telah dibersihkan.`);
   };
 
@@ -1494,17 +1638,28 @@ export const StoreProvider = ({ children }) => {
   const bulkDeleteStockItems = (productId, stockItemIds = []) => {
     if (!stockItemIds || stockItemIds.length === 0) return;
     const toDeleteSet = new Set(stockItemIds);
-    setProducts(prev => prev.map(p => {
-      if (productId && p.id !== productId) return p;
-      const updated = (p.accountStock || []).filter(s => !toDeleteSet.has(s.id));
-      const availableCount = updated.filter(s => !s.isSold).length;
-      return {
-        ...p,
-        accountStock: updated,
-        stockCount: availableCount,
-        isAvailable: availableCount > 0
-      };
-    }));
+    setProducts(prev => {
+      const savedStocks = getStoredProductStocks();
+      const next = prev.map(p => {
+        if (productId && p.id !== productId) return p;
+        const updated = (p.accountStock || []).filter(s => !toDeleteSet.has(s.id));
+        const availableCount = updated.filter(s => !s.isSold).length;
+        savedStocks[p.id] = updated;
+        syncStockToBackend(p.id, updated);
+        return {
+          ...p,
+          accountStock: updated,
+          stockCount: availableCount,
+          stockType: 'link_based',
+          isAvailable: availableCount > 0
+        };
+      });
+      saveStoredProductStocks(savedStocks);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+      } catch (_) {}
+      return next;
+    });
     showToast('Hapus Terpilih', `${stockItemIds.length} item stok berhasil dihapus.`);
   };
 
@@ -1780,7 +1935,10 @@ export const StoreProvider = ({ children }) => {
       updateLicenseStatus,
       deleteLicense,
       calculateLicenseExpiry,
-      getLicenseEffectiveStatus
+      getLicenseEffectiveStatus,
+      // Stock calculations
+      getProductAvailableStock,
+      isProductOutOfStock
     }}>
       {children}
     </StoreContext.Provider>

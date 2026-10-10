@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore } from '../context/StoreContext';
+import { useStore, getProductAvailableStock } from '../context/StoreContext';
 import { ShoppingBag, Star, Check, ExternalLink } from 'lucide-react';
 
 export const ProductCard = ({ product }) => {
@@ -7,12 +7,9 @@ export const ProductCard = ({ product }) => {
   const [btnState, setBtnState] = useState('idle');
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  // Ketersediaan Stok
-  const hasAccountStock = Array.isArray(product.accountStock);
-  const availableStock = hasAccountStock 
-    ? product.accountStock.filter(s => !s.isSold).length 
-    : (product.stockCount !== undefined ? product.stockCount : 100);
-  const isOutOfStock = (hasAccountStock && availableStock <= 0) || (product.stockCount !== undefined && product.stockCount <= 0);
+  // Ketersediaan Stok Sinkron & Valid dari Manajemen Stok (Default 0 / Habis jika belum diinput)
+  const availableStock = getProductAvailableStock(product);
+  const isOutOfStock = availableStock <= 0;
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
@@ -111,7 +108,7 @@ export const ProductCard = ({ product }) => {
           ) : (
             <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>{hasAccountStock ? `${availableStock} Stok` : 'Tersedia'}</span>
+              <span>{availableStock} Stok</span>
             </span>
           )}
         </div>
