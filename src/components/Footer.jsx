@@ -80,12 +80,22 @@ export const Footer = () => {
                 BANTUAN
               </h4>
               <ul className="space-y-2 text-xs text-[#737873]">
+                <li>
+                  <button onClick={() => navigateTo('download')} className="hover:text-[#1C352D] font-semibold text-[#1C352D] transition-colors flex items-center gap-1">
+                    <span>💻 Download Aplikasi Desktop</span>
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigateTo('licenses')} className="hover:text-[#1C352D] transition-colors">
+                    Aktivasi Lisensi
+                  </button>
+                </li>
                 <li className="cursor-pointer hover:text-[#1C352D]">FAQ</li>
                 <li className="cursor-pointer hover:text-[#1C352D]">Cara Membeli</li>
-                <li className="cursor-pointer hover:text-[#1C352D]">Pengembalian</li>
                 <li className="cursor-pointer hover:text-[#1C352D]">Hubungi Kami</li>
               </ul>
             </div>
+
 
             {/* IKUTI KAMI */}
             <div className="space-y-3">

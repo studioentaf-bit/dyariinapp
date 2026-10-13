@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Search, ShoppingBag, User, X } from 'lucide-react';
+import { Search, ShoppingBag, User, X, Download } from 'lucide-react';
 
 export const Navbar = () => {
   const { 
@@ -73,8 +73,8 @@ export const Navbar = () => {
             </button>
           </div>
 
-          {/* Desktop Navigation Menu: Beranda | Shop | Lisensi | Story Generator | Tentang */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8 text-xs sm:text-sm font-medium">
+          {/* Desktop Navigation Menu: Beranda | Shop | Lisensi | Story Generator | Download App | Tentang */}
+          <nav className="hidden md:flex items-center space-x-5 lg:space-x-7 text-xs sm:text-sm font-medium">
             <button 
               onClick={() => navigateTo('home')}
               className={`transition-colors cursor-pointer ${currentView === 'home' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
@@ -100,12 +100,20 @@ export const Navbar = () => {
               Story Generator
             </button>
             <button 
+              onClick={() => navigateTo('download')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${currentView === 'download' ? 'bg-[#1C352D] text-white font-bold shadow-2xs' : 'bg-[#E8F0EA] text-[#1C352D] hover:bg-[#D5E5D8] font-semibold'}`}
+            >
+              <Download size={13} className="text-[#4E8A5C]" />
+              <span>Download App</span>
+            </button>
+            <button 
               onClick={() => navigateTo('about')}
               className={`transition-colors cursor-pointer ${currentView === 'about' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
               Tentang
             </button>
           </nav>
+
 
           {/* Right Action: Search Only (Cart and Masuk removed as requested) */}
           <div className="flex items-center space-x-2">

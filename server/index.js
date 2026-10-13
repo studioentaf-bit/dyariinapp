@@ -63,6 +63,57 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// App version and direct download endpoints for Desktop Story.in AI Manager
+app.get(['/api/app-version', '/api/app/version'], (req, res) => {
+  res.json({
+    version: '0.0.1',
+    name: 'Story.in AI Manager',
+    downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.1/Story.in-AI-Manager.exe',
+    directDownload: '/api/app/download',
+    releaseDate: '2026-10-13',
+    size: '163 MB',
+    changelog: 'Versi 0.0.1: Peluncuran resmi Story.in AI Manager Desktop. Integrasi lisensi website & panel admin, Story Generator lengkap, Voice Over Gemini AI, auto-updater terpadu, dan sinkronisasi produk & banner dari Admin Panel.'
+  });
+});
+
+// Direct Download endpoint without popups/external redirect
+app.get('/api/app/download', (req, res) => {
+  res.redirect(302, 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.1/Story.in-AI-Manager.exe');
+});
+
+// License plans endpoint for Desktop App shop & checkout
+app.get('/api/license-plans', async (req, res) => {
+  try {
+    const result = await query("SELECT value FROM settings WHERE key = 'store_config'");
+    const store = (result.rows.length > 0 && result.rows[0].value) || {};
+    const plans = store.licensePackages || store.license_plans || store.licensePlans || [
+      {
+        id: 'pro_all',
+        name: 'Pro All Fitur (Lifetime)',
+        price: 149000,
+        original_price: 299000,
+        description: 'Akses penuh ke semua platform AI, Story Generator, Video Splitter, Merger, dan fitur tanpa batas.',
+        features: ['Story Generator Built-in', 'Voice Over Text-to-Speech', 'Video Tools (Split & Merge)', 'Unlimited Akun Platform AI', 'Lifetime Update & Support'],
+        badge: 'TERPOPULER',
+        enabled: true
+      },
+      {
+        id: 'pro_monthly',
+        name: 'Pro Bulanan (30 Hari)',
+        price: 49000,
+        original_price: 99000,
+        description: 'Akses seluruh fitur Pro selama 30 hari.',
+        features: ['Story Generator Built-in', 'Voice Over Text-to-Speech', 'Akses Semua Fitur Pro', 'Masa Aktif 30 Hari'],
+        enabled: true
+      }
+    ];
+    res.json({ plans });
+  } catch (err) {
+    res.status(500).json({ plans: [] });
+  }
+});
+
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

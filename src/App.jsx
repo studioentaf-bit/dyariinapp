@@ -20,6 +20,7 @@ import { PublicInvoiceView } from './views/PublicInvoiceView';
 import { StoryGeneratorView } from './views/StoryGeneratorView';
 import { LicensesView } from './views/LicensesView';
 import { AboutView } from './views/AboutView';
+import { DownloadAppView } from './views/DownloadAppView';
 
 const MainLayout = () => {
   const { currentView } = useStore();
@@ -32,6 +33,8 @@ const MainLayout = () => {
         return <ShopView />;
       case 'licenses':
         return <LicensesView />;
+      case 'download':
+        return <DownloadAppView />;
       case 'about':
         return <AboutView />;
       case 'product-detail':
@@ -53,8 +56,9 @@ const MainLayout = () => {
     }
   };
 
-  const showFooter = ['home', 'shop', 'licenses', 'about', 'product-detail'].includes(currentView);
+  const showFooter = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail'].includes(currentView);
   const showNav = currentView !== 'admin';
+
 
   return (
     <div className="min-h-screen flex flex-col bg-cream text-forest font-sans selection:bg-matcha selection:text-forest">

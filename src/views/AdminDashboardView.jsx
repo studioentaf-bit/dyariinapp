@@ -542,6 +542,7 @@ export const AdminDashboardView = () => {
     tagline: storeSettings?.branding?.tagline || storeSettings?.tagline || 'Produk digital untuk membuat keseharian lebih rapi, produktif, kreatif, dan terasa lebih mudah.',
     logoBadge: storeSettings?.branding?.logoBadge || 'dy',
     logoUrl: storeSettings?.branding?.logoUrl || storeSettings?.logoUrl || '',
+    bannerImageUrl: storeSettings?.branding?.bannerImageUrl || storeSettings?.bannerImageUrl || '',
     heroTitle: storeSettings?.branding?.heroTitle || storeSettings?.heroTitle || 'Bikin keseharianmu jadi sedikit lebih mudah.',
     heroSubtitle: storeSettings?.branding?.heroSubtitle || storeSettings?.heroSubtitle || 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
     announcement: storeSettings?.branding?.announcement || storeSettings?.announcement || 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
@@ -4673,6 +4674,64 @@ export const AdminDashboardView = () => {
                           />
                           <p className="text-[10px] text-warmgray">
                             Format disarankan: PNG transparan atau SVG (Maks. 3MB). Logo akan langsung tampil di navbar publik toko.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Banner Image Upload & Preview */}
+                    <div className="p-4 rounded-2xl bg-[#FAFBF9] border border-[#E5EAE4] space-y-3">
+                      <label className="text-xs font-bold text-forest block">Banner Utama Beranda &amp; Aplikasi Desktop</label>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="w-28 h-16 rounded-xl bg-white border-2 border-dashed border-[#B8D8C0] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+                          {brandingForm.bannerImageUrl ? (
+                            <img src={brandingForm.bannerImageUrl} alt="Banner Beranda" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[10px] text-warmgray font-semibold text-center px-1">Belum ada banner</span>
+                          )}
+                        </div>
+
+                        <div className="space-y-2 flex-1 w-full">
+                          <div className="flex items-center gap-2">
+                            <label className="btn-dyari text-xs px-3.5 py-1.5 cursor-pointer inline-flex items-center gap-1.5 font-bold shadow-xs">
+                              <Upload size={13} />
+                              <span>Pilih File Gambar Banner</span>
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleImageUpload(file, (dataUrl) => {
+                                      setBrandingForm(prev => ({ ...prev, bannerImageUrl: dataUrl }));
+                                      showToast('Banner Dipilih', file.name);
+                                    });
+                                  }
+                                }} 
+                              />
+                            </label>
+
+                            {brandingForm.bannerImageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setBrandingForm(prev => ({ ...prev, bannerImageUrl: '' }))}
+                                className="text-xs text-rose-600 hover:underline font-semibold"
+                              >
+                                Hapus Banner
+                              </button>
+                            )}
+                          </div>
+
+                          <input
+                            type="text"
+                            value={brandingForm.bannerImageUrl || ''}
+                            onChange={(e) => setBrandingForm({ ...brandingForm, bannerImageUrl: e.target.value })}
+                            placeholder="Atau masukkan URL gambar banner (https://...)"
+                            className="w-full bg-white rounded-xl border border-[#E5EAE4] px-3 py-1.5 text-xs text-forest focus:outline-none font-mono"
+                          />
+                          <p className="text-[10px] text-warmgray">
+                            Format disarankan: JPG, PNG, atau WebP (Rasio 16:9 atau 21:9). Tampil otomatis di hero banner aplikasi desktop dan website.
                           </p>
                         </div>
                       </div>

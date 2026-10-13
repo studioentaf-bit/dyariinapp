@@ -14,7 +14,8 @@ import {
   Video, 
   Layers, 
   ShieldCheck,
-  Star
+  Star,
+  Download
 } from 'lucide-react';
 
 export const HomeView = () => {
@@ -98,6 +99,13 @@ export const HomeView = () => {
                 >
                   <Sparkles size={16} className="text-[#A3E6B5]" />
                   <span>Story Generator AI</span>
+                </button>
+                <button 
+                  onClick={() => navigateTo('download')}
+                  className="bg-[#1C352D] hover:bg-[#28493E] text-white font-heading font-bold text-xs sm:text-sm px-5 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Download size={15} className="text-[#4E8A5C]" />
+                  <span>Download App (v0.0.1)</span>
                 </button>
                 <button 
                   onClick={() => navigateTo('licenses')}
