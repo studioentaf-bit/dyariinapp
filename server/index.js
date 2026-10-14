@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.4';
+const MIN_OFFICIAL_VERSION = '0.0.5';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
@@ -100,7 +100,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: appCfg.releaseDate || '2026-10-15',
       size: appCfg.size || '163 MB',
-      changelog: appCfg.changelog || `Versi ${version}: Banner hero dashboard dinamis dari branding admin, pembersihan default akun platform (mulai dari 0 akun), pengosongan total default API key Story Generator pada clean install, dan integrasi checkout pembayaran.`
+      changelog: appCfg.changelog || `Versi ${version}: Penyatuan kontrol banner khusus aplikasi desktop di panel admin dengan rekomendasi resolusi presisi 1200x240 px (rasio 5:1), serta penyesuaian tampilan hero banner tanpa terpotong.`
     });
   } catch (err) {
     res.json({
@@ -111,7 +111,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Banner hero dashboard dinamis dari branding admin, pembersihan default akun platform (mulai dari 0 akun), pengosongan total default API key Story Generator pada clean install, dan integrasi checkout pembayaran.`
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Penyatuan kontrol banner khusus aplikasi desktop di panel admin dengan rekomendasi resolusi presisi 1200x240 px (rasio 5:1), serta penyesuaian tampilan hero banner tanpa terpotong.`
     });
   }
 });

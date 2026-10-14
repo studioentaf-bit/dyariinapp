@@ -375,7 +375,23 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Kompilasi ulang binary `Story.in-AI-Manager.exe` menggunakan .NET 8 SDK dan diterbitkan ke [GitHub Release v0.0.4](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.4).
    - Seluruh perubahan web di-build dengan Vite dan di-push ke branch `main`.
 
+### J. Pembaruan v0.0.5: Penyatuan Kontrol Banner Desktop Admin, Standarisasi Resolusi 1200x240 px, dan Rilis v0.0.5
+1. **Penyatuan Kontrol Banner di Panel Admin**:
+   - Di menu Pengaturan Branding Web Admin, kedua form banner (web dan desktop) disatukan menjadi satu kontrol khusus: **"💻 Banner Dashboard Aplikasi Desktop"**.
+   - Menghapus input duplikat agar admin hanya fokus mengunggah satu banner yang langsung terhubung ke aplikasi desktop.
+   - Menyimpan nilai banner ke kedua kunci (`desktopBannerUrl` dan `bannerImageUrl`) secara simultan untuk kompatibilitas penuh.
+2. **Standarisasi Ukuran & Resolusi Banner Desktop**:
+   - Ditambahkan panduan resolusi presisi di panel admin: **1200 × 240 pixel (Rasio 5:1 Ultrawide Banner)**.
+   - Format yang didukung: JPG, PNG, atau WebP.
+   - Di `MainWindow.xaml`, tinggi komponen `DynamicHeroBannerImage` disesuaikan ke `Height="190"` dengan `Stretch="UniformToFill"`, menjamin banner dengan rasio 5:1 tampil penuh, proporsional, dan tidak terpotong pada berbagai resolusi monitor desktop.
+3. **Kenaikan Versi Otomatis ke v0.0.5 & Rilis GitHub**:
+   - Versi desktop dinaikkan ke `0.0.5` pada `AIPilotManager.csproj`, `MainWindow.xaml`, dan `MainWindow.xaml.cs`.
+   - Versi backend dan frontend web dinaikkan ke `0.0.5` pada `server/index.js`, `StoreContext.jsx`, `DownloadAppView.jsx`, dan `HomeView.jsx`.
+   - Binary standalone `Story.in-AI-Manager.exe` (163 MB) dikompilasi ulang dengan .NET 8 SDK dan diterbitkan ke [GitHub Release v0.0.5](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.5).
+   - Seluruh perubahan frontend web berhasil di-build dan di-push ke branch `main`.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
+
 

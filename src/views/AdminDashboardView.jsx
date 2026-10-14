@@ -1236,16 +1236,18 @@ export const AdminDashboardView = () => {
   // Save Settings Handlers
   const handleSaveBranding = (e) => {
     e.preventDefault();
+    const bannerUrl = brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl || '';
     const finalForm = {
       ...brandingForm,
-      desktopBannerUrl: brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl
+      bannerImageUrl: bannerUrl,
+      desktopBannerUrl: bannerUrl
     };
     updateStoreSettings({ 
       branding: finalForm,
-      bannerImageUrl: finalForm.bannerImageUrl,
-      desktopBannerUrl: finalForm.desktopBannerUrl
+      bannerImageUrl: bannerUrl,
+      desktopBannerUrl: bannerUrl
     });
-    showToast('Branding Toko Disimpan', 'Tampilan website publik dan banner aplikasi desktop telah diperbarui.');
+    showToast('Branding Toko Disimpan', 'Banner aplikasi desktop telah diperbarui.');
   };
 
   const handleSaveTutorialStep = async (e) => {
@@ -4847,83 +4849,19 @@ export const AdminDashboardView = () => {
                       </div>
                     </div>
 
-                    {/* Banner Image Upload & Preview */}
-                    <div className="p-4 rounded-2xl bg-[#FAFBF9] border border-[#E5EAE4] space-y-3">
-                      <label className="text-xs font-bold text-forest block">Banner Utama Beranda &amp; Aplikasi Desktop</label>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <div className="w-28 h-16 rounded-xl bg-white border-2 border-dashed border-[#B8D8C0] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
-                          {brandingForm.bannerImageUrl ? (
-                            <img src={brandingForm.bannerImageUrl} alt="Banner Beranda" className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-[10px] text-warmgray font-semibold text-center px-1">Belum ada banner</span>
-                          )}
-                        </div>
-
-                        <div className="space-y-2 flex-1 w-full">
-                          <div className="flex items-center gap-2">
-                            <label className="btn-dyari text-xs px-3.5 py-1.5 cursor-pointer inline-flex items-center gap-1.5 font-bold shadow-xs">
-                              <Upload size={13} />
-                              <span>Pilih File Gambar Banner</span>
-                              <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden" 
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    handleImageUpload(file, (dataUrl) => {
-                                      setBrandingForm(prev => ({ ...prev, bannerImageUrl: dataUrl }));
-                                      showToast('Banner Dipilih', file.name);
-                                    });
-                                  }
-                                }} 
-                              />
-                            </label>
-
-                            {brandingForm.bannerImageUrl && (
-                              <button
-                                type="button"
-                                onClick={() => setBrandingForm(prev => ({ ...prev, bannerImageUrl: '' }))}
-                                className="text-xs text-rose-600 hover:underline font-semibold"
-                              >
-                                Hapus Banner
-                              </button>
-                            )}
-                          </div>
-
-                          <input
-                            type="text"
-                            value={brandingForm.bannerImageUrl || ''}
-                            onChange={(e) => setBrandingForm({ ...brandingForm, bannerImageUrl: e.target.value })}
-                            placeholder="Atau masukkan URL gambar banner (https://...)"
-                            className="w-full bg-white rounded-xl border border-[#E5EAE4] px-3 py-1.5 text-xs text-forest focus:outline-none font-mono"
-                          />
-                          <p className="text-[10px] text-warmgray">
-                            Format disarankan: JPG, PNG, atau WebP (Rasio 16:9 atau 21:9). Tampil di hero section website beranda.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Banner Khusus Dashboard Aplikasi Desktop */}
+                    {/* Banner Dashboard Aplikasi Desktop (Satu-satunya Banner yang digunakan) */}
                     <div className="p-4 rounded-2xl bg-[#F0F7F2] border border-[#B8D8C0] space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-forest block">💻 Banner Dashboard Aplikasi Desktop</label>
-                        {brandingForm.bannerImageUrl && brandingForm.desktopBannerUrl !== brandingForm.bannerImageUrl && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setBrandingForm(prev => ({ ...prev, desktopBannerUrl: prev.bannerImageUrl }));
-                              showToast('Banner Disamakan', 'Banner aplikasi desktop disamakan dengan banner website.');
-                            }}
-                            className="text-[11px] text-emerald-800 font-bold hover:underline"
-                          >
-                            Samakan dengan Banner Web
-                          </button>
-                        )}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <label className="text-xs font-bold text-forest flex items-center gap-1.5">
+                          <span>💻 Banner Dashboard Aplikasi Desktop</span>
+                        </label>
+                        <span className="text-[10.5px] bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full inline-block w-fit">
+                          Resolusi Ideal: 1200 × 240 px (Rasio 5:1)
+                        </span>
                       </div>
+                      
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <div className="w-28 h-16 rounded-xl bg-white border-2 border-dashed border-[#B8D8C0] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+                        <div className="w-36 h-18 sm:w-44 sm:h-20 rounded-xl bg-white border-2 border-dashed border-[#B8D8C0] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
                           {brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl ? (
                             <img src={brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl} alt="Banner Desktop" className="w-full h-full object-cover" />
                           ) : (
@@ -4944,35 +4882,44 @@ export const AdminDashboardView = () => {
                                   const file = e.target.files?.[0];
                                   if (file) {
                                     handleImageUpload(file, (dataUrl) => {
-                                      setBrandingForm(prev => ({ ...prev, desktopBannerUrl: dataUrl }));
-                                      showToast('Banner Desktop Dipilih', file.name);
+                                      setBrandingForm(prev => ({ 
+                                        ...prev, 
+                                        desktopBannerUrl: dataUrl,
+                                        bannerImageUrl: dataUrl 
+                                      }));
+                                      showToast('Banner Dipilih', file.name);
                                     });
                                   }
                                 }} 
                               />
                             </label>
 
-                            {brandingForm.desktopBannerUrl && (
+                            {(brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl) && (
                               <button
                                 type="button"
-                                onClick={() => setBrandingForm(prev => ({ ...prev, desktopBannerUrl: '' }))}
+                                onClick={() => setBrandingForm(prev => ({ ...prev, desktopBannerUrl: '', bannerImageUrl: '' }))}
                                 className="text-xs text-rose-600 hover:underline font-semibold"
                               >
-                                Gunakan Banner Web
+                                Hapus Banner
                               </button>
                             )}
                           </div>
 
                           <input
                             type="text"
-                            value={brandingForm.desktopBannerUrl || ''}
-                            onChange={(e) => setBrandingForm({ ...brandingForm, desktopBannerUrl: e.target.value })}
+                            value={brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl || ''}
+                            onChange={(e) => setBrandingForm({ ...brandingForm, desktopBannerUrl: e.target.value, bannerImageUrl: e.target.value })}
                             placeholder="Atau masukkan URL gambar banner desktop (https://...)"
                             className="w-full bg-white rounded-xl border border-[#E5EAE4] px-3 py-1.5 text-xs text-forest focus:outline-none font-mono"
                           />
-                          <p className="text-[10px] text-warmgray">
-                            Banner ini akan tampil langsung di kartu hero dashboard aplikasi Windows Story.in AI Manager. Terhubung dan tersinkronisasi otomatis.
-                          </p>
+                          <div className="text-[10px] text-warmgray space-y-0.5">
+                            <p className="font-semibold text-emerald-800">
+                              📐 Ukuran Resolusi: <strong>1200 × 240 pixel</strong> (Rasio 5:1 Ultrawide Banner).
+                            </p>
+                            <p>
+                              Format disarankan: JPG, PNG, atau WebP. Gambar dengan ukuran ini akan pas dan presisi di kartu hero dashboard aplikasi Story.in AI Manager tanpa terpotong.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
