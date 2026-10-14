@@ -16,12 +16,17 @@ import {
 } from 'lucide-react';
 
 export const DownloadAppView = () => {
-  const { navigateTo, showToast } = useStore();
+  const { navigateTo, showToast, appVersionInfo } = useStore();
   const [downloading, setDownloading] = useState(false);
+
+  const currentVersion = appVersionInfo?.version || '0.0.2';
+  const currentDownloadUrl = appVersionInfo?.downloadUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${currentVersion}/Story.in-AI-Manager.exe`;
+  const currentReleaseUrl = appVersionInfo?.releaseUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${currentVersion}`;
+  const currentSize = appVersionInfo?.size || '~163 MB (Standalone)';
 
   const handleDirectDownload = () => {
     setDownloading(true);
-    showToast('Mengunduh Aplikasi', 'File Story.in-AI-Manager.exe sedang diunduh ke komputer Anda...', 'info');
+    showToast('Mengunduh Aplikasi', `File Story.in-AI-Manager.exe v${currentVersion} sedang diunduh ke komputer Anda...`, 'info');
 
     // Trigger direct download without opening popups or new browser tabs
     const link = document.createElement('a');
@@ -43,7 +48,7 @@ export const DownloadAppView = () => {
       <div className="text-center max-w-3xl mx-auto space-y-4 mb-12 sm:mb-16">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F0EA] text-[#1C352D] text-xs font-bold tracking-wide uppercase">
           <Sparkles size={14} className="text-[#EE7C6B]" />
-          <span>Story.in AI Manager Desktop v0.0.1</span>
+          <span>Story.in AI Manager Desktop v{currentVersion}</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#1C352D] tracking-tight leading-tight">
           Download Aplikasi Desktop <br className="hidden sm:inline" />
@@ -63,13 +68,13 @@ export const DownloadAppView = () => {
           <div className="lg:col-span-7 space-y-5">
             <div className="flex items-center gap-3">
               <span className="px-2.5 py-1 rounded-md bg-[#1C352D] text-white text-[11px] font-bold">
-                Versi 0.0.1 (Resmi)
+                Versi {currentVersion} (Resmi)
               </span>
               <span className="px-2.5 py-1 rounded-md bg-[#F2F5F2] text-[#1C352D] text-[11px] font-semibold border border-[#E5EAE4]">
                 Windows 10 / 11 (64-bit)
               </span>
               <span className="px-2.5 py-1 rounded-md bg-[#FFF5F2] text-[#EE7C6B] text-[11px] font-bold border border-[#FCD9D0]">
-                Single-File Standalone (~163 MB)
+                Single-File Standalone ({currentSize})
               </span>
             </div>
 
@@ -98,15 +103,15 @@ export const DownloadAppView = () => {
             {/* Direct Download Button */}
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <a
-                href="https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.1/Story.in-AI-Manager.exe"
+                href={currentDownloadUrl}
                 download="Story.in-AI-Manager.exe"
                 onClick={() => {
-                  showToast('Mengunduh Aplikasi', 'File Story.in-AI-Manager.exe sedang diunduh ke komputer Anda...', 'info');
+                  showToast('Mengunduh Aplikasi', `File Story.in-AI-Manager.exe v${currentVersion} sedang diunduh ke komputer Anda...`, 'info');
                 }}
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-[#1C352D] hover:bg-[#28493E] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
               >
                 <Download size={18} />
-                <span>Download Sekarang (v0.0.1)</span>
+                <span>Download Sekarang (v{currentVersion})</span>
               </a>
 
               <button
@@ -139,11 +144,11 @@ export const DownloadAppView = () => {
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#F0F4F0]">
                   <span className="text-[#737873]">Versi Rilis:</span>
-                  <span className="font-bold text-[#1C352D]">0.0.1 (Peluncuran Awal)</span>
+                  <span className="font-bold text-[#1C352D]">{currentVersion} (Resmi)</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#F0F4F0]">
                   <span className="text-[#737873]">Ukuran Berkas:</span>
-                  <span className="font-bold text-[#1C352D]">~163 MB (Standalone)</span>
+                  <span className="font-bold text-[#1C352D]">{currentSize}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#F0F4F0]">
                   <span className="text-[#737873]">Sistem Operasi:</span>
@@ -157,7 +162,7 @@ export const DownloadAppView = () => {
 
               <div className="pt-2">
                 <a
-                  href="https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.1"
+                  href={currentReleaseUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-[11px] text-[#4E8A5C] hover:underline flex items-center gap-1 justify-center font-medium"

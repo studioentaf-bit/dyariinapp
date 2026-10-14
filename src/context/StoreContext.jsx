@@ -1016,6 +1016,24 @@ export const StoreProvider = ({ children }) => {
     } catch (_) {}
   }, [storeSettings]);
 
+  // Desktop App Version & Release Info
+  const [appVersionInfo, setAppVersionInfo] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dyari_app_version_info');
+      if (cached) return JSON.parse(cached);
+    } catch (_) {}
+    return {
+      version: '0.0.2',
+      name: 'Story.in AI Manager',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.2/Story.in-AI-Manager.exe',
+      directDownload: '/api/app/download',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.2',
+      releaseDate: '2026-10-14',
+      size: '163 MB',
+      changelog: 'Versi 0.0.2: Pembaruan stabilitas (anti-crash), pop-up aktivasi otomatis saat first launch, penguncian menu berlisensi (🔒), header badges versi v0.0.2 dan status lisensi, pembersihan akun awal, serta integrasi 2 kategori lisensi.'
+    };
+  });
+
   // Synchronize licenses and settings with PostgreSQL backend API
   useEffect(() => {
     let isMounted = true;
@@ -1049,6 +1067,20 @@ export const StoreProvider = ({ children }) => {
       } catch (err) {
         console.warn('API /api/settings tidak terjangkau.', err);
       }
+
+      // 3. Fetch Desktop App Version Info
+      try {
+        const verRes = await fetch('/api/app/version');
+        if (verRes.ok) {
+          const verData = await verRes.json();
+          if (verData && verData.version && isMounted) {
+            setAppVersionInfo(verData);
+            try {
+              localStorage.setItem('dyari_app_version_info', JSON.stringify(verData));
+            } catch (_) {}
+          }
+        }
+      } catch (_) {}
     };
 
     fetchBackendData();
@@ -2297,7 +2329,10 @@ export const StoreProvider = ({ children }) => {
       openInstantCheckout,
       closeInstantCheckout,
       submitInstantOrder,
-      syncOrdersFromBackend
+      syncOrdersFromBackend,
+      // Desktop App Version & Release Info
+      appVersionInfo,
+      setAppVersionInfo
     }}>
       {children}
     </StoreContext.Provider>

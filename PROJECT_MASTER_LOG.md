@@ -256,6 +256,17 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Memperbarui Panel Admin (`AdminDashboardView.jsx`) sehingga admin dapat memilih kategori lisensi saat menambah atau mengedit tier lisensi.
    - Memperbarui API backend `/api/license-plans` di `server/index.js` untuk menyajikan paket berdasarkan kedua kategori tersebut.
 
+### C. Standarisasi Auto-Incrementing Versi Aplikasi Desktop & Sinkronisasi Live Website (v0.0.1 -> v0.0.2 dst.)
+1. **Aturan Mutlak Versi Bertahap (Incremental Versioning Rule)**:
+   - Setiap ada update, bugfix, atau compile ulang pada aplikasi desktop, nomor versi wajib dinaikkan ke nomor berikutnya secara sekuensial (`0.0.1` -> `0.0.2` -> `0.0.3`, dst.).
+   - Versi resmi saat ini telah dinaikkan ke **`v0.0.2`** mencakup perbaikan anti-crash, pop-up aktivasi otomatis kosongan saat first-launch, indikator gembok pada menu berlisensi, header badge lisensi & versi, pembersihan akun awal, serta integrasi 2 kategori lisensi.
+2. **Sinkronisasi Dinamis Desktop, Backend, dan Website**:
+   - **Desktop WPF**: File `AIPilotManager.csproj`, `MainWindow.xaml`, dan `MainWindow.xaml.cs` disetel ke `CurrentAppVersion = "0.0.2"` dan menampilkan badge header `v0.0.2`.
+   - **Backend API**: Endpoint `/api/app/version` dan `/api/app-version` kini menyajikan metadata dinamis (`version: '0.0.2'`, URL unduhan release GitHub, release notes, ukuran file `~163 MB`). Endpoint `/api/app/download` otomatis mengarahkan unduhan langsung ke asset binary rilis versi terkini.
+   - **Website Dyari**: Halaman `DownloadAppView.jsx` dan `HomeView.jsx` terhubung reaktif via `StoreContext.jsx` (`appVersionInfo`), sehingga tombol download, badge hero, rincian rilis, dan tautan GitHub Release otomatis terupdate secara live mengikuti versi aktif.
+3. **Penerbitan Rilis GitHub v0.0.2**:
+   - Rilis publik `v0.0.2` resmi diterbitkan di GitHub `studioentaf-bit/dyariinapp` dengan file executable `Story.in-AI-Manager.exe` (.NET 8 single-file standalone).
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
