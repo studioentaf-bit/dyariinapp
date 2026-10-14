@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Search, ShoppingBag, User, X, Download } from 'lucide-react';
+import { Search, ShoppingBag, User, X } from 'lucide-react';
 
 export const Navbar = () => {
   const { 
@@ -101,10 +101,9 @@ export const Navbar = () => {
             </button>
             <button 
               onClick={() => navigateTo('download')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer ${currentView === 'download' ? 'bg-[#1C352D] text-white font-bold shadow-2xs' : 'bg-[#E8F0EA] text-[#1C352D] hover:bg-[#D5E5D8] font-semibold'}`}
+              className={`transition-colors cursor-pointer ${currentView === 'download' ? 'text-[#1C352D] font-bold' : 'text-[#616863] hover:text-[#1C352D]'}`}
             >
-              <Download size={13} className="text-[#4E8A5C]" />
-              <span>Download App</span>
+              Download App
             </button>
             <button 
               onClick={() => navigateTo('about')}

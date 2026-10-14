@@ -97,23 +97,17 @@ export const DownloadAppView = () => {
 
             {/* Direct Download Button */}
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <button
-                onClick={handleDirectDownload}
-                disabled={downloading}
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-[#1C352D] hover:bg-[#28493E] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-75"
+              <a
+                href="https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.1/Story.in-AI-Manager.exe"
+                download="Story.in-AI-Manager.exe"
+                onClick={() => {
+                  showToast('Mengunduh Aplikasi', 'File Story.in-AI-Manager.exe sedang diunduh ke komputer Anda...', 'info');
+                }}
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-[#1C352D] hover:bg-[#28493E] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
               >
-                {downloading ? (
-                  <>
-                    <RefreshCw size={18} className="animate-spin" />
-                    <span>Menghubungkan Rilis...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download size={18} />
-                    <span>Download Sekarang (v0.0.1)</span>
-                  </>
-                )}
-              </button>
+                <Download size={18} />
+                <span>Download Sekarang (v0.0.1)</span>
+              </a>
 
               <button
                 onClick={() => navigateTo('licenses')}
