@@ -10,12 +10,15 @@ import {
   HelpCircle,
   Clock,
   Infinity,
-  Laptop
+  Laptop,
+  Monitor,
+  Globe
 } from 'lucide-react';
 import api from '../services/api';
 
 export const LicensesView = () => {
   const { navigateTo, showToast, storeSettings, licensePackages, openInstantCheckout } = useStore();
+  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'app' | 'web'
   const [checkKey, setCheckKey] = useState('');
   const [checkEmail, setCheckEmail] = useState('');
   const [isChecking, setIsChecking] = useState(false);
@@ -78,8 +81,15 @@ export const LicensesView = () => {
       ? pkg.features 
       : (typeof pkg.features === 'string' ? pkg.features.split('\n').map(s => s.trim()).filter(Boolean) : []);
 
+    const category = pkg.category || (
+      (pkg.id && pkg.id.toLowerCase().includes('app')) || (pkg.name && pkg.name.toLowerCase().includes('desktop'))
+        ? 'app'
+        : 'web'
+    );
+
     return {
       ...pkg,
+      category,
       formattedPrice,
       period: periodStr,
       icon: iconComp,
@@ -89,16 +99,21 @@ export const LicensesView = () => {
     };
   });
 
+  const filteredTiers = licenseTiers.filter(tier => {
+    if (categoryFilter === 'all') return true;
+    return tier.category === categoryFilter;
+  });
+
   const handleOrderLicense = (tier) => {
     const waNumber = storeSettings?.whatsapp || '6282330626054';
-    const message = `Halo dyari.in, saya ingin membeli Lisensi Resmi: *${tier.name} (${tier.period})* seharga *${tier.formattedPrice}* untuk akses Story Generator. Mohon info nomor rekening & aktivasi serial kodenya. Terima kasih!`;
+    const message = `Halo dyari.in, saya ingin membeli Lisensi Resmi: *${tier.name} (${tier.period})* seharga *${tier.formattedPrice}* untuk akses ${tier.category === 'app' ? 'Aplikasi Desktop' : 'Web Story Generator'}. Mohon info nomor rekening & aktivasi serial kodenya. Terima kasih!`;
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${waNumber.replace(/[^0-9]/g, '')}?text=${encoded}`, '_blank');
   };
 
   return (
     <div className="bg-[#FCFAF5] min-h-screen py-10 md:py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
 
         {/* 01. HEADER TITLE */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -107,12 +122,50 @@ export const LicensesView = () => {
             <span>Lisensi Resmi dyari.in</span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-[#191C1A] tracking-tight">
-            Akses Penuh Story Generator & Tools Produktivitas
+            Pilihan Lisensi Aplikasi & Story Generator
           </h1>
           <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-            Dapatkan lisensi resmi untuk membuka studio Story Generator AI dan software tools digital dyari.in. 
-            Akses cepat, langsung aktif di browser Anda tanpa ribet langganan server mahal.
+            Dapatkan lisensi resmi untuk membuka software <strong>Story.in AI Manager Desktop</strong> atau studio <strong>Story Generator Website</strong>. Langsung aktif dan terverifikasi otomatis.
           </p>
+        </div>
+
+        {/* CATEGORY FILTER TABS */}
+        <div className="flex flex-wrap items-center justify-center gap-2 max-w-xl mx-auto">
+          <button
+            type="button"
+            onClick={() => setCategoryFilter('all')}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              categoryFilter === 'all'
+                ? 'bg-[#1E3D2F] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-[#E6E3DA] hover:bg-gray-50'
+            }`}
+          >
+            Semua Lisensi ({licenseTiers.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setCategoryFilter('app')}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              categoryFilter === 'app'
+                ? 'bg-[#1E3D2F] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-[#E6E3DA] hover:bg-gray-50'
+            }`}
+          >
+            <Monitor size={14} />
+            <span>💻 Lisensi Aplikasi Desktop</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCategoryFilter('web')}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              categoryFilter === 'web'
+                ? 'bg-[#1E3D2F] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-[#E6E3DA] hover:bg-gray-50'
+            }`}
+          >
+            <Globe size={14} />
+            <span>🌐 Lisensi Story Generator Website</span>
+          </button>
         </div>
 
         {/* 02. CARA KERJA LISENSI */}
@@ -122,9 +175,9 @@ export const LicensesView = () => {
               1
             </div>
             <div>
-              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Pilih Paket Lisensi</h4>
+              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Pilih Lisensi</h4>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Pilih durasi akses yang Anda butuhkan (1 Bulan, 1 Tahun, atau Lifetime sekali bayar).
+                Pilih kategori Aplikasi Desktop Windows atau Web Story Generator sesuai kebutuhan Anda.
               </p>
             </div>
           </div>
@@ -135,7 +188,7 @@ export const LicensesView = () => {
             <div>
               <h4 className="font-heading font-bold text-sm text-[#191C1A]">Terima Kode Serial & Email</h4>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Kode lisensi unik (format <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px] font-mono">DYARI-XXXX-XXXX</code>) diterbitkan langsung ke email Anda.
+                Kode lisensi unik (format <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px] font-mono">DYARI-XXXX-XXXX</code>) diterbitkan langsung setelah pembayaran.
               </p>
             </div>
           </div>
@@ -144,17 +197,17 @@ export const LicensesView = () => {
               3
             </div>
             <div>
-              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Aktivasi di Story Generator</h4>
+              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Aktivasi Seketika</h4>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Buka menu Story Generator, masukkan email dan kode lisensi Anda. Studio langsung terbuka seketika!
+                Masukkan email dan kode serial pada pop up aktivasi aplikasi desktop atau di web studio. Fitur langsung terbuka!
               </p>
             </div>
           </div>
         </div>
 
         {/* 03. PRICING CARDS */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {licenseTiers.map((tier) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+          {filteredTiers.map((tier) => {
             const IconComp = tier.icon;
             return (
               <div 
@@ -172,6 +225,25 @@ export const LicensesView = () => {
                 )}
 
                 <div className="space-y-6">
+                  {/* Category Pill */}
+                  <div>
+                    {tier.category === 'app' ? (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold ${
+                        tier.isPopular ? 'bg-white/20 text-[#A3E6B5]' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}>
+                        <Monitor size={12} />
+                        <span>💻 LISENSI APLIKASI DESKTOP</span>
+                      </span>
+                    ) : (
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold ${
+                        tier.isPopular ? 'bg-white/20 text-[#A3E6B5]' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      }`}>
+                        <Globe size={12} />
+                        <span>🌐 LISENSI WEB STORY GENERATOR</span>
+                      </span>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className={`font-heading font-extrabold text-lg ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
@@ -181,7 +253,7 @@ export const LicensesView = () => {
                         {tier.subtitle}
                       </p>
                     </div>
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${tier.isPopular ? 'bg-white/10 text-[#A3E6B5]' : 'bg-[#F0EEE6] text-[#1E3D2F]'}`}>
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${tier.isPopular ? 'bg-white/10 text-[#A3E6B5]' : 'bg-[#F0EEE6] text-[#1E3D2F]'}`}>
                       <IconComp size={22} />
                     </div>
                   </div>

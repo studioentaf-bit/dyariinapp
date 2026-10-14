@@ -86,24 +86,48 @@ app.get('/api/license-plans', async (req, res) => {
   try {
     const result = await query("SELECT value FROM settings WHERE key = 'store_config'");
     const store = (result.rows.length > 0 && result.rows[0].value) || {};
-    const plans = store.licensePackages || store.license_plans || store.licensePlans || [
+    const rawPlans = store.licensePackages || store.license_plans || store.licensePlans;
+    const plans = (Array.isArray(rawPlans) && rawPlans.length > 0) ? rawPlans : [
       {
-        id: 'pro_all',
-        name: 'Pro All Fitur (Lifetime)',
+        id: 'app_lifetime',
+        name: 'Desktop Pro All Fitur (Lifetime)',
+        category: 'app',
         price: 149000,
         original_price: 299000,
-        description: 'Akses penuh ke semua platform AI, Story Generator, Video Splitter, Merger, dan fitur tanpa batas.',
-        features: ['Story Generator Built-in', 'Voice Over Text-to-Speech', 'Video Tools (Split & Merge)', 'Unlimited Akun Platform AI', 'Lifetime Update & Support'],
+        description: 'Aplikasi Desktop Windows • Akses penuh semua platform AI, Story Generator, Video Splitter, Merger.',
+        features: ['Story Generator Built-in Studio', 'Voice Over Text-to-Speech', 'Video Tools (Split & Merge)', 'Unlimited Akun Platform AI', 'Auto Updater & Lifetime Support'],
         badge: 'TERPOPULER',
         enabled: true
       },
       {
-        id: 'pro_monthly',
-        name: 'Pro Bulanan (30 Hari)',
+        id: 'app_monthly',
+        name: 'Desktop Pro Bulanan (30 Hari)',
+        category: 'app',
         price: 49000,
         original_price: 99000,
-        description: 'Akses seluruh fitur Pro selama 30 hari.',
-        features: ['Story Generator Built-in', 'Voice Over Text-to-Speech', 'Akses Semua Fitur Pro', 'Masa Aktif 30 Hari'],
+        description: 'Aplikasi Desktop Windows • Akses seluruh fitur Pro selama 30 hari.',
+        features: ['Story Generator Built-in Studio', 'Voice Over Text-to-Speech', 'Akses Semua Fitur Pro', 'Masa Aktif 30 Hari'],
+        enabled: true
+      },
+      {
+        id: 'web_starter',
+        name: 'Web Starter License (30 Hari)',
+        category: 'web',
+        price: 39000,
+        original_price: 79000,
+        description: 'Akses Web Story Generator di Browser selama 30 hari.',
+        features: ['Akses Web Story Generator', 'Storyboard Sinematik (5 Kategori)', 'AI Prompt Studio (6 Mode)', 'Voice Over TTS Gemini'],
+        enabled: true
+      },
+      {
+        id: 'web_lifetime',
+        name: 'Web Lifetime Ultimate',
+        category: 'web',
+        price: 199000,
+        original_price: 499000,
+        description: 'Akses Seumur Hidup Web Story Generator di Browser.',
+        features: ['Akses Seumur Hidup Web Story Generator', 'Bebas Gunakan Semua Mode Tanpa Batas', 'Update Formula Prompt Masa Depan', 'Dukungan VIP Teknis'],
+        badge: 'BEST VALUE',
         enabled: true
       }
     ];

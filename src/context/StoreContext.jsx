@@ -183,62 +183,85 @@ export const getLicenseEffectiveStatus = (license) => {
   };
 };
 
-// --- DEFAULT PAKET & TIER LISENSI STORY GENERATOR (BISA DIATUR, DITAMBAH & DIHAPUS OLEH ADMIN) ---
+// --- DEFAULT PAKET & TIER LISENSI (2 KATEGORI: APLIKASI DESKTOP & WEB STORY GENERATOR) ---
 export const defaultLicensePackages = [
+  // KATEGORI 1: LISENSI APLIKASI DESKTOP
   {
-    id: 'starter',
-    name: 'Starter License',
-    subtitle: 'Cocok untuk eksperimen & proyek cepat',
+    id: 'app_lifetime',
+    name: 'Desktop Pro All Fitur (Lifetime)',
+    category: 'app',
+    subtitle: 'Aplikasi Desktop Windows • Akses Selamanya Sekali Bayar',
+    price: 149000,
+    originalPrice: 299000,
+    duration: 'Selamanya (Lifetime)',
+    period: 'Sekali Bayar Selamanya',
+    badge: 'Paling Populer ⭐',
+    features: [
+      'Akses Penuh Aplikasi Desktop Story.in AI Manager',
+      'Multi-Akun Container AI Terisolasi Tanpa Batas',
+      'Story Generator Built-in Studio (Storyboard & Prompt)',
+      'Neural Voice Over TTS Gemini (Bahasa ID & EN)',
+      'Video Splitter & Video Merger Cepat Built-in',
+      'Auto-Updater Terpadu & Aktivasi HWID Resmi'
+    ],
+    isPopular: true
+  },
+  {
+    id: 'app_monthly',
+    name: 'Desktop Pro Bulanan',
+    category: 'app',
+    subtitle: 'Aplikasi Desktop Windows • Masa Aktif 30 Hari',
     price: 49000,
     originalPrice: 99000,
     duration: '30 Hari (1 Bulan)',
     period: '1 Bulan Akses',
     badge: '',
     features: [
-      'Akses penuh Storyboard Sinematik (5 Mode)',
-      'Prompt Studio Imagen 3, Midjourney & Flux',
-      'Neural Voice Over (TTS Bahasa Indonesia & Global)',
-      'Client-side Video Tools & Merger',
-      'Sistem BYOK (Bring Your Own Key) tanpa limit',
-      'Riwayat generate tersimpan lokal di browser'
+      'Akses Aplikasi Desktop Story.in AI Manager (30 Hari)',
+      'Multi-Akun Container AI Terisolasi',
+      'Story Generator Built-in Studio',
+      'Neural Voice Over TTS Gemini',
+      'Video Splitter & Video Merger'
+    ],
+    isPopular: false
+  },
+
+  // KATEGORI 2: LISENSI STORY GENERATOR WEBSITE
+  {
+    id: 'web_starter',
+    name: 'Web Starter License',
+    category: 'web',
+    subtitle: 'Akses Web Story Generator di Browser • 30 Hari',
+    price: 39000,
+    originalPrice: 79000,
+    duration: '30 Hari (1 Bulan)',
+    period: '1 Bulan Akses',
+    badge: '',
+    features: [
+      'Akses Web Story Generator di dyariapp.my.id',
+      'Storyboard Sinematik (5 Kategori)',
+      'AI Image Prompt Studio (6 Mode)',
+      'Neural Voice Over Teks ke Suara Gemini',
+      'Simpan Riwayat Prompt Lokal di Browser'
     ],
     isPopular: false
   },
   {
-    id: 'creator',
-    name: 'Pro Creator License',
-    subtitle: 'Pilihan paling populer kreator & agensi',
+    id: 'web_lifetime',
+    name: 'Web Lifetime Ultimate',
+    category: 'web',
+    subtitle: 'Akses Web Story Generator Selamanya di Browser',
     price: 199000,
     originalPrice: 499000,
-    duration: '1 Tahun (365 Hari)',
-    period: '1 Tahun Akses',
-    badge: 'Paling Populer ⭐',
-    features: [
-      'Semua fitur Starter License',
-      'Masa aktif 1 Tahun penuh (Hemat 65%)',
-      'Hak komersial penuh untuk produksi konten klien',
-      'Bebas update fitur & formula prompt terbaru',
-      'Prioritas bantuan teknis WhatsApp',
-      'Integrasi 1-klik Google Flow & Veo prompt'
-    ],
-    isPopular: true
-  },
-  {
-    id: 'lifetime',
-    name: 'Lifetime Ultimate',
-    subtitle: 'Sekali bayar, nikmati akses selamanya',
-    price: 349000,
-    originalPrice: 799000,
     duration: 'Selamanya (Lifetime)',
     period: 'Sekali Bayar Selamanya',
     badge: 'Best Value 💎',
     features: [
-      'Akses seumur hidup (Lifetime) tanpa perpanjangan',
-      'Semua fitur Story Generator AI tanpa batas',
-      'Bebas gunakan untuk multi-proyek selamanya',
-      'Akses gratis ke seluruh upgrade engine masa depan',
-      'VIP Creator Support langsung dengan tim dyari.in',
-      'Aset panduan promosi video lengkap'
+      'Akses Seumur Hidup Web Story Generator',
+      'Bebas Gunakan Semua Mode Tanpa Batas',
+      'Pembaruan Formula Prompt & Fitur Web Masa Depan',
+      'Hak Komersial Penuh untuk Konten Klien',
+      'Dukungan VIP Teknis WhatsApp'
     ],
     isPopular: false
   }
@@ -394,9 +417,13 @@ export const StoreProvider = ({ children }) => {
     try {
       const hash = (window.location.hash || '').replace('#', '').trim();
       const [viewPart] = hash.split('?');
-      const validViews = ['home', 'shop', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
+      const validViews = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
       if (viewPart && validViews.includes(viewPart)) {
         return viewPart;
+      }
+      const saved = localStorage.getItem('dyari_current_view');
+      if (saved && validViews.includes(saved)) {
+        return saved;
       }
     } catch (_) {}
     return 'home';
@@ -409,9 +436,12 @@ export const StoreProvider = ({ children }) => {
     const handleHash = () => {
       const rawHash = (window.location.hash || '').replace('#', '').trim();
       const [viewPart, queryPart] = rawHash.split('?');
-      const validViews = ['home', 'shop', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
+      const validViews = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
       if (viewPart && validViews.includes(viewPart)) {
         setCurrentView(viewPart);
+        try {
+          localStorage.setItem('dyari_current_view', viewPart);
+        } catch (_) {}
       }
       if (viewPart === 'invoice' && queryPart) {
         const params = new URLSearchParams(queryPart);
@@ -1081,6 +1111,7 @@ export const StoreProvider = ({ children }) => {
     if (productId) setSelectedProductId(productId);
     setCurrentView(view);
     try {
+      localStorage.setItem('dyari_current_view', view);
       if (window.location.hash !== `#${view}`) {
         window.location.hash = view;
       }

@@ -218,9 +218,43 @@ Jika ada perubahan di source code desktop (`metafori/story-in-manager-wpf`):
 & "C:\Users\studi\.dotnet\dotnet.exe" publish "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\AIPilotManager.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish"
 
 # 2. Salin binary ke folder siap pakai
+Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.in-AI-Manager.exe" "c:\Users\studi\Downloads\metafori\Story.in-AI-Manager.exe" -Force
 Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.in-AI-Manager.exe" "c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe" -Force
-Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\story-generator" "c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\story-generator" -Recurse -Force
 ```
+
+---
+
+## 📝 7. RIWAYAT UPDATE & LOG PERBAIKAN SISTEM TERKINI (14 OKTOBER 2026)
+
+### A. Perbaikan Crash & Penguatan Aplikasi Desktop WPF (`Story.in-AI-Manager.exe`)
+1. **Crash Fix Resolving (`System.InvalidOperationException`)**:
+   - Menghapus pemicu animasi hover `RenderTransform` implisit di `story-in-manager-wpf/App.xaml` yang menyebabkan crash fatal saat user belum memasukkan lisensi dan mengklik menu.
+2. **First Launch Pop-Up Aktivasi**:
+   - Jika pengguna baru mengunduh aplikasi dan membukanya untuk pertama kali dalam keadaan belum teraktivasi, aplikasi secara otomatis memunculkan pop-up dialog aktivasi dengan field **Email** dan **Kode Lisensi** yang kosong (kosongan) siap diisi.
+3. **Penguncian Menu & Ikon Gembok (🔒)**:
+   - Jika pop-up ditutup tanpa aktivasi, seluruh menu fitur (Platform AI, AI Studio / Story Generator, Tools AI) menampilkan indikator gembok (🔒).
+   - Pengguna bebas membuka menu **Setting**, **Video Tutorial**, dan **Shop Produk** tanpa terkunci.
+   - Mengklik menu yang terkunci akan kembali mengingatkan user dan memunculkan pop-up aktivasi tanpa crash.
+4. **List Akun Platform Bersih (Clean Slate)**:
+   - Menghapus seluruh akun dummy / mock bawaan dari `StorageService.cs`. Saat aplikasi pertama kali dipasang, daftar akun benar-benar kosong sehingga pengguna menambahkan akun dari awal.
+5. **Header Badges Dinamis**:
+   - Menambahkan **Badge Lisensi** di kanan atas header: menampilkan status `FREE (Klik untuk Aktivasi)` warna abu/merah saat belum aktif (dapat diklik langsung untuk membuka modal aktivasi), dan berubah menjadi `PRO_ALL (👑 Aktif)` warna hijau matcha saat lisensi valid.
+   - Menambahkan **Badge Versi Aplikasi** (`v0.0.1`) di sebelah badge lisensi.
+6. **Rilis Binary Portable**:
+   - Meng-compile ulang single-file executable .NET 8 (163 MB) dan mengunggahnya ke GitHub Release `v0.0.1` repo `studioentaf-bit/dyariinapp`.
+
+### B. Perbaikan Navigasi & Pemisahan 2 Kategori Lisensi Website (`DYARIKU`)
+1. **Navigasi Persisten Saat Refresh (F5)**:
+   - Memperbaiki `StoreContext.jsx` dengan mendaftarkan route `licenses`, `download`, `about` ke dalam daftar `validViews`.
+   - Mengaitkan state `currentView` dengan `localStorage.getItem('dyari_current_view')` dan `window.location.hash`.
+   - Hasil: saat pengguna me-refresh browser di halaman mana pun (misal: menu Lisensi atau Download), halaman **tetap berada di menu aktif** dan tidak lagi reset kembali ke Beranda.
+2. **Pemisahan 2 Kategori Lisensi**:
+   - **Kategori 1: 💻 Lisensi Aplikasi Desktop** (Membuka akses software Windows Story.in AI Manager, multi-akun AI, video tools, auto updater).
+   - **Kategori 2: 🌐 Lisensi Story Generator Website** (Membuka akses studio web generator AI di browser dyariapp.my.id).
+   - Menambahkan tab filter interaktif di `LicensesView.jsx`: `Semua Lisensi`, `💻 Lisensi Aplikasi Desktop`, dan `🌐 Lisensi Story Generator Website`.
+   - Menyematkan badge kategori pill pada masing-masing kartu paket lisensi.
+   - Memperbarui Panel Admin (`AdminDashboardView.jsx`) sehingga admin dapat memilih kategori lisensi saat menambah atau mengedit tier lisensi.
+   - Memperbarui API backend `/api/license-plans` di `server/index.js` untuk menyajikan paket berdasarkan kedua kategori tersebut.
 
 ---
 

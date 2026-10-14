@@ -221,6 +221,7 @@ export const AdminDashboardView = () => {
   const [packageFormData, setPackageFormData] = useState({
     id: '',
     name: '',
+    category: 'app', // 'app' | 'web'
     subtitle: '',
     duration: '30 Hari (1 Bulan)',
     price: 49000,
@@ -922,6 +923,7 @@ export const AdminDashboardView = () => {
     setPackageFormData({
       id: '',
       name: '',
+      category: 'app',
       subtitle: '',
       duration: '30 Hari (1 Bulan)',
       price: 49000,
@@ -939,6 +941,7 @@ export const AdminDashboardView = () => {
     setPackageFormData({
       id: pkg.id,
       name: pkg.name,
+      category: pkg.category || ((pkg.id && pkg.id.includes('app')) || (pkg.name && pkg.name.toLowerCase().includes('desktop')) ? 'app' : 'web'),
       subtitle: pkg.subtitle || '',
       duration: pkg.duration || pkg.period || '30 Hari',
       price: pkg.price || 0,
@@ -961,6 +964,7 @@ export const AdminDashboardView = () => {
 
     const payload = {
       name: packageFormData.name.trim(),
+      category: packageFormData.category || 'app',
       subtitle: packageFormData.subtitle.trim(),
       duration: packageFormData.duration.trim(),
       period: packageFormData.duration.trim(),
@@ -4182,6 +4186,17 @@ export const AdminDashboardView = () => {
                             <div className="space-y-3">
                               <div className="flex items-start justify-between gap-2">
                                 <div>
+                                  <div className="mb-1">
+                                    {(pkg.category === 'app' || (pkg.id && pkg.id.includes('app')) || (pkg.name && pkg.name.toLowerCase().includes('desktop'))) ? (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                                        💻 Aplikasi Desktop
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                        🌐 Web Story Generator
+                                      </span>
+                                    )}
+                                  </div>
                                   <h4 className="font-heading font-extrabold text-base text-forest">
                                     {pkg.name}
                                   </h4>
@@ -5409,6 +5424,18 @@ export const AdminDashboardView = () => {
             </div>
 
             <form onSubmit={handleSavePackage} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-forest">Kategori Lisensi</label>
+                <select
+                  value={packageFormData.category || 'app'}
+                  onChange={(e) => setPackageFormData({ ...packageFormData, category: e.target.value })}
+                  className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none font-bold"
+                >
+                  <option value="app">💻 Lisensi Aplikasi Desktop (Story.in AI Manager)</option>
+                  <option value="web">🌐 Lisensi Story Generator Website (Web Studio)</option>
+                </select>
+              </div>
+
               <div className="space-y-1">
                 <label className="text-xs font-bold text-forest">Nama Paket Lisensi</label>
                 <input
