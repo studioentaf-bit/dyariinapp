@@ -2246,18 +2246,7 @@
             if (!raw) return "";
             let k = String(raw).trim().replace(/^["'`\\ \t\r\n]+|["'`\\ \t\r\n]+$/g, "");
             k = k.replace(/^(?:[a-zA-Z_-]*key\s*[:=]\s*|[0-9]+\.\s*)/i, "").trim();
-            if (k.startsWith("Ab8RN6") && !k.startsWith("AQ.")) {
-                k = "AQ." + k;
-            } else if (k.startsWith("c5uW9n0r3ZZ35wgMXA0x8H409xZA7z0P7n6uk_MpCQ")) {
-                k = "AQ.Ab8RN6Jn" + k;
-            } else if (k.startsWith("n4Tc9Bq1_YaoJoChKEgV2WfyiAtU4gzr3BOa2VFCEA")) {
-                k = "AQ.Ab8RN6KF" + k;
-            } else if (k.startsWith("OXCxdL2Z15oq4gs9c3ZYiaqkPV4pCrQAg1YrjHug7A")) {
-                k = "AQ.Ab8RN6LD" + k;
-            } else if (k.startsWith("AQ") && !k.startsWith("AQ.")) {
-                k = "AQ." + k.substring(2);
-            }
-            return k.trim();
+            return k;
         }
 
         // Initialize All Selectors
@@ -3385,9 +3374,24 @@
             return m;
         }
 
+        // Auto-purge legacy mock test keys so new/existing clients always start clean
+        (function purgeLegacyTestKeys() {
+            try {
+                const k = localStorage.getItem('gemini_api_key') || '';
+                if (k.includes('Ab8RN6') || k.includes('OXCxdL2Z') || k.includes('c5uW9n0r') || k.includes('ORPHFwNT')) {
+                    localStorage.removeItem('gemini_api_key');
+                }
+            } catch (_) {}
+        })();
+
         // Settings Modal
         function openSettingsModal() {
-            document.getElementById('inputSettingsApiKey').value = localStorage.getItem('gemini_api_key') || '';
+            let curKey = localStorage.getItem('gemini_api_key') || '';
+            if (curKey.includes('Ab8RN6') || curKey.includes('OXCxdL2Z') || curKey.includes('c5uW9n0r') || curKey.includes('ORPHFwNT')) {
+                localStorage.removeItem('gemini_api_key');
+                curKey = '';
+            }
+            document.getElementById('inputSettingsApiKey').value = curKey;
             document.getElementById('selectGeminiModel').value = getActiveGeminiModel();
             document.getElementById('settingsTestResultDiv')?.classList.add('hidden');
             document.getElementById('settingsModal')?.classList.remove('hidden');

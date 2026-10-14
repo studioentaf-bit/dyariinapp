@@ -1796,21 +1796,34 @@ export const StoreProvider = ({ children }) => {
 
   // Store Settings Actions
   const updateStoreSettings = (newSettings) => {
-    setStoreSettings(prev => ({ 
-      ...prev, 
-      ...newSettings,
-      // If updating branding or contact or payment directly, sync flat fields
-      storeName: newSettings.branding?.storeName || newSettings.storeName || prev.storeName,
-      tagline: newSettings.branding?.tagline || newSettings.tagline || prev.tagline,
-      logoUrl: newSettings.branding?.logoUrl || newSettings.logoUrl || prev.logoUrl,
-      heroTitle: newSettings.branding?.heroTitle || newSettings.heroTitle || prev.heroTitle,
-      heroSubtitle: newSettings.branding?.heroSubtitle || newSettings.heroSubtitle || prev.heroSubtitle,
-      announcement: newSettings.branding?.announcement || newSettings.announcement || prev.announcement,
-      showAnnouncement: newSettings.branding?.showAnnouncement !== undefined ? newSettings.branding.showAnnouncement : (newSettings.showAnnouncement !== undefined ? newSettings.showAnnouncement : prev.showAnnouncement),
-      whatsapp: newSettings.contact?.whatsapp || newSettings.whatsapp || prev.whatsapp,
-      email: newSettings.contact?.email || newSettings.email || prev.email,
-      qrisImageUrl: newSettings.payment?.qrisImageUrl || newSettings.qrisImageUrl || prev.qrisImageUrl
-    }));
+    setStoreSettings(prev => {
+      const updated = { 
+        ...prev, 
+        ...newSettings,
+        // If updating branding or contact or payment directly, sync flat fields
+        storeName: newSettings.branding?.storeName || newSettings.storeName || prev.storeName,
+        tagline: newSettings.branding?.tagline || newSettings.tagline || prev.tagline,
+        logoUrl: newSettings.branding?.logoUrl || newSettings.logoUrl || prev.logoUrl,
+        heroTitle: newSettings.branding?.heroTitle || newSettings.heroTitle || prev.heroTitle,
+        heroSubtitle: newSettings.branding?.heroSubtitle || newSettings.heroSubtitle || prev.heroSubtitle,
+        announcement: newSettings.branding?.announcement || newSettings.announcement || prev.announcement,
+        showAnnouncement: newSettings.branding?.showAnnouncement !== undefined ? newSettings.branding.showAnnouncement : (newSettings.showAnnouncement !== undefined ? newSettings.showAnnouncement : prev.showAnnouncement),
+        whatsapp: newSettings.contact?.whatsapp || newSettings.whatsapp || prev.whatsapp,
+        email: newSettings.contact?.email || newSettings.email || prev.email,
+        qrisImageUrl: newSettings.payment?.qrisImageUrl || newSettings.payment?.qrisUrl || newSettings.qrisImageUrl || prev.qrisImageUrl,
+        bannerImageUrl: newSettings.branding?.bannerImageUrl || newSettings.bannerImageUrl || prev.bannerImageUrl,
+        desktopBannerUrl: newSettings.branding?.desktopBannerUrl || newSettings.desktopBannerUrl || prev.desktopBannerUrl
+      };
+
+      try {
+        localStorage.setItem('dyari_store_settings_v3', JSON.stringify(updated));
+        api.settings.update(updated).catch(err => {
+          console.error('Failed to sync store settings to server:', err);
+        });
+      } catch (_) {}
+
+      return updated;
+    });
     showToast('Pengaturan Disimpan', 'Konfigurasi toko berhasil diperbarui.');
   };
 

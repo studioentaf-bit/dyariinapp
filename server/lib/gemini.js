@@ -5,18 +5,7 @@ export function normalizeGeminiKey(raw) {
   if (!raw) return "";
   let k = String(raw).trim().replace(/^["'`\\ \t\r\n]+|["'`\\ \t\r\n]+$/g, "");
   k = k.replace(/^(?:[a-zA-Z_-]*key\s*[:=]\s*|[0-9]+\.\s*)/i, "").trim();
-  if (k.startsWith("Ab8RN6") && !k.startsWith("AQ.")) {
-    k = "AQ." + k;
-  } else if (k.startsWith("c5uW9n0r3ZZ35wgMXA0x8H409xZA7z0P7n6uk_MpCQ")) {
-    k = "AQ.Ab8RN6Jn" + k;
-  } else if (k.startsWith("n4Tc9Bq1_YaoJoChKEgV2WfyiAtU4gzr3BOa2VFCEA")) {
-    k = "AQ.Ab8RN6KF" + k;
-  } else if (k.startsWith("OXCxdL2Z15oq4gs9c3ZYiaqkPV4pCrQAg1YrjHug7A")) {
-    k = "AQ.Ab8RN6LD" + k;
-  } else if (k.startsWith("AQ") && !k.startsWith("AQ.")) {
-    k = "AQ." + k.substring(2);
-  }
-  return k.trim();
+  return k;
 }
 
 export async function getAvailableGeminiModels(apiKey) {
