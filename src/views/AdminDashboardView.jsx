@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore, getProductAvailableStock } from '../context/StoreContext';
+import api from '../services/api';
 import { 
   Home, 
   Package, 
@@ -66,7 +67,9 @@ import {
   MessageCircle,
   Maximize2,
   Minimize2,
-  Moon
+  Moon,
+  Video,
+  Play
 } from 'lucide-react';
 
 export const AdminDashboardView = () => {
@@ -240,6 +243,34 @@ export const AdminDashboardView = () => {
   const [grantLicenseDuration, setGrantLicenseDuration] = useState('1 Tahun (365 Hari)');
   const [grantLicenseType, setGrantLicenseType] = useState('PERSONAL');
   const [grantLicenseProductId, setGrantLicenseProductId] = useState('');
+
+  // Member Platform Filter ('all' | 'app' | 'web')
+  const [memberPlatformFilter, setMemberPlatformFilter] = useState('all');
+
+  // Desktop Tutorial Videos Management State
+  const [desktopTutorials, setDesktopTutorials] = useState([]);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [editingTutorialStep, setEditingTutorialStep] = useState(null);
+  const [tutorialStepForm, setTutorialStepForm] = useState({
+    id: '',
+    stepNumber: 'Step 1',
+    title: '',
+    videoUrl: '',
+    description: ''
+  });
+
+  const loadTutorials = async () => {
+    try {
+      const res = await api.tutorials.get();
+      if (res && res.videos && Array.isArray(res.videos)) {
+        setDesktopTutorials(res.videos);
+      }
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    loadTutorials();
+  }, []);
 
   // Category Management Modal State
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -496,6 +527,9 @@ export const AdminDashboardView = () => {
     subcategory: 'Aset Premium · Akses',
     type: 'AKSES MEMBER',
     price: 35000,
+    appPrice: '',
+    showOnWeb: true,
+    showOnApp: true,
     originalPrice: 75000,
     costPrice: 10000,
     afterPurchaseMessage: 'Terima kasih telah berbelanja di dyari.in! Akses file master & materi dapat langsung dibuka melalui tautan di atas.',
@@ -544,6 +578,7 @@ export const AdminDashboardView = () => {
     logoBadge: storeSettings?.branding?.logoBadge || 'dy',
     logoUrl: storeSettings?.branding?.logoUrl || storeSettings?.logoUrl || '',
     bannerImageUrl: storeSettings?.branding?.bannerImageUrl || storeSettings?.bannerImageUrl || '',
+    desktopBannerUrl: storeSettings?.branding?.desktopBannerUrl || storeSettings?.desktopBannerUrl || storeSettings?.branding?.bannerImageUrl || storeSettings?.bannerImageUrl || '',
     heroTitle: storeSettings?.branding?.heroTitle || storeSettings?.heroTitle || 'Bikin keseharianmu jadi sedikit lebih mudah.',
     heroSubtitle: storeSettings?.branding?.heroSubtitle || storeSettings?.heroSubtitle || 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
     announcement: storeSettings?.branding?.announcement || storeSettings?.announcement || 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
@@ -644,6 +679,9 @@ export const AdminDashboardView = () => {
       licenseDuration: prod.licenseDuration || 'LIFETIME',
       targetTool: prod.targetTool || prod.name || '',
       price: prod.price || 0,
+      appPrice: prod.appPrice !== undefined && prod.appPrice !== null ? prod.appPrice : (prod.app_price !== undefined && prod.app_price !== null ? prod.app_price : ''),
+      showOnWeb: prod.showOnWeb !== false && prod.show_on_web !== false,
+      showOnApp: prod.showOnApp !== false && prod.show_on_app !== false,
       originalPrice: prod.originalPrice || '',
       costPrice: prod.costPrice !== undefined ? prod.costPrice : Math.round((prod.price || 0) * 0.25),
       afterPurchaseMessage: prod.afterPurchaseMessage || (
@@ -687,6 +725,9 @@ export const AdminDashboardView = () => {
       licenseDuration: 'LIFETIME',
       targetTool: '',
       price: 35000,
+      appPrice: '',
+      showOnWeb: true,
+      showOnApp: true,
       originalPrice: 75000,
       costPrice: 10000,
       afterPurchaseMessage: 'Terima kasih telah berbelanja di dyari.in! Akses link master & bonus Anda dapat langsung diakses melalui tautan di atas.',
@@ -1195,8 +1236,50 @@ export const AdminDashboardView = () => {
   // Save Settings Handlers
   const handleSaveBranding = (e) => {
     e.preventDefault();
-    updateStoreSettings({ branding: brandingForm });
-    showToast('Branding Toko Disimpan', 'Tampilan website publik telah diperbarui.');
+    const finalForm = {
+      ...brandingForm,
+      desktopBannerUrl: brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl
+    };
+    updateStoreSettings({ 
+      branding: finalForm,
+      bannerImageUrl: finalForm.bannerImageUrl,
+      desktopBannerUrl: finalForm.desktopBannerUrl
+    });
+    showToast('Branding Toko Disimpan', 'Tampilan website publik dan banner aplikasi desktop telah diperbarui.');
+  };
+
+  const handleSaveTutorialStep = async (e) => {
+    e.preventDefault();
+    let updated;
+    if (editingTutorialStep) {
+      updated = desktopTutorials.map(t => t.id === editingTutorialStep.id ? { ...t, ...tutorialStepForm } : t);
+    } else {
+      const newStep = {
+        ...tutorialStepForm,
+        id: `step-${Date.now()}`
+      };
+      updated = [...desktopTutorials, newStep];
+    }
+    setDesktopTutorials(updated);
+    setShowTutorialModal(false);
+    try {
+      await api.tutorials.update(updated);
+      showToast('Tutorial Disimpan', 'Step tutorial video desktop berhasil diperbarui.');
+    } catch (err) {
+      showToast('Error', 'Gagal menyimpan tutorial ke server.');
+    }
+  };
+
+  const handleDeleteTutorialStep = async (stepId) => {
+    if (!window.confirm('Hapus step tutorial ini?')) return;
+    const updated = desktopTutorials.filter(t => t.id !== stepId);
+    setDesktopTutorials(updated);
+    try {
+      await api.tutorials.update(updated);
+      showToast('Step Dihapus', 'Step tutorial berhasil dihapus.');
+    } catch (err) {
+      showToast('Error', 'Gagal menghapus tutorial dari server.');
+    }
   };
 
   const handleSaveContact = (e) => {
@@ -1233,7 +1316,7 @@ export const AdminDashboardView = () => {
     },
     { 
       id: 'member', 
-      label: 'Member Story AI', 
+      label: 'Member', 
       icon: Users,
       badge: licenses.length
     },
@@ -1262,6 +1345,7 @@ export const AdminDashboardView = () => {
       hasChildren: true,
       children: [
         { id: 'branding', label: 'Branding Web' },
+        { id: 'tutorial-desktop', label: 'Tutorial Video Desktop' },
         { id: 'kontak', label: 'Kontak' },
         { id: 'pembayaran', label: 'Pengaturan Pembayaran' },
         { id: 'keamanan', label: 'Keamanan Akun Admin' }
@@ -2896,10 +2980,7 @@ export const AdminDashboardView = () => {
           )}
 
           {/* ======================================================== */}
-          {/* TAB 4: MEMBER                                            */}
-          {/* ======================================================== */}
-          {/* ======================================================== */}
-          {/* TAB 4: MEMBER (STORY GENERATOR LICENSE MEMBERS)          */}
+          {/* TAB 4: MEMBER (DESKTOP & WEB STORY GENERATOR MEMBERS)     */}
           {/* ======================================================== */}
           {activeMenu === 'member' && (
             <div className="space-y-6">
@@ -2907,15 +2988,15 @@ export const AdminDashboardView = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                      🎬 Story Generator Studio
+                      👥 Database Member Lisensi
                     </span>
-                    <span className="text-xs text-warmgray">• Otentikasi Email & Lisensi</span>
+                    <span className="text-xs text-warmgray">• Aplikasi Desktop &amp; Web Story Generator</span>
                   </div>
                   <h1 className="text-2xl font-heading font-extrabold text-[#1C352D]">
-                    Manajemen Member Story Generator
+                    Manajemen Member
                   </h1>
                   <p className="text-xs text-[#737873] mt-0.5">
-                    Daftar seluruh member terdaftar pemegang lisensi Story Generator AI. Member membuka studio AI menggunakan email dan kode lisensi yang terdata di sini.
+                    Daftar seluruh member pemegang lisensi aktif baik Lisensi Web Story Generator maupun Lisensi Aplikasi Desktop.
                   </p>
                 </div>
 
@@ -2923,12 +3004,12 @@ export const AdminDashboardView = () => {
                   <button
                     onClick={() => {
                       setLicenseFormData({
-                        productId: 'story-generator',
-                        productName: 'Story Generator Pro AI',
+                        productId: licensePackages[0]?.id || 'app_monthly',
+                        productName: licensePackages[0]?.name || 'Desktop Pro Bulanan',
                         customerName: '',
                         customerEmail: '',
                         type: 'PERSONAL',
-                        expiresAt: 'Selamanya (Lifetime)',
+                        expiresAt: licensePackages[0]?.duration || '30 Hari (1 Bulan)',
                         code: ''
                       });
                       setShowAddLicenseModal(true);
@@ -2936,7 +3017,7 @@ export const AdminDashboardView = () => {
                     className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-sm"
                   >
                     <Plus size={14} />
-                    <span>+ Daftarkan Member Story Generator</span>
+                    <span>+ Daftarkan Member</span>
                   </button>
                 </div>
               </div>
@@ -2993,13 +3074,43 @@ export const AdminDashboardView = () => {
                       type="text"
                       value={memberSearchQuery}
                       onChange={(e) => setMemberSearchQuery(e.target.value)}
-                      placeholder="Cari nama, email, atau kode lisensi member..."
+                      placeholder="Cari nama, email, paket, atau kode lisensi member..."
                       className="w-full bg-[#F7F9F7] border border-[#E5EAE4] text-xs rounded-xl py-2 pl-9 pr-3 text-forest focus:outline-none"
                     />
                   </div>
 
-                  <div className="text-xs text-warmgray">
-                    Menampilkan <strong>{licenses.filter(l => (l.customerName || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) || (l.customerEmail || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) || (l.code || '').toLowerCase().includes(memberSearchQuery.toLowerCase())).length}</strong> member terdaftar
+                  {/* Platform Filter Tabs */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    <button
+                      onClick={() => setMemberPlatformFilter('all')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        memberPlatformFilter === 'all'
+                          ? 'bg-forest text-white shadow-xs'
+                          : 'bg-[#F7F9F7] text-warmgray hover:text-forest border border-[#E5EAE4]'
+                      }`}
+                    >
+                      Semua ({licenses.length})
+                    </button>
+                    <button
+                      onClick={() => setMemberPlatformFilter('app')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        memberPlatformFilter === 'app'
+                          ? 'bg-sky-700 text-white shadow-xs'
+                          : 'bg-[#F7F9F7] text-warmgray hover:text-sky-800 border border-[#E5EAE4]'
+                      }`}
+                    >
+                      💻 Lisensi Aplikasi ({licenses.filter(l => l.category === 'app' || (l.productName||'').toLowerCase().includes('desktop') || (l.productName||'').toLowerCase().includes('aplikasi') || (l.productName||'').toLowerCase().includes('pilot')).length})
+                    </button>
+                    <button
+                      onClick={() => setMemberPlatformFilter('web')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        memberPlatformFilter === 'web'
+                          ? 'bg-emerald-700 text-white shadow-xs'
+                          : 'bg-[#F7F9F7] text-warmgray hover:text-emerald-800 border border-[#E5EAE4]'
+                      }`}
+                    >
+                      🌐 Lisensi Web ({licenses.filter(l => l.category !== 'app' && !(l.productName||'').toLowerCase().includes('desktop') && !(l.productName||'').toLowerCase().includes('aplikasi') && !(l.productName||'').toLowerCase().includes('pilot')).length})
+                    </button>
                   </div>
                 </div>
 
@@ -3010,7 +3121,7 @@ export const AdminDashboardView = () => {
                         <th className="py-3 font-semibold">Nama Member</th>
                         <th className="py-3 font-semibold">Email Login Terdaftar</th>
                         <th className="py-3 font-semibold">Kunci Lisensi (Key)</th>
-                        <th className="py-3 font-semibold">Paket & Hak Akses</th>
+                        <th className="py-3 font-semibold">Paket &amp; Platform</th>
                         <th className="py-3 font-semibold">Masa Berlaku</th>
                         <th className="py-3 font-semibold">Status Akses</th>
                         <th className="py-3 font-semibold text-right">Aksi</th>
@@ -3018,14 +3129,31 @@ export const AdminDashboardView = () => {
                     </thead>
                     <tbody className="divide-y divide-[#F0F4F1]">
                       {licenses
-                        .filter(l => 
-                          (l.customerName || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) || 
-                          (l.customerEmail || '').toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
-                          (l.code || '').toLowerCase().includes(memberSearchQuery.toLowerCase())
-                        )
+                        .filter(l => {
+                          const q = memberSearchQuery.toLowerCase();
+                          const matchesQ = 
+                            (l.customerName || '').toLowerCase().includes(q) || 
+                            (l.customerEmail || '').toLowerCase().includes(q) ||
+                            (l.code || '').toLowerCase().includes(q) ||
+                            (l.productName || '').toLowerCase().includes(q);
+                          if (!matchesQ) return false;
+
+                          const isAppLic = l.category === 'app' || 
+                            (l.productName || '').toLowerCase().includes('desktop') || 
+                            (l.productName || '').toLowerCase().includes('aplikasi') ||
+                            (l.productName || '').toLowerCase().includes('pilot');
+
+                          if (memberPlatformFilter === 'app') return isAppLic;
+                          if (memberPlatformFilter === 'web') return !isAppLic;
+                          return true;
+                        })
                         .map((lic) => {
                           const effective = getLicenseEffectiveStatus(lic);
                           const isLocked = effective.isLocked;
+                          const isAppLic = lic.category === 'app' || 
+                            (lic.productName || '').toLowerCase().includes('desktop') || 
+                            (lic.productName || '').toLowerCase().includes('aplikasi') ||
+                            (lic.productName || '').toLowerCase().includes('pilot');
 
                           return (
                             <tr key={lic.id} className="hover:bg-[#FAFBF9] transition-colors">
@@ -3044,13 +3172,19 @@ export const AdminDashboardView = () => {
 
                               {/* EMAIL LOGIN */}
                               <td className="py-3.5">
-                                <div className="space-y-0.5">
+                                <div className="space-y-1">
                                   <span className="font-mono text-xs font-semibold text-forest block">
                                     {lic.customerEmail || '-'}
                                   </span>
-                                  <span className="inline-block text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200">
-                                    Otentikasi Story Generator
-                                  </span>
+                                  {isAppLic ? (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-sky-800 bg-sky-50 px-2 py-0.2 rounded-full border border-sky-200">
+                                      💻 Login Aplikasi Desktop
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200">
+                                      🌐 Login Web Story Generator
+                                    </span>
+                                  )}
                                 </div>
                               </td>
 
@@ -3077,7 +3211,9 @@ export const AdminDashboardView = () => {
                                   <p className="font-semibold text-forest truncate max-w-[160px]">
                                     {lic.productName || 'Story Generator Pro AI'}
                                   </p>
-                                  <span className="inline-block bg-purple-100 text-purple-900 font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                                  <span className={`inline-block font-bold px-2 py-0.5 rounded text-[9px] uppercase tracking-wider ${
+                                    isAppLic ? 'bg-sky-100 text-sky-900 border border-sky-200' : 'bg-purple-100 text-purple-900'
+                                  }`}>
                                     {lic.type || 'PERSONAL'} • {lic.durationLabel || lic.expiresAt}
                                   </span>
                                 </div>
@@ -3474,8 +3610,15 @@ export const AdminDashboardView = () => {
                                   <td className="py-3.5 px-4 font-mono font-semibold text-amber-900">
                                     Rp {(p.costPrice !== undefined ? p.costPrice : Math.round((p.price || 0) * 0.25)).toLocaleString('id-ID')}
                                   </td>
-                                  <td className="py-3.5 px-4 font-mono font-bold text-forest">
-                                    Rp {p.price.toLocaleString('id-ID')}
+                                  <td className="py-3.5 px-4 font-mono text-forest">
+                                    <div className="font-bold">Rp {p.price.toLocaleString('id-ID')}</div>
+                                    <div className="text-[10px] text-sky-800 font-semibold mt-0.5">
+                                      App: {p.appPrice ? `Rp ${Number(p.appPrice).toLocaleString('id-ID')}` : 'Sama dg Web'}
+                                    </div>
+                                    <div className="flex items-center gap-1 mt-1 text-[9px]">
+                                      <span className={`px-1.5 py-0.2 rounded font-bold ${p.showOnWeb !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-500 line-through'}`}>🌐 Web</span>
+                                      <span className={`px-1.5 py-0.2 rounded font-bold ${p.showOnApp !== false ? 'bg-sky-100 text-sky-800' : 'bg-gray-200 text-gray-500 line-through'}`}>💻 App</span>
+                                    </div>
                                   </td>
                                   <td className="py-3.5 px-4">
                                     {p.badge ? (
@@ -4571,6 +4714,16 @@ export const AdminDashboardView = () => {
                   🎨 Branding Web
                 </button>
                 <button
+                  onClick={() => setSubTabPengaturan('tutorial-desktop')}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    subTabPengaturan === 'tutorial-desktop'
+                      ? 'bg-forest text-white shadow-xs'
+                      : 'bg-white text-warmgray hover:text-forest border border-[#E5EAE4]'
+                  }`}
+                >
+                  🎬 Tutorial Video Desktop
+                </button>
+                <button
                   onClick={() => setSubTabPengaturan('kontak')}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
                     subTabPengaturan === 'kontak'
@@ -4746,7 +4899,79 @@ export const AdminDashboardView = () => {
                             className="w-full bg-white rounded-xl border border-[#E5EAE4] px-3 py-1.5 text-xs text-forest focus:outline-none font-mono"
                           />
                           <p className="text-[10px] text-warmgray">
-                            Format disarankan: JPG, PNG, atau WebP (Rasio 16:9 atau 21:9). Tampil otomatis di hero banner aplikasi desktop dan website.
+                            Format disarankan: JPG, PNG, atau WebP (Rasio 16:9 atau 21:9). Tampil di hero section website beranda.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Banner Khusus Dashboard Aplikasi Desktop */}
+                    <div className="p-4 rounded-2xl bg-[#F0F7F2] border border-[#B8D8C0] space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-forest block">💻 Banner Dashboard Aplikasi Desktop</label>
+                        {brandingForm.bannerImageUrl && brandingForm.desktopBannerUrl !== brandingForm.bannerImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBrandingForm(prev => ({ ...prev, desktopBannerUrl: prev.bannerImageUrl }));
+                              showToast('Banner Disamakan', 'Banner aplikasi desktop disamakan dengan banner website.');
+                            }}
+                            className="text-[11px] text-emerald-800 font-bold hover:underline"
+                          >
+                            Samakan dengan Banner Web
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="w-28 h-16 rounded-xl bg-white border-2 border-dashed border-[#B8D8C0] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+                          {brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl ? (
+                            <img src={brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl} alt="Banner Desktop" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[10px] text-warmgray font-semibold text-center px-1">Belum ada banner</span>
+                          )}
+                        </div>
+
+                        <div className="space-y-2 flex-1 w-full">
+                          <div className="flex items-center gap-2">
+                            <label className="btn-dyari text-xs px-3.5 py-1.5 cursor-pointer inline-flex items-center gap-1.5 font-bold shadow-xs">
+                              <Upload size={13} />
+                              <span>Pilih File Banner Desktop</span>
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleImageUpload(file, (dataUrl) => {
+                                      setBrandingForm(prev => ({ ...prev, desktopBannerUrl: dataUrl }));
+                                      showToast('Banner Desktop Dipilih', file.name);
+                                    });
+                                  }
+                                }} 
+                              />
+                            </label>
+
+                            {brandingForm.desktopBannerUrl && (
+                              <button
+                                type="button"
+                                onClick={() => setBrandingForm(prev => ({ ...prev, desktopBannerUrl: '' }))}
+                                className="text-xs text-rose-600 hover:underline font-semibold"
+                              >
+                                Gunakan Banner Web
+                              </button>
+                            )}
+                          </div>
+
+                          <input
+                            type="text"
+                            value={brandingForm.desktopBannerUrl || ''}
+                            onChange={(e) => setBrandingForm({ ...brandingForm, desktopBannerUrl: e.target.value })}
+                            placeholder="Atau masukkan URL gambar banner desktop (https://...)"
+                            className="w-full bg-white rounded-xl border border-[#E5EAE4] px-3 py-1.5 text-xs text-forest focus:outline-none font-mono"
+                          />
+                          <p className="text-[10px] text-warmgray">
+                            Banner ini akan tampil langsung di kartu hero dashboard aplikasi Windows Story.in AI Manager. Terhubung dan tersinkronisasi otomatis.
                           </p>
                         </div>
                       </div>
@@ -5179,6 +5404,111 @@ export const AdminDashboardView = () => {
                   </form>
                 </div>
               )}
+
+              {/* SUB-TAB 7E: TUTORIAL VIDEO DESKTOP */}
+              {subTabPengaturan === 'tutorial-desktop' && (
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E5EAE4] shadow-2xs space-y-6 max-w-4xl text-left">
+                  <div className="border-b border-[#F0F4F1] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold mb-1.5">
+                        <Video size={12} className="text-emerald-600" />
+                        <span>Aplikasi Desktop Windows</span>
+                      </div>
+                      <h2 className="text-xl font-heading font-extrabold text-forest">Tutorial Video Aplikasi Desktop</h2>
+                      <p className="text-xs text-warmgray">Kelola tautan video YouTube untuk menu Tutorial di aplikasi desktop. Setiap step dapat ditambah, diedit, dan dihapus secara dinamis.</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingTutorialStep(null);
+                        setTutorialStepForm({
+                          id: '',
+                          stepNumber: `Step ${desktopTutorials.length + 1}`,
+                          title: '',
+                          videoUrl: '',
+                          description: ''
+                        });
+                        setShowTutorialModal(true);
+                      }}
+                      className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-sm shrink-0"
+                    >
+                      <Plus size={14} />
+                      <span>+ Tambah Step Tutorial</span>
+                    </button>
+                  </div>
+
+                  {/* List Tutorial Steps */}
+                  <div className="space-y-3">
+                    {desktopTutorials.length === 0 ? (
+                      <div className="text-center py-10 bg-[#FAFBF9] rounded-2xl border border-dashed border-[#B8D8C0]">
+                        <Video size={36} className="mx-auto text-warmgray mb-2 opacity-50" />
+                        <p className="font-bold text-forest text-sm">Belum Ada Video Tutorial</p>
+                        <p className="text-xs text-warmgray mt-1">Klik "+ Tambah Step Tutorial" untuk memasukkan video panduan YouTube pertama.</p>
+                      </div>
+                    ) : (
+                      desktopTutorials.map((step, idx) => (
+                        <div key={step.id || idx} className="p-4 rounded-2xl bg-[#FAFBF9] border border-[#E5EAE4] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-forest/30 transition-all">
+                          <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-forest text-white font-bold flex items-center justify-center text-xs shrink-0 font-mono shadow-xs">
+                              #{idx + 1}
+                            </div>
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                                  {step.stepNumber || `Step ${idx + 1}`}
+                                </span>
+                                <h4 className="font-heading font-extrabold text-forest text-sm truncate">
+                                  {step.title || 'Tutorial Step'}
+                                </h4>
+                              </div>
+                              <p className="text-xs text-warmgray line-clamp-2">
+                                {step.description || 'Tidak ada deskripsi'}
+                              </p>
+                              <div className="flex items-center gap-1 text-[11px] font-mono text-emerald-700 truncate">
+                                <span>🔗</span>
+                                <a href={step.videoUrl} target="_blank" rel="noreferrer" className="hover:underline truncate">
+                                  {step.videoUrl}
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingTutorialStep(step);
+                                setTutorialStepForm({
+                                  id: step.id,
+                                  stepNumber: step.stepNumber || `Step ${idx + 1}`,
+                                  title: step.title || '',
+                                  videoUrl: step.videoUrl || '',
+                                  description: step.description || ''
+                                });
+                                setShowTutorialModal(true);
+                              }}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-forest border border-[#E5EAE4] hover:bg-forest hover:text-white transition-all inline-flex items-center gap-1"
+                            >
+                              <Edit3 size={12} />
+                              <span>Edit</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTutorialStep(step.id)}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-600 hover:text-white transition-all inline-flex items-center gap-1"
+                            >
+                              <Trash2 size={12} />
+                              <span>Hapus</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -5243,10 +5573,17 @@ export const AdminDashboardView = () => {
                   }}
                   className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3 py-2 text-xs text-forest focus:outline-none font-medium"
                 >
-                  <optgroup label="🎬 Paket Lisensi Story Generator">
-                    {(licensePackages || []).map(pkg => (
+                  <optgroup label="💻 Paket Lisensi Aplikasi Desktop">
+                    {(licensePackages || []).filter(p => p.category === 'app' || (p.name||'').toLowerCase().includes('desktop')).map(pkg => (
                       <option key={pkg.id} value={pkg.id}>
-                        ⭐ {pkg.name} ({pkg.duration || pkg.period}) - Rp {(pkg.price || 0).toLocaleString('id-ID')}
+                        💻 {pkg.name} ({pkg.duration || pkg.period}) - Rp {(pkg.price || 0).toLocaleString('id-ID')}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🌐 Paket Lisensi Web Story Generator">
+                    {(licensePackages || []).filter(p => p.category !== 'app' && !(p.name||'').toLowerCase().includes('desktop')).map(pkg => (
+                      <option key={pkg.id} value={pkg.id}>
+                        🌐 {pkg.name} ({pkg.duration || pkg.period}) - Rp {(pkg.price || 0).toLocaleString('id-ID')}
                       </option>
                     ))}
                   </optgroup>
@@ -6180,8 +6517,8 @@ export const AdminDashboardView = () => {
                 </div>
               </div>
 
-              {/* Row 3: Harga Modal, Harga Jual, Harga Coret */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Row 3: Harga Modal, Harga Web, Harga Aplikasi Desktop, Harga Coret */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-amber-900">Harga Modal (Rp)</label>
                   <input
@@ -6189,20 +6526,33 @@ export const AdminDashboardView = () => {
                     value={productFormData.costPrice || 0}
                     onChange={(e) => setProductFormData({ ...productFormData, costPrice: Number(e.target.value) })}
                     placeholder="10000"
-                    className="w-full bg-amber-50/50 rounded-xl border border-amber-300 px-3.5 py-2 text-xs text-amber-950 font-bold focus:outline-none"
+                    className="w-full bg-amber-50/50 rounded-xl border border-amber-300 px-3 py-2 text-xs text-amber-950 font-bold focus:outline-none"
                   />
-                  <span className="text-[10px] text-warmgray block">HPP untuk hitung laba bersih</span>
+                  <span className="text-[10px] text-warmgray block">HPP profit</span>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-forest">Harga Jual (Rp) <span className="text-rose-500">*</span></label>
+                  <label className="text-xs font-bold text-forest">Harga Web (Rp) <span className="text-rose-500">*</span></label>
                   <input
                     type="number"
                     required
                     value={productFormData.price}
                     onChange={(e) => setProductFormData({ ...productFormData, price: Number(e.target.value) })}
-                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest font-bold focus:outline-none focus:border-forest"
+                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3 py-2 text-xs text-forest font-bold focus:outline-none focus:border-forest"
                   />
+                  <span className="text-[10px] text-emerald-700 block">Tampil di website</span>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-sky-900">Harga Aplikasi (Rp)</label>
+                  <input
+                    type="number"
+                    value={productFormData.appPrice !== undefined ? productFormData.appPrice : ''}
+                    onChange={(e) => setProductFormData({ ...productFormData, appPrice: e.target.value })}
+                    placeholder="Sama dg Web"
+                    className="w-full bg-sky-50/50 rounded-xl border border-sky-300 px-3 py-2 text-xs text-sky-950 font-bold focus:outline-none focus:border-sky-600"
+                  />
+                  <span className="text-[10px] text-sky-700 block">Kosongkan jika sama</span>
                 </div>
 
                 <div className="space-y-1">
@@ -6212,8 +6562,47 @@ export const AdminDashboardView = () => {
                     value={productFormData.originalPrice || ''}
                     onChange={(e) => setProductFormData({ ...productFormData, originalPrice: e.target.value ? Number(e.target.value) : null })}
                     placeholder="75000"
-                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3.5 py-2 text-xs text-forest focus:outline-none"
+                    className="w-full bg-[#F7F9F7] rounded-xl border border-[#E5EAE4] px-3 py-2 text-xs text-forest focus:outline-none"
                   />
+                  <span className="text-[10px] text-warmgray block">Label diskon</span>
+                </div>
+              </div>
+
+              {/* Platform Visibility Toggles (Tampil di Web & Aplikasi Desktop) */}
+              <div className="p-3.5 rounded-2xl bg-[#FAFBF9] border border-[#E5EAE4] space-y-2">
+                <label className="text-xs font-bold text-forest block">
+                  Visibilitas Penjualan Platform:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                    productFormData.showOnWeb !== false ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-white border-[#E5EAE4] text-warmgray opacity-60'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={productFormData.showOnWeb !== false}
+                      onChange={(e) => setProductFormData({ ...productFormData, showOnWeb: e.target.checked })}
+                      className="w-4 h-4 accent-emerald-700 cursor-pointer"
+                    />
+                    <div>
+                      <span className="text-xs font-bold block">🌐 Tampilkan di Website</span>
+                      <span className="text-[10px] text-warmgray block">Produk dapat dibeli di katalog web dyari.in</span>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                    productFormData.showOnApp !== false ? 'bg-sky-50 border-sky-300 text-sky-950' : 'bg-white border-[#E5EAE4] text-warmgray opacity-60'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={productFormData.showOnApp !== false}
+                      onChange={(e) => setProductFormData({ ...productFormData, showOnApp: e.target.checked })}
+                      className="w-4 h-4 accent-sky-700 cursor-pointer"
+                    />
+                    <div>
+                      <span className="text-xs font-bold block">💻 Tampilkan di Aplikasi Desktop</span>
+                      <span className="text-[10px] text-warmgray block">Produk dapat dibeli di menu Shop aplikasi Windows</span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
@@ -7800,6 +8189,112 @@ export const AdminDashboardView = () => {
                 Terbitkan & Simpan Lisensi
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL TAMBAH / EDIT STEP TUTORIAL VIDEO */}
+      {showTutorialModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-purple-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-purple-100 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold">
+                  ▶
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-forest text-base">
+                    {editingTutorialStep ? 'Edit Step Tutorial Video' : 'Tambah Step Tutorial Video'}
+                  </h3>
+                  <p className="text-xs text-warmgray">Link video YouTube untuk menu Tutorial di Aplikasi Desktop</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTutorialModal(false)}
+                className="text-warmgray hover:text-forest p-1 rounded-lg hover:bg-cream"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTutorialStep} className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-1">
+                  <label className="block text-xs font-bold text-forest mb-1">
+                    Label Step <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={tutorialStepForm.stepNumber}
+                    onChange={(e) => setTutorialStepForm({ ...tutorialStepForm, stepNumber: e.target.value })}
+                    placeholder="Step 1"
+                    className="w-full bg-[#FAFBF9] border border-[#E5EAE4] rounded-xl px-3 py-2 text-xs font-semibold text-forest focus:outline-none focus:border-forest"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-forest mb-1">
+                    Judul Tutorial <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={tutorialStepForm.title}
+                    onChange={(e) => setTutorialStepForm({ ...tutorialStepForm, title: e.target.value })}
+                    placeholder="e.g. Cara Aktivasi Lisensi Aplikasi"
+                    className="w-full bg-[#FAFBF9] border border-[#E5EAE4] rounded-xl px-3 py-2 text-xs font-semibold text-forest focus:outline-none focus:border-forest"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-forest mb-1">
+                  URL Video YouTube <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={tutorialStepForm.videoUrl}
+                  onChange={(e) => setTutorialStepForm({ ...tutorialStepForm, videoUrl: e.target.value })}
+                  placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
+                  className="w-full bg-[#FAFBF9] border border-[#E5EAE4] rounded-xl px-3 py-2 text-xs font-mono text-purple-900 focus:outline-none focus:border-forest"
+                />
+                <p className="text-[11px] text-warmgray mt-1">
+                  Mendukung link youtube.com, youtu.be, atau youtube.com/embed.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-forest mb-1">
+                  Deskripsi / Catatan Step (Opsional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={tutorialStepForm.description}
+                  onChange={(e) => setTutorialStepForm({ ...tutorialStepForm, description: e.target.value })}
+                  placeholder="Jelaskan ringkasan materi atau petunjuk penting dari step ini..."
+                  className="w-full bg-[#FAFBF9] border border-[#E5EAE4] rounded-xl px-3 py-2 text-xs font-medium text-forest focus:outline-none focus:border-forest"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-purple-100">
+                <button
+                  type="button"
+                  onClick={() => setShowTutorialModal(false)}
+                  className="btn-dyari-outline text-xs px-4 py-2 font-bold"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-dyari text-xs px-4 py-2 font-bold flex items-center gap-1.5 shadow-xs"
+                >
+                  <Save size={14} />
+                  <span>{editingTutorialStep ? 'Simpan Perubahan' : 'Tambahkan Step Video'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

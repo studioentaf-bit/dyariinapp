@@ -484,19 +484,50 @@ export const PublicInvoiceView = () => {
                         <p className="text-center text-[10px] text-warmgray">Scan QRIS menggunakan BCA Mobile, GoPay, OVO, DANA, dll.</p>
                       </div>
                     ) : (
-                      <div className="space-y-2 pt-1 border-t border-[#F0F4F1]">
+                      <div className="space-y-3 pt-1 border-t border-[#F0F4F1]">
                         <p className="text-warmgray">Nomor Rekening / Virtual Account:</p>
-                        <div className="flex items-center justify-between bg-[#FAFBF9] p-2.5 rounded-xl border border-[#E5EAE4]">
-                          <span className="font-mono font-extrabold text-forest text-sm">8210984123</span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy('8210984123', 'rek')}
-                            className="text-xs text-forest font-bold hover:underline"
-                          >
-                            {copiedKey === 'rek' ? 'Tersalin' : 'Salin'}
-                          </button>
-                        </div>
-                        <p className="text-[11px] text-warmgray">a.n. <strong>Tony Anggoro (dyari.in)</strong></p>
+                        {(() => {
+                          const accounts = settings?.payment?.virtualAccounts?.filter(va => va.active) || [
+                            { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro (dyari.in)' }
+                          ];
+                          const selectedAcc = accounts.find(a => order?.paymentMethod?.toLowerCase().includes(a.bank.toLowerCase())) || accounts[0];
+                          return (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between bg-[#FAFBF9] p-2.5 rounded-xl border border-[#E5EAE4]">
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-500 block">{selectedAcc?.bank || 'Bank Transfer'}</span>
+                                  <span className="font-mono font-extrabold text-forest text-sm">{selectedAcc?.accNo || '8210984123'}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopy(selectedAcc?.accNo || '8210984123', 'rek')}
+                                  className="text-xs text-forest font-bold hover:underline"
+                                >
+                                  {copiedKey === 'rek' ? 'Tersalin' : 'Salin'}
+                                </button>
+                              </div>
+                              <p className="text-[11px] text-warmgray">a.n. <strong>{selectedAcc?.accName || 'Tony Anggoro (dyari.in)'}</strong></p>
+                              {accounts.length > 1 && (
+                                <div className="pt-1">
+                                  <span className="text-[10px] text-warmgray block mb-1">Pilihan Rekening Pembayaran:</span>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {accounts.map((ac, idx) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => handleCopy(ac.accNo, `rek-${idx}`)}
+                                        className="text-[10px] bg-slate-100 hover:bg-slate-200 text-forest px-2 py-0.5 rounded font-mono font-bold"
+                                        title={`Salin no rek ${ac.bank}`}
+                                      >
+                                        {ac.bank}: {ac.accNo}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>

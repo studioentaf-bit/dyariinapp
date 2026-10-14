@@ -18,6 +18,7 @@ import orderRoutes from './routes/orders.js';
 import memberRoutes from './routes/members.js';
 import settingRoutes from './routes/settings.js';
 import aiRoutes from './routes/ai.js';
+import tutorialRoutes from './routes/tutorials.js';
 import { query } from './db.js';
 
 const app = express();
@@ -177,6 +178,7 @@ app.use('/api/licenses', licenseRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/tutorials', tutorialRoutes);
 app.use('/api/ai', aiRoutes);
 
 // Fallback for Story Generator direct route

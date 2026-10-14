@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   RefreshCw,
   ShoppingBag,
-  Download
+  Download,
+  Landmark,
+  Wallet
 } from 'lucide-react';
 
 export const InstantCheckoutModal = () => {
@@ -42,6 +44,8 @@ export const InstantCheckoutModal = () => {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
+  const [paymentMethodTab, setPaymentMethodTab] = useState('qris'); // 'qris' | 'bank' | 'ewallet'
+  const [copiedAccIndex, setCopiedAccIndex] = useState(null);
   const [currentOrder, setCurrentOrder] = useState(null);
 
   // Sync currentOrder with order prop or find in orders
@@ -197,8 +201,9 @@ export const InstantCheckoutModal = () => {
     const cleanWa = waNumber.replace(/[^0-9]/g, '');
     const cleanTargetWa = cleanWa.startsWith('0') ? '62' + cleanWa.substring(1) : (cleanWa.startsWith('62') ? cleanWa : '62' + cleanWa);
     const itemName = item.name || currentOrder.items?.[0]?.name || 'Produk';
+    const methodLabel = paymentMethodTab === 'qris' ? 'QRIS' : (paymentMethodTab === 'bank' ? 'Transfer Bank' : 'E-Wallet');
     const text = encodeURIComponent(
-      `Halo Admin dyari.in,\n\nSaya sudah melakukan pembayaran QRIS untuk pesanan:\n` +
+      `Halo Admin dyari.in,\n\nSaya sudah melakukan pembayaran via ${methodLabel} untuk pesanan:\n` +
       `📌 *No. Pesanan:* ${currentOrder.id}\n` +
       `📦 *Produk/Lisensi:* ${itemName}\n` +
       `👤 *Nama:* ${fullName || currentOrder.customerName}\n` +
@@ -413,9 +418,9 @@ export const InstantCheckoutModal = () => {
           </div>
         )}
 
-        {/* STEP 2: PEMBAYARAN QRIS & MENUNGGU APPROVE ADMIN */}
+        {/* STEP 2: PEMBAYARAN MULTI-METODE & MENUNGGU APPROVE ADMIN */}
         {activeStep === 'qris' && (
-          <div className="p-5 sm:p-6 space-y-5 text-center">
+          <div className="p-5 sm:p-6 space-y-4 text-center">
             {/* ORDER INFO HEADER */}
             <div className="space-y-1">
               <span className="text-[11px] font-mono font-bold text-gray-500">
@@ -429,18 +434,140 @@ export const InstantCheckoutModal = () => {
               </p>
             </div>
 
-            {/* QRIS BARCODE CARD */}
-            <div className="bg-[#FAFBF9] border-2 border-dashed border-[#B8D8C0] p-4 rounded-3xl max-w-[240px] mx-auto shadow-inner">
-              <img 
-                src={qrisImage} 
-                alt="QRIS Pembayaran dyari.in" 
-                className="w-full aspect-square object-contain rounded-2xl bg-white p-2 shadow-2xs"
-              />
-              <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[10px] font-bold text-[#1C352D]">
-                <QrCode size={13} className="text-[#059669]" />
-                <span>Scan dengan GoPay / OVO / DANA / BCA</span>
-              </div>
+            {/* TAB SELECTOR METODE PEMBAYARAN */}
+            <div className="flex items-center justify-center gap-1.5 p-1 bg-[#F4F6F4] rounded-2xl border border-[#E5EAE4]">
+              <button
+                type="button"
+                onClick={() => setPaymentMethodTab('qris')}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  paymentMethodTab === 'qris'
+                    ? 'bg-white text-forest shadow-xs'
+                    : 'text-warmgray hover:text-forest'
+                }`}
+              >
+                <QrCode size={13} />
+                <span>QRIS Instant</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethodTab('bank')}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  paymentMethodTab === 'bank'
+                    ? 'bg-white text-forest shadow-xs'
+                    : 'text-warmgray hover:text-forest'
+                }`}
+              >
+                <Landmark size={13} />
+                <span>Transfer Bank</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethodTab('ewallet')}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  paymentMethodTab === 'ewallet'
+                    ? 'bg-white text-forest shadow-xs'
+                    : 'text-warmgray hover:text-forest'
+                }`}
+              >
+                <Wallet size={13} />
+                <span>E-Wallet</span>
+              </button>
             </div>
+
+            {/* KONTEN TAB 1: QRIS */}
+            {paymentMethodTab === 'qris' && (
+              <div className="bg-[#FAFBF9] border-2 border-dashed border-[#B8D8C0] p-4 rounded-3xl max-w-[240px] mx-auto shadow-inner">
+                <img 
+                  src={qrisImage} 
+                  alt="QRIS Pembayaran dyari.in" 
+                  className="w-full aspect-square object-contain rounded-2xl bg-white p-2 shadow-2xs"
+                />
+                <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[10px] font-bold text-[#1C352D]">
+                  <QrCode size={13} className="text-[#059669]" />
+                  <span>Scan BCA / GoPay / OVO / DANA / Mandiri</span>
+                </div>
+              </div>
+            )}
+
+            {/* KONTEN TAB 2: TRANSFER BANK */}
+            {paymentMethodTab === 'bank' && (
+              <div className="space-y-2 text-left">
+                {(() => {
+                  const banks = storeSettings?.payment?.virtualAccounts?.filter(va => va.active) || [
+                    { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro (dyari.in)' },
+                    { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro (dyari.in)' }
+                  ];
+                  return banks.map((va, idx) => (
+                    <div key={idx} className="bg-[#FAFBF9] border border-[#E5EAE4] p-3 rounded-2xl flex items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs text-forest">{va.bank}</span>
+                          <span className="text-[10px] text-warmgray">({va.accName})</span>
+                        </div>
+                        <span className="font-mono font-extrabold text-sm text-forest">{va.accNo}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(va.accNo);
+                          setCopiedAccIndex(`va-${idx}`);
+                          showToast('No Rekening Disalin', `${va.bank}: ${va.accNo}`);
+                          setTimeout(() => setCopiedAccIndex(null), 2000);
+                        }}
+                        className="btn-dyari-outline text-[11px] px-2.5 py-1 font-bold inline-flex items-center gap-1"
+                      >
+                        {copiedAccIndex === `va-${idx}` ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        <span>{copiedAccIndex === `va-${idx}` ? 'Disalin' : 'Salin'}</span>
+                      </button>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* KONTEN TAB 3: E-WALLET */}
+            {paymentMethodTab === 'ewallet' && (
+              <div className="space-y-2 text-left">
+                {(() => {
+                  const wallets = storeSettings?.payment?.ewallets?.filter(ew => ew.active) || [
+                    { name: 'GoPay', phone: '082330626054', nameAccount: 'Tony Anggoro' },
+                    { name: 'DANA', phone: '082330626054', nameAccount: 'Tony Anggoro' },
+                    { name: 'OVO', phone: '082330626054', nameAccount: 'Tony Anggoro' }
+                  ];
+                  return wallets.map((ew, idx) => (
+                    <div key={idx} className="bg-[#FAFBF9] border border-[#E5EAE4] p-3 rounded-2xl flex items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-xs text-forest">{ew.name}</span>
+                          <span className="text-[10px] text-warmgray">({ew.nameAccount})</span>
+                        </div>
+                        <span className="font-mono font-extrabold text-sm text-forest">{ew.phone}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(ew.phone);
+                          setCopiedAccIndex(`ew-${idx}`);
+                          showToast('Nomor E-Wallet Disalin', `${ew.name}: ${ew.phone}`);
+                          setTimeout(() => setCopiedAccIndex(null), 2000);
+                        }}
+                        className="btn-dyari-outline text-[11px] px-2.5 py-1 font-bold inline-flex items-center gap-1"
+                      >
+                        {copiedAccIndex === `ew-${idx}` ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        <span>{copiedAccIndex === `ew-${idx}` ? 'Disalin' : 'Salin'}</span>
+                      </button>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* INSTRUKSI PEMBAYARAN JIKA DIKONFIGURASI ADMIN */}
+            {storeSettings?.payment?.instructions && (
+              <div className="p-2.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-left text-[11px] text-blue-900 leading-relaxed">
+                💡 <strong>Catatan Admin:</strong> {storeSettings.payment.instructions}
+              </div>
+            )}
 
             {/* PULSATING STATUS BADGE */}
             <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-left flex items-start gap-3">

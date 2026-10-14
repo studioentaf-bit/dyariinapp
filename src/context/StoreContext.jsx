@@ -276,15 +276,21 @@ export const mapBackendLicense = (lic) => {
         ? new Date(lic.expiry_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) 
         : lic.duration_label || '30 Hari');
 
+  const prodText = `${lic.product_title || ''} ${lic.product_id || ''}`.toLowerCase();
+  const isApp = prodText.includes('desktop') || prodText.includes('aplikasi') || prodText.includes('app_') || prodText.includes('app-') || prodText.includes('pilot');
+  const category = isApp ? 'app' : 'web';
+
   return {
     id: (lic.id || `LIC-${Date.now()}`).toString(),
     dbId: lic.id,
     code: lic.license_key,
-    productId: lic.product_id ? `prod-${lic.product_id}` : 'story-generator',
-    productName: lic.product_title || 'Story Generator Pro AI',
+    productId: lic.product_id ? `prod-${lic.product_id}` : (isApp ? 'app_monthly' : 'story-generator'),
+    productName: lic.product_title || (isApp ? 'Story.in AI Manager Desktop' : 'Story Generator Pro AI'),
     customerName: lic.user_name || 'Member dyari.in',
     customerEmail: (lic.user_email || '').trim().toLowerCase(),
     type: lic.license_type || 'PERSONAL',
+    category,
+    platform: isApp ? 'Aplikasi Desktop' : 'Web Story Generator',
     status: lic.status === 'AKTIF' ? 'Aktif' : (lic.status === 'DITANGGUHKAN' ? 'Dibekukan' : (lic.status === 'KADALUARSA' ? 'Kadaluarsa' : (lic.status || 'Aktif'))),
     createdAt: lic.start_date 
       ? new Date(lic.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) 
@@ -375,6 +381,12 @@ export const mapBackendProduct = (row) => {
     mockupType: 'app',
     price: Number(row.price),
     originalPrice: Number(row.original_price || row.price),
+    appPrice: row.app_price !== null && row.app_price !== undefined && row.app_price !== '' ? Number(row.app_price) : null,
+    app_price: row.app_price !== null && row.app_price !== undefined && row.app_price !== '' ? Number(row.app_price) : null,
+    showOnWeb: row.show_on_web !== false,
+    show_on_web: row.show_on_web !== false,
+    showOnApp: row.show_on_app !== false,
+    show_on_app: row.show_on_app !== false,
     rating: Number(row.rating || 5.0),
     reviewsCount: Number(row.sales_count || 0),
     productType: 'DIGITAL_PREMIUM',
@@ -1020,17 +1032,20 @@ export const StoreProvider = ({ children }) => {
   const [appVersionInfo, setAppVersionInfo] = useState(() => {
     try {
       const cached = localStorage.getItem('dyari_app_version_info');
-      if (cached) return JSON.parse(cached);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.version === '0.0.3') return parsed;
+      }
     } catch (_) {}
     return {
-      version: '0.0.2',
+      version: '0.0.3',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.2/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.3/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.2',
-      releaseDate: '2026-10-14',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.3',
+      releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: 'Versi 0.0.2: Pembaruan stabilitas (anti-crash), pop-up aktivasi otomatis saat first launch, penguncian menu berlisensi (🔒), header badges versi v0.0.2 dan status lisensi, pembersihan akun awal, serta integrasi 2 kategori lisensi.'
+      changelog: 'Versi 0.0.3: Integrasi menu tutorial video dinamis dari panel admin, sinkronisasi harga & visibilitas produk web vs aplikasi, banner dashboard desktop via admin branding, default API key kosong pada clean install, dan integrasi penuh pengaturan checkout pembayaran.'
     };
   });
 
@@ -1554,7 +1569,10 @@ export const StoreProvider = ({ children }) => {
           access_link: product.accessUrl || '',
           features: product.features || [],
           license_required: product.productType === 'LICENSE_TOOL',
-          description: product.description || product.tagline || ''
+          description: product.description || product.tagline || '',
+          app_price: product.appPrice !== undefined && product.appPrice !== '' && product.appPrice !== null ? Number(product.appPrice) : null,
+          show_on_web: product.showOnWeb !== false,
+          show_on_app: product.showOnApp !== false
         })
       });
 
@@ -1613,7 +1631,10 @@ export const StoreProvider = ({ children }) => {
           image: updatedFields.image,
           access_link: updatedFields.accessUrl,
           features: updatedFields.features,
-          description: updatedFields.description || updatedFields.tagline
+          description: updatedFields.description || updatedFields.tagline,
+          app_price: updatedFields.appPrice !== undefined ? (updatedFields.appPrice === '' || updatedFields.appPrice === null ? '' : Number(updatedFields.appPrice)) : undefined,
+          show_on_web: updatedFields.showOnWeb !== undefined ? Boolean(updatedFields.showOnWeb) : undefined,
+          show_on_app: updatedFields.showOnApp !== undefined ? Boolean(updatedFields.showOnApp) : undefined
         })
       });
     } catch (e) {

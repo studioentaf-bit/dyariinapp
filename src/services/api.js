@@ -172,6 +172,19 @@ export const api = {
         body: JSON.stringify({ settings: settingsData })
       });
     }
+  },
+
+  // Desktop Tutorials API
+  tutorials: {
+    get: async () => {
+      return apiFetch('/tutorials?platform=desktop');
+    },
+    update: async (videos) => {
+      return apiFetch('/tutorials', {
+        method: 'PUT',
+        body: JSON.stringify({ videos })
+      });
+    }
   }
 };
 

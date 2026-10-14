@@ -12,13 +12,16 @@ export const clearProductsCache = () => {
   productsCache.clear();
 };
 
-// Auto-migrate columns for account_stock & stock_count
+// Auto-migrate columns for account_stock, stock_count, app_price, and platform visibility
 const ensureStockColumns = async () => {
   try {
     await query(`
       ALTER TABLE products 
       ADD COLUMN IF NOT EXISTS account_stock JSONB DEFAULT '[]'::jsonb,
-      ADD COLUMN IF NOT EXISTS stock_count INT DEFAULT 0;
+      ADD COLUMN IF NOT EXISTS stock_count INT DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS app_price NUMERIC DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS show_on_web BOOLEAN DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS show_on_app BOOLEAN DEFAULT TRUE;
     `);
   } catch (err) {
     console.warn('Notice: ensureStockColumns migration:', err.message);
@@ -95,7 +98,8 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const {
       title, slug, price, original_price, badge, category_id, category_name,
-      type, image, access_link, features, license_required, description
+      type, image, access_link, features, license_required, description,
+      app_price, show_on_web, show_on_app
     } = req.body;
 
     if (!title || price === undefined) {
@@ -132,14 +136,18 @@ router.post('/', authenticateToken, async (req, res) => {
     const result = await query(
       `INSERT INTO products (
         title, slug, price, original_price, badge, category_id, category_name,
-        type, image, access_link, features, license_required, description
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        type, image, access_link, features, license_required, description,
+        app_price, show_on_web, show_on_app
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING *`,
       [
         title, autoSlug, price, original_price || price, badge || '',
         validCatId, category_name || 'Aset Premium',
         type || 'AKSES MEMBER', image || '', access_link || '',
-        JSON.stringify(features || []), !!license_required, description || ''
+        JSON.stringify(features || []), !!license_required, description || '',
+        app_price !== undefined && app_price !== null && app_price !== '' ? Number(app_price) : null,
+        show_on_web !== undefined ? Boolean(show_on_web) : true,
+        show_on_app !== undefined ? Boolean(show_on_app) : true
       ]
     );
 
@@ -162,7 +170,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const {
       title, price, original_price, badge, category_id, category_name,
       type, image, access_link, features, license_required, description, is_active,
-      account_stock, stock_count
+      account_stock, stock_count,
+      app_price, show_on_web, show_on_app
     } = req.body;
 
     let validCatId = category_id;
@@ -183,7 +192,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
-    const whereClause = isNum ? 'WHERE id = $16' : 'WHERE slug = $16';
+    const whereClause = isNum ? 'WHERE id = $19' : 'WHERE slug = $19';
 
     const result = await query(
       `UPDATE products SET
@@ -202,6 +211,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
         is_active = COALESCE($13, is_active),
         account_stock = CASE WHEN $14::jsonb IS NOT NULL THEN $14::jsonb ELSE account_stock END,
         stock_count = COALESCE($15, stock_count),
+        app_price = CASE WHEN $16::text = 'CLEAR' THEN NULL WHEN $16::numeric IS NOT NULL THEN $16::numeric ELSE app_price END,
+        show_on_web = COALESCE($17, show_on_web),
+        show_on_app = COALESCE($18, show_on_app),
         updated_at = CURRENT_TIMESTAMP
        ${whereClause}
        RETURNING *`,
@@ -211,6 +223,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
         license_required, description, is_active,
         account_stock !== undefined ? JSON.stringify(account_stock) : null,
         stock_count !== undefined ? Number(stock_count) : null,
+        app_price !== undefined ? (app_price === null || app_price === '' ? 'CLEAR' : Number(app_price)) : null,
+        show_on_web !== undefined ? Boolean(show_on_web) : null,
+        show_on_app !== undefined ? Boolean(show_on_app) : null,
         id
       ]
     );

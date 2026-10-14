@@ -269,4 +269,80 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
 
 ---
 
+## 📝 8. RIWAYAT UPDATE & LOG PERBAIKAN SISTEM TERKINI (VERSI 0.0.3 - 15 OKTOBER 2026)
+
+### A. Penggantian Nama Menu Member & Integrasi Seluruh Pembeli Lisensi
+1. **Perubahan Nama Menu**:
+   - Menu di sidebar dan view utama diubah dari **"Member Story AI"** menjadi **"Member"**.
+   - Menu ini menampung seluruh pengguna yang membeli paket lisensi apapun yang ada di menu lisensi: baik **Lisensi Aplikasi Desktop** maupun **Lisensi Web Story Generator**.
+2. **Tab Filter & Indikator Kategori Member**:
+   - Menambahkan filter kategori platform: `Semua`, `💻 Lisensi Aplikasi`, dan `🌐 Lisensi Web`.
+   - Menambahkan badge kategori lisensi pada masing-masing data tabel member untuk membedakan asal lisensi pengguna secara transparan.
+   - Pada modal "Daftarkan Member Baru", paket lisensi dikelompokkan ke dalam 2 grup: `💻 Paket Lisensi Aplikasi Desktop` dan `🌐 Paket Lisensi Web Story Generator`.
+
+### B. Tutorial Video Desktop Dinamis dari Panel Admin
+1. **Backend API Endpoint (`/api/tutorials`)**:
+   - Dibuat router `server/routes/tutorials.js` yang terhubung ke PostgreSQL `settings.desktop_tutorials`.
+   - Mendukung endpoint `GET /api/tutorials` (publik untuk desktop app) dan `PUT /api/tutorials` (dilindungi token admin).
+   - Fitur otomatis: Konversi link YouTube biasa (`watch?v=...`, `youtu.be/...`, `shorts/...`) menjadi URL `embed` siap tayang di WebView2 desktop.
+2. **Manajemen Step di Panel Admin**:
+   - Menambahkan tab khusus **"Tutorial Video Desktop"** di menu Pengaturan Panel Admin.
+   - Admin dapat menambah, mengedit label step, judul, link URL YouTube, dan deskripsi step, serta menghapus step secara dinamis.
+3. **Penyajian di Aplikasi Desktop WPF**:
+   - Desktop app memuat data tutorial video secara asinkron langsung dari API `/api/tutorials`.
+   - Step video otomatis dirender di kartu thumbnail video dan panel pemutar video YouTube terintegrasi.
+
+### C. Sinkronisasi Harga Produk & Visibilitas (Web vs Aplikasi Desktop)
+1. **Pemisahan Harga & Visibilitas**:
+   - Database schema `products` diperluas: `app_price NUMERIC DEFAULT NULL`, `show_on_web BOOLEAN DEFAULT TRUE`, `show_on_app BOOLEAN DEFAULT TRUE`.
+   - Modal Tambah & Edit Produk di Panel Admin kini menyediakan input:
+     - **Harga Website (Rp)**
+     - **Harga Aplikasi Desktop (Rp)**
+     - Toggle **Tampilkan di Website**
+     - Toggle **Tampilkan di Aplikasi Desktop**
+   - Tabel Kelola Produk Admin menampilkan badge platform (`🌐 Web`, `💻 App`) dan rincian harga untuk masing-masing channel.
+2. **Aplikasi Desktop WPF**:
+   - Fungsi `ExtractPrice` diperbarui untuk memprioritaskan `app_price` / `appPrice` jika tersedia, dan fallback ke `price`.
+   - Fungsi `LoadShopProductsAsync` memfilter produk yang disetel `show_on_app = false` sehingga tidak muncul di katalog aplikasi desktop.
+   - Tombol checkout di shop aplikasi desktop membaca nomor WhatsApp admin dinamis dari konfigurasi pembayaran.
+
+### D. Banner Dashboard Desktop dari Branding Panel Admin
+1. **Kontrol Khusus Banner Desktop**:
+   - Di menu Pengaturan Branding Panel Admin, disediakan field dan tombol upload terpisah untuk **"💻 Banner Dashboard Aplikasi Desktop"**.
+   - Disimpan ke kunci pengaturan `desktopBannerUrl` dan `branding.desktopBannerUrl`.
+2. **Penguatan Loading di Desktop WPF**:
+   - `LoadDynamicBrandingAsync` di `MainWindow.xaml.cs` membaca `desktopBannerUrl` prioritas utama.
+   - Untuk URL remote (HTTP/HTTPS), file gambar diunduh sebagai byte stream menggunakan `HttpClient.GetByteArrayAsync` terlebih dahulu sebelum di-decode ke `BitmapImage` dengan `MemoryStream`. Pendekatan ini mengatasi masalah kegagalan render gambar remote pada komponen WPF `Image` secara permanen.
+
+### E. Pembersihan API Key Otomatis pada Clean Install
+1. **Penghapusan Hardcoded Fallback**:
+   - Di `story-in-manager-wpf/Services/ProductivityStorageService.cs`, menghapus default key fallback contoh bawaan (`[MASKED_DEFAULT_KEY]`).
+   - Pada clean install / perangkat baru tanpa konfigurasi, kolom API key di Story Generator kini 100% kosong (blank), mewajibkan pengguna memasukkan API key Gemini mereka sendiri sesuai petunjuk.
+
+### F. Integrasi Penuh Pengaturan Pembayaran ke Semua Alur Checkout
+1. **Instant Checkout Modal Web**:
+   - Ditambahkan tab pemilih metode pembayaran:
+     - 📱 **QRIS Instant**: Menampilkan barcode QRIS dari `settings.payment.qrisImageUrl`.
+     - 🏦 **Transfer Bank**: Menampilkan seluruh rekening aktif dari `settings.payment.virtualAccounts` lengkap dengan tombol salin nomor rekening dan nama pemilik rekening.
+     - 💳 **E-Wallet**: Menampilkan seluruh e-wallet aktif dari `settings.payment.ewallets` lengkap dengan tombol salin nomor.
+     - Menampilkan catatan/instruksi admin dari `settings.payment.instructions`.
+     - Tombol konfirmasi WhatsApp otomatis menyertakan metode pembayaran yang dipilih.
+2. **Public Invoice View**:
+   - Menghapus nomor rekening hardcoded (`8210984123`).
+   - Secara dinamis menyajikan rekening bank / virtual account dari `settings.payment.virtualAccounts` dan instruksi transfer.
+3. **Desktop Shop Checkout Dialog**:
+   - Dialog checkout mendukung konfigurasi pembayaran nested (`settings.payment`) untuk QRIS dan instruksi.
+
+### G. Kenaikan Versi Otomatis ke v0.0.3 & Rilis GitHub
+1. **Versi Aplikasi Desktop**:
+   - `AIPilotManager.csproj` dinaikkan ke `<Version>0.0.3</Version>`.
+   - Header badge di `MainWindow.xaml` dan konstanta di `MainWindow.xaml.cs` dinaikkan ke `v0.0.3`.
+2. **Katalog & Download Web**:
+   - `StoreContext.jsx` diperbarui ke `version: '0.0.3'` mengarah ke release GitHub `v0.0.3`.
+3. **Penerbitan Single-File Executable**:
+   - Binary standalone `Story.in-AI-Manager.exe` (163 MB) berhasil dikompilasi menggunakan .NET 8 SDK.
+   - Rilis publik `v0.0.3` berhasil diterbitkan di repositori GitHub `studioentaf-bit/dyariinapp` dan aset binary telah diunggah.
+
+---
+
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
