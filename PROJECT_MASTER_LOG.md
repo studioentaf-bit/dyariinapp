@@ -390,6 +390,38 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Binary standalone `Story.in-AI-Manager.exe` (163 MB) dikompilasi ulang dengan .NET 8 SDK dan diterbitkan ke [GitHub Release v0.0.5](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.5).
    - Seluruh perubahan frontend web berhasil di-build dan di-push ke branch `main`.
 
+### K. Pembaruan v0.0.6: Akurasi Harga Shop Desktop, Auto-Reload Banner & Fallback Greeting, Toggle & Proteksi Sidebar, Top Bar Responsif, Crop Banner 1200x240 Admin, Card Lisensi Ringkas, dan Deskripsi Produk Penuh
+1. **Akurasi Harga Produk & Lisensi Toko Desktop (Fix Bug Rp 2.400.000 & Rp 0)**:
+   - Memperbaiki parsing harga di `MainWindow.xaml.cs` dengan fungsi universal `ParsePriceValue(JsonElement prop)` berbasis `CultureInfo.InvariantCulture`.
+   - Menghilangkan bug budaya lokal (`id-ID`) di mana titik desimal PostgreSQL (`"24000.00"`) dianggap pemisah ribuan sehingga melipatgandakan harga menjadi Rp 2.400.000. Sekarang tampil akurat Rp 24.000 sesuai website.
+   - Memperbaiki fungsi `ExtractLicensePrice(JsonElement el)` agar mengekstrak properti flat (`price`, `amount`, `original_price`, `originalPrice`) di samping format bersarang `prices`, sehingga seluruh kartu paket lisensi tidak lagi menampilkan Rp 0 / bln melainkan harga riil (Rp 49.000, Rp 199.000, dst.) lengkap dengan coret harga promo.
+   - Suffix durasi lisensi disesuaikan secara dinamis dari properti `period` / `duration` (misal: "Lifetime", "30 Hari") dan tidak lagi dipaksa "/ bln".
+2. **Auto-Reload Banner & Default Fallback Greeting**:
+   - Menambahkan `DispatcherTimer` yang melakukan polling branding otomatis setiap 20 detik serta event listener window `Activated` saat pengguna kembali ke jendela aplikasi desktop.
+   - Mencegah kedip (*flicker*) dengan mengecek URL banner terakhir (`_lastLoadedBannerUrl`).
+   - Jika admin mengosongkan banner atau menghapusnya di panel admin, aplikasi desktop otomatis menyembunyikan gambar banner dan mengembalikan layout kartu greeting awal (*"Selamat Datang di Story.In AI Manager"*).
+3. **Menu Sidebar: Tombol Toggle Terbuka/Tutup & Penghapusan Bug Hilang Sendiri**:
+   - Menghapus logika auto-collapse pada `Window_SizeChanged` dan menonaktifkan pemanggilan `AutoCollapseSidebarIfNarrow()`.
+   - Menambahkan tombol toggle burger (`☰`) yang selalu terlihat di bar atas aplikasi desktop.
+   - Sidebar kini murni hanya membuka/menutup saat tombol `☰` diklik atau saat menekan pintasan keyboard `Ctrl+B`.
+4. **Top Bar Responsif Anti-Terpotong (Portrait / Layar Sempit)**:
+   - Search bar di top title bar diubah dari fixed width `360px` menjadi fleksibel responsif (`MaxWidth="360"`, `MinWidth="130"`).
+   - Seluruh badge dan tombol kontrol jendela Windows (`—`, `⬜`, `✕`) dijamin selalu terlihat dan tidak pernah terdorong keluar layar saat jendela diubah ke orientasi portrait atau diperkecil.
+5. **Panel Admin Branding: Preview Layar 5:1 & Fitur Potong / Crop Gambar (1200 × 240 px)**:
+   - Menambahkan visual box preview rasio 5:1 (Ultrawide) di panel admin menu Pengaturan Branding.
+   - Menyediakan slider interaktif untuk **Zoom** (100% - 250%), **Posisi Vertikal Y** (0% - 100%), dan **Posisi Horizontal X** (0% - 100%).
+   - Menyediakan tombol **"✂️ Terapkan & Potong Gambar (1200 × 240)"** yang memproses gambar langsung di browser menggunakan HTML5 Canvas menjadi format presisi 1200×240 pixel tanpa perlu software luar.
+6. **Ukuran Card Lisensi di Website Diperkecil & Lebih Proporsional**:
+   - Pada `LicensesView.jsx`, layout grid diubah menjadi 4 kolom responsif (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`).
+   - Padding card dan elemen tipografi diperkecil setara dengan card produk shop agar tampilan lebih rapi, padat, dan nyaman dilihat di berbagai perangkat.
+7. **Deskripsi Produk Shop di Website Tampil Penuh (Expandable)**:
+   - Pada `ProductCard.jsx`, menghapus pemotongan paksa `line-clamp-2` dan menambahkan styling `whitespace-pre-line` serta tombol interaktif `[▼ Selengkapnya... / ▲ Tutup Deskripsi]`.
+   - Seluruh detail fitur produk, bullet point, dan keterangan akun dapat dibaca secara utuh oleh calon pembeli.
+8. **Kenaikan Versi ke v0.0.6 & Rilis GitHub**:
+   - Binary desktop dikompilasi dengan .NET 8 ke versi `0.0.6`.
+   - Diterbitkan ke [GitHub Release v0.0.6](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.6).
+   - Seluruh versi di web dan backend disinkronkan ke `0.0.6`.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

@@ -5,6 +5,9 @@ import { ShoppingBag, Star, Check, ExternalLink } from 'lucide-react';
 export const ProductCard = ({ product }) => {
   const { openInstantCheckout, showToast } = useStore();
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [isExpandedDesc, setIsExpandedDesc] = useState(false);
+  const rawDesc = (product.description || product.tagline || '').trim();
+  const hasLongDesc = rawDesc.length > 80 || rawDesc.includes('\n');
 
   // Ketersediaan Stok Sinkron & Valid dari Manajemen Stok (Default 0 / Habis jika belum diinput)
   const availableStock = getProductAvailableStock(product);
@@ -75,10 +78,24 @@ export const ProductCard = ({ product }) => {
           {product.name}
         </h3>
         
-        {/* Short description */}
-        <p className="text-[11px] sm:text-xs text-[#737873] leading-relaxed line-clamp-2">
-          {product.tagline || product.description}
-        </p>
+        {/* Full / Expandable Description without cutoff */}
+        <div className="space-y-1">
+          <p className={`text-[11px] sm:text-xs text-[#737873] leading-relaxed whitespace-pre-line ${isExpandedDesc ? '' : 'line-clamp-2'}`}>
+            {rawDesc}
+          </p>
+          {hasLongDesc && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpandedDesc(!isExpandedDesc);
+              }}
+              className="text-[10.5px] font-bold text-[#1E3D2F] hover:underline cursor-pointer inline-flex items-center gap-1"
+            >
+              <span>{isExpandedDesc ? '▲ Tutup Deskripsi' : '▼ Selengkapnya...'}</span>
+            </button>
+          )}
+        </div>
 
         {/* Rating row & Stock Indicator */}
         <div className="flex items-center justify-between gap-2 pt-0.5">

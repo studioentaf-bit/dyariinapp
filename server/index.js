@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.5';
+const MIN_OFFICIAL_VERSION = '0.0.6';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
@@ -100,7 +100,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: appCfg.releaseDate || '2026-10-15',
       size: appCfg.size || '163 MB',
-      changelog: appCfg.changelog || `Versi ${version}: Penyatuan kontrol banner khusus aplikasi desktop di panel admin dengan rekomendasi resolusi presisi 1200x240 px (rasio 5:1), serta penyesuaian tampilan hero banner tanpa terpotong.`
+      changelog: appCfg.changelog || `Versi ${version}: Perbaikan akurasi harga produk & lisensi toko desktop, auto-reload banner & fallback greeting, toggle sidebar permanen, top bar responsif anti-terpotong, preview 5:1 & alat crop banner di admin, card lisensi ringkas, dan deskripsi produk penuh.`
     });
   } catch (err) {
     res.json({
@@ -111,7 +111,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Penyatuan kontrol banner khusus aplikasi desktop di panel admin dengan rekomendasi resolusi presisi 1200x240 px (rasio 5:1), serta penyesuaian tampilan hero banner tanpa terpotong.`
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Perbaikan akurasi harga produk & lisensi toko desktop, auto-reload banner & fallback greeting, toggle sidebar permanen, top bar responsif anti-terpotong, preview 5:1 & alat crop banner di admin, card lisensi ringkas, dan deskripsi produk penuh.`
     });
   }
 });

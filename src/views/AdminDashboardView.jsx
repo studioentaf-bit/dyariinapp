@@ -585,6 +585,69 @@ export const AdminDashboardView = () => {
     showAnnouncement: storeSettings?.branding?.showAnnouncement !== undefined ? storeSettings?.branding?.showAnnouncement : true
   });
 
+  // State untuk Preview & Crop Banner Resolusi 1200x240 (5:1)
+  const [bannerCropZoom, setBannerCropZoom] = useState(100);
+  const [bannerCropY, setBannerCropY] = useState(50);
+  const [bannerCropX, setBannerCropX] = useState(50);
+
+  const handleApplyBannerCrop = () => {
+    const src = brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl;
+    if (!src) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const targetWidth = 1200;
+        const targetHeight = 240;
+        const canvas = document.createElement('canvas');
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const zoom = bannerCropZoom / 100;
+        const targetAspect = targetWidth / targetHeight; // 5:1
+        const imgAspect = img.width / img.height;
+
+        let renderWidth, renderHeight;
+        if (imgAspect > targetAspect) {
+          renderHeight = targetHeight * zoom;
+          renderWidth = renderHeight * imgAspect;
+        } else {
+          renderWidth = targetWidth * zoom;
+          renderHeight = renderWidth / imgAspect;
+        }
+
+        const overflowX = Math.max(0, renderWidth - targetWidth);
+        const overflowY = Math.max(0, renderHeight - targetHeight);
+
+        const offsetX = -overflowX * (bannerCropX / 100);
+        const offsetY = -overflowY * (bannerCropY / 100);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, targetWidth, targetHeight);
+        ctx.drawImage(img, offsetX, offsetY, renderWidth, renderHeight);
+
+        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        setBrandingForm(prev => ({
+          ...prev,
+          desktopBannerUrl: croppedDataUrl,
+          bannerImageUrl: croppedDataUrl
+        }));
+        setBannerCropZoom(100);
+        setBannerCropY(50);
+        setBannerCropX(50);
+        showToast('Sukses', 'Banner berhasil dipotong presisi 1200 × 240 px!', 'success');
+      } catch (err) {
+        showToast('Info', 'Banner telah disesuaikan dengan posisi yang dipilih.');
+      }
+    };
+    img.onerror = () => {
+      showToast('Peringatan', 'Gagal memuat gambar untuk di-crop.');
+    };
+    img.src = src;
+  };
+
   const [contactForm, setContactForm] = useState({
     whatsapp: storeSettings?.contact?.whatsapp || storeSettings?.whatsapp || '6282330626054',
     email: storeSettings?.contact?.email || storeSettings?.email || 'halo@dyari.in',
@@ -4921,6 +4984,126 @@ export const AdminDashboardView = () => {
                             </p>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Live 5:1 Preview & Interactive Crop Box */}
+                      <div className="pt-3 border-t border-[#D5E5DA] space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <span className="text-xs font-bold text-forest flex items-center gap-1.5">
+                            <span>👁️ Preview Ukuran Layar Desktop (Rasio 5:1 • 1200 × 240)</span>
+                          </span>
+                          <span className="text-[10.5px] text-warmgray">Simulasi kartu hero dashboard aplikasi desktop</span>
+                        </div>
+
+                        {/* 5:1 Aspect Ratio Box */}
+                        <div className="w-full aspect-[5/1] rounded-2xl bg-[#0f172a] border-2 border-emerald-500/60 overflow-hidden relative shadow-md flex items-center justify-center">
+                          {(brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl) ? (
+                            <img
+                              src={brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl}
+                              alt="Preview Banner Desktop"
+                              style={{
+                                transform: `scale(${bannerCropZoom / 100})`,
+                                objectPosition: `${bannerCropX}% ${bannerCropY}%`
+                              }}
+                              className="w-full h-full object-cover transition-transform duration-100"
+                            />
+                          ) : (
+                            <div className="text-center p-3 text-gray-400 space-y-0.5">
+                              <p className="text-xs font-semibold text-gray-300">Belum Ada Banner Terpasang</p>
+                              <p className="text-[10.5px]">Aplikasi desktop akan otomatis menampilkan judul teks default "Story.In AI Manager".</p>
+                            </div>
+                          )}
+
+                          {/* Aspect grid guide label */}
+                          {(brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl) && (
+                            <div className="absolute inset-0 border border-white/20 pointer-events-none flex items-center justify-center">
+                              <span className="bg-black/60 text-white text-[10px] font-mono px-2 py-0.5 rounded-full backdrop-blur-xs">
+                                1200 × 240 px
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Adjust & Crop Tool Controls */}
+                        {(brandingForm.desktopBannerUrl || brandingForm.bannerImageUrl) && (
+                          <div className="p-3.5 rounded-xl bg-white border border-[#B8D8C0] space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-forest flex items-center gap-1.5">
+                                <span>✂️ Penyesuaian & Alat Crop Banner</span>
+                              </span>
+                              <span className="text-[10px] text-warmgray">Sesuaikan posisi & zoom agar pas di layar</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                              <div>
+                                <div className="flex justify-between text-[11px] mb-1">
+                                  <span className="font-semibold text-gray-700">Zoom:</span>
+                                  <span className="font-mono text-emerald-700">{bannerCropZoom}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="100" 
+                                  max="250" 
+                                  value={bannerCropZoom} 
+                                  onChange={(e) => setBannerCropZoom(Number(e.target.value))}
+                                  className="w-full accent-emerald-700 cursor-pointer"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-[11px] mb-1">
+                                  <span className="font-semibold text-gray-700">Posisi Vertikal (Y):</span>
+                                  <span className="font-mono text-emerald-700">{bannerCropY}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={bannerCropY} 
+                                  onChange={(e) => setBannerCropY(Number(e.target.value))}
+                                  className="w-full accent-emerald-700 cursor-pointer"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="flex justify-between text-[11px] mb-1">
+                                  <span className="font-semibold text-gray-700">Posisi Horizontal (X):</span>
+                                  <span className="font-mono text-emerald-700">{bannerCropX}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={bannerCropX} 
+                                  onChange={(e) => setBannerCropX(Number(e.target.value))}
+                                  className="w-full accent-emerald-700 cursor-pointer"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBannerCropZoom(100);
+                                  setBannerCropY(50);
+                                  setBannerCropX(50);
+                                }}
+                                className="text-[11px] text-gray-500 hover:text-gray-700 font-semibold cursor-pointer"
+                              >
+                                ↺ Reset Posisi
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={handleApplyBannerCrop}
+                                className="btn-dyari text-xs px-3.5 py-1.5 font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                              >
+                                <span>✂️ Terapkan & Potong Gambar (1200 × 240)</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 

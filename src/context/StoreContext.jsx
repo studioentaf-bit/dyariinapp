@@ -1034,18 +1034,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.5') return parsed;
+        if (parsed.version === '0.0.6') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.5',
+      version: '0.0.6',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.5/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.6/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.5',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.6',
       releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: 'Versi 0.0.5: Penyatuan kontrol banner khusus aplikasi desktop di panel admin dengan rekomendasi resolusi presisi 1200x240 px (rasio 5:1), serta penyesuaian tampilan hero banner tanpa terpotong.'
+      changelog: 'Versi 0.0.6: Perbaikan akurasi harga produk & lisensi toko desktop, auto-reload banner & fallback greeting, toggle sidebar permanen, top bar responsif anti-terpotong, preview 5:1 & alat crop banner di admin, card lisensi ringkas, dan deskripsi produk penuh.'
     };
   });
 
@@ -1089,8 +1089,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.5';
-            if (verData.version === '0.0.1' || verData.version === '0.0.2' || verData.version === '0.0.3' || verData.version === '0.0.4') {
+            const minOfficial = '0.0.6';
+            if (verData.version === '0.0.1' || verData.version === '0.0.2' || verData.version === '0.0.3' || verData.version === '0.0.4' || verData.version === '0.0.5') {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;

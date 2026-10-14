@@ -205,78 +205,78 @@ export const LicensesView = () => {
           </div>
         </div>
 
-        {/* 03. PRICING CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+        {/* 03. PRICING CARDS (Compact sizing matching shop product cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 items-stretch">
           {filteredTiers.map((tier) => {
             const IconComp = tier.icon;
             return (
               <div 
                 key={tier.id}
-                className={`rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 relative ${
+                className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 relative ${
                   tier.isPopular 
-                    ? 'bg-[#1E3D2F] text-white shadow-xl scale-[1.02] border-2 border-[#4E8A5C]' 
-                    : 'bg-white text-[#191C1A] border border-[#E6E3DA] shadow-xs hover:border-[#1E3D2F]/30'
+                    ? 'bg-[#1E3D2F] text-white shadow-lg scale-[1.01] border-2 border-[#4E8A5C]' 
+                    : 'bg-white text-[#191C1A] border border-[#E6E3DA] shadow-2xs hover:border-[#1E3D2F]/30 hover:-translate-y-1'
                 }`}
               >
                 {tier.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#EE7C6B] text-white font-extrabold text-[11px] shadow-sm tracking-wide">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#EE7C6B] text-white font-extrabold text-[10px] shadow-xs tracking-wide">
                     {tier.badge}
                   </span>
                 )}
 
-                <div className="space-y-6">
+                <div className="space-y-3.5">
                   {/* Category Pill */}
                   <div>
                     {tier.category === 'app' ? (
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold ${
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                         tier.isPopular ? 'bg-white/20 text-[#A3E6B5]' : 'bg-blue-50 text-blue-700 border border-blue-200'
                       }`}>
-                        <Monitor size={12} />
-                        <span>💻 LISENSI APLIKASI DESKTOP</span>
+                        <Monitor size={11} />
+                        <span>💻 DESKTOP APP</span>
                       </span>
                     ) : (
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold ${
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
                         tier.isPopular ? 'bg-white/20 text-[#A3E6B5]' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                       }`}>
-                        <Globe size={12} />
-                        <span>🌐 LISENSI WEB STORY GENERATOR</span>
+                        <Globe size={11} />
+                        <span>🌐 WEB STUDIO</span>
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <div>
-                      <h3 className={`font-heading font-extrabold text-lg ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
+                      <h3 className={`font-heading font-extrabold text-sm sm:text-base leading-tight ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
                         {tier.name}
                       </h3>
-                      <p className={`text-xs mt-0.5 ${tier.isPopular ? 'text-gray-300' : 'text-gray-500'}`}>
+                      <p className={`text-[11px] mt-0.5 ${tier.isPopular ? 'text-gray-300' : 'text-gray-500'}`}>
                         {tier.subtitle}
                       </p>
                     </div>
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${tier.isPopular ? 'bg-white/10 text-[#A3E6B5]' : 'bg-[#F0EEE6] text-[#1E3D2F]'}`}>
-                      <IconComp size={22} />
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tier.isPopular ? 'bg-white/10 text-[#A3E6B5]' : 'bg-[#F0EEE6] text-[#1E3D2F]'}`}>
+                      <IconComp size={18} />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className={`text-3xl sm:text-4xl font-heading font-black tracking-tight ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
+                      <span className={`text-2xl sm:text-3xl font-heading font-black tracking-tight ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
                         {tier.formattedPrice || tier.price}
                       </span>
                     </div>
-                    <span className={`text-xs font-semibold block mt-1 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`}>
+                    <span className={`text-[11px] font-semibold block mt-0.5 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`}>
                       {tier.period}
                     </span>
                   </div>
 
-                  <div className={`pt-5 border-t ${tier.isPopular ? 'border-white/10' : 'border-[#F0EEE6]'} space-y-3`}>
-                    <p className={`text-xs font-bold uppercase tracking-wider ${tier.isPopular ? 'text-gray-300' : 'text-gray-400'}`}>
-                      Fasilitas & Keuntungan:
+                  <div className={`pt-3 border-t ${tier.isPopular ? 'border-white/10' : 'border-[#F0EEE6]'} space-y-2`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${tier.isPopular ? 'text-gray-300' : 'text-gray-400'}`}>
+                      Fasilitas:
                     </p>
-                    <ul className="space-y-2.5 text-xs">
+                    <ul className="space-y-1.5 text-[11px]">
                       {tier.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <CheckCircle2 size={16} className={`shrink-0 mt-0.5 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`} />
+                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                          <CheckCircle2 size={13} className={`shrink-0 mt-0.5 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`} />
                           <span className={tier.isPopular ? 'text-gray-200' : 'text-gray-700'}>{feat}</span>
                         </li>
                       ))}
@@ -284,17 +284,17 @@ export const LicensesView = () => {
                   </div>
                 </div>
 
-                <div className="pt-8">
+                <div className="pt-4 mt-auto">
                   <button
                     onClick={() => openInstantCheckout(tier, 'license')}
-                    className={`w-full py-3.5 px-6 rounded-2xl font-heading font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95 ${
+                    className={`w-full py-2.5 px-4 rounded-xl font-heading font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 ${
                       tier.isPopular 
                         ? 'bg-[#EE7C6B] hover:bg-[#E26A59] text-white' 
                         : 'bg-[#1E3D2F] hover:bg-[#162F24] text-white'
                     }`}
                   >
                     <span>{tier.ctaText || 'Beli Lisensi'}</span>
-                    <ArrowRight size={16} />
+                    <ArrowRight size={14} />
                   </button>
                 </div>
               </div>
