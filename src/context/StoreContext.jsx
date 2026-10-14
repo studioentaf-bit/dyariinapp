@@ -1034,18 +1034,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.3') return parsed;
+        if (parsed.version === '0.0.4') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.3',
+      version: '0.0.4',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.3/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.4/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.3',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.4',
       releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: 'Versi 0.0.3: Integrasi menu tutorial video dinamis dari panel admin, sinkronisasi harga & visibilitas produk web vs aplikasi, banner dashboard desktop via admin branding, default API key kosong pada clean install, dan integrasi penuh pengaturan checkout pembayaran.'
+      changelog: 'Versi 0.0.4: Banner hero dashboard dinamis dari branding admin, pembersihan default akun platform (mulai dari 0 akun), pengosongan total default API key Story Generator pada clean install, dan integrasi checkout pembayaran.'
     };
   });
 
@@ -1089,8 +1089,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.3';
-            if (verData.version === '0.0.1' || verData.version === '0.0.2') {
+            const minOfficial = '0.0.4';
+            if (verData.version === '0.0.1' || verData.version === '0.0.2' || verData.version === '0.0.3') {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;

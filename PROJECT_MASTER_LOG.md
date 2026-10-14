@@ -357,6 +357,25 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Pada saat pengguna pertama kali membuka aplikasi desktop yang belum diperbarui, sistem otomatis mendeteksi rilis baru dalam 1.2 detik dan menampilkan pop-up modal `UpdateDialog`.
    - Pengguna dapat langsung mengklik **"Update Otomatis Sekarang"** (auto-download & in-place update) atau **"Unduh di Browser"**.
 
+### I. Pembaruan v0.0.4: Banner Dashboard Admin, Pembersihan Akun Platform, dan Sanitasi API Key
+1. **Banner Dashboard Aplikasi Desktop dari Branding Panel Admin**:
+   - Memperbaiki sinkronisasi penyimpanan di `StoreContext.jsx` agar memanggil endpoint backend `api.settings.update(updated)` ke database PostgreSQL.
+   - Menyertakan field `desktopBannerUrl` dan `bannerImageUrl` pada state sinkronisasi.
+   - Mengubah layout `DynamicHeroBannerImage` di `MainWindow.xaml` agar merender gambar dengan `Height="175"` dan `Stretch="UniformToFill"`, mengisi penuh card hero sambutan saat banner telah diunggah oleh admin.
+2. **Pembersihan Akun Platform Bawaan (Dimulai dari 0 Akun Bersih)**:
+   - Menghapus akun mockup bawaan (`flow_acc_01`, `dola_acc_01`, `chatgpt_acc_01`) dari file data lokal.
+   - Menambahkan filter *auto-purge* pada `StorageService.cs` di fungsi `LoadAccounts()`. Setiap akun dengan prefix mockup lama otomatis disaring dan dihapus secara permanen sehingga pengguna yang baru mengunduh aplikasi desktop mendapatkan daftar akun yang benar-benar kosong (0 akun).
+3. **Sanitasi Total API Key di Story Generator (Desktop & Web)**:
+   - Mengosongkan file `keys.json` lokal di direktori produktivitas desktop.
+   - Menghapus seluruh potongan kunci uji coba dan fragment fallback hardcoded pada `GeminiApiService.cs`, `gemini.js`, dan kedua file `index.html` Story Generator.
+   - Menambahkan pembersihan otomatis (*auto-purge*) pada `localStorage` browser dan `ProductivityStorageService.cs` untuk memastikan pengguna baru di perangkat baru tidak memiliki API key default yang terisi secara gaib.
+4. **Kenaikan Versi Otomatis ke v0.0.4 & Deploy**:
+   - Versi desktop dinaikkan ke `0.0.4` pada `AIPilotManager.csproj`, `MainWindow.xaml`, dan `MainWindow.xaml.cs`.
+   - Versi backend dan frontend web dinaikkan ke `0.0.4` pada `server/index.js`, `StoreContext.jsx`, `DownloadAppView.jsx`, dan `HomeView.jsx`.
+   - Kompilasi ulang binary `Story.in-AI-Manager.exe` menggunakan .NET 8 SDK dan diterbitkan ke [GitHub Release v0.0.4](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.4).
+   - Seluruh perubahan web di-build dengan Vite dan di-push ke branch `main`.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
+
