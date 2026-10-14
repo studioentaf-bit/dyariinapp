@@ -1089,6 +1089,12 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
+            const minOfficial = '0.0.3';
+            if (verData.version === '0.0.1' || verData.version === '0.0.2') {
+              verData.version = minOfficial;
+              verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
+              verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
+            }
             setAppVersionInfo(verData);
             try {
               localStorage.setItem('dyari_app_version_info', JSON.stringify(verData));

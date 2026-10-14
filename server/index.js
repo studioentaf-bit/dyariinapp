@@ -65,12 +65,29 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
+const MIN_OFFICIAL_VERSION = '0.0.3';
+
+function isVersionGreater(v1, v2) {
+  const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
+  const p2 = (v2 || '').replace(/^v/i, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+    const n1 = p1[i] || 0;
+    const n2 = p2[i] || 0;
+    if (n1 > n2) return true;
+    if (n1 < n2) return false;
+  }
+  return false;
+}
+
 app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
   try {
     const result = await query("SELECT value FROM settings WHERE key = 'store_config'");
     const store = (result.rows.length > 0 && result.rows[0].value) || {};
     const appCfg = store.appInfo || store.appVersionInfo || {};
-    const version = appCfg.version || store.appVersion || '0.0.2';
+    let version = appCfg.version || store.appVersion || MIN_OFFICIAL_VERSION;
+    if (isVersionGreater(MIN_OFFICIAL_VERSION, version)) {
+      version = MIN_OFFICIAL_VERSION;
+    }
     const tag = version.startsWith('v') ? version : `v${version}`;
     const downloadUrl = appCfg.downloadUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/download/${tag}/Story.in-AI-Manager.exe`;
     const releaseUrl = appCfg.releaseUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/tag/${tag}`;
@@ -81,20 +98,20 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       downloadUrl,
       releaseUrl,
       directDownload: '/api/app/download',
-      releaseDate: appCfg.releaseDate || '2026-10-14',
+      releaseDate: appCfg.releaseDate || '2026-10-15',
       size: appCfg.size || '163 MB',
-      changelog: appCfg.changelog || `Versi ${version}: Pembaruan stabilitas (anti-crash), pop-up aktivasi otomatis saat first launch, penguncian menu berlisensi (🔒), header badges versi ${tag} dan status lisensi, pembersihan akun awal, serta integrasi 2 kategori lisensi (Aplikasi Desktop & Web Story Generator).`
+      changelog: appCfg.changelog || `Versi ${version}: Integrasi menu tutorial video dinamis dari panel admin, sinkronisasi harga & visibilitas produk web vs aplikasi, banner dashboard desktop via admin branding, default API key kosong pada clean install, dan integrasi penuh pengaturan checkout pembayaran.`
     });
   } catch (err) {
     res.json({
-      version: '0.0.2',
+      version: MIN_OFFICIAL_VERSION,
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.2/Story.in-AI-Manager.exe',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.2',
+      downloadUrl: `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${MIN_OFFICIAL_VERSION}/Story.in-AI-Manager.exe`,
+      releaseUrl: `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${MIN_OFFICIAL_VERSION}`,
       directDownload: '/api/app/download',
-      releaseDate: '2026-10-14',
+      releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: 'Versi 0.0.2: Pembaruan stabilitas (anti-crash), pop-up aktivasi otomatis saat first launch, penguncian menu berlisensi (🔒), header badges versi v0.0.2 dan status lisensi, pembersihan akun awal, serta integrasi 2 kategori lisensi.'
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Integrasi menu tutorial video dinamis dari panel admin, sinkronisasi harga & visibilitas produk web vs aplikasi, banner dashboard desktop via admin branding, default API key kosong pada clean install, dan integrasi penuh pengaturan checkout pembayaran.`
     });
   }
 });
@@ -105,12 +122,15 @@ app.get('/api/app/download', async (req, res) => {
     const result = await query("SELECT value FROM settings WHERE key = 'store_config'");
     const store = (result.rows.length > 0 && result.rows[0].value) || {};
     const appCfg = store.appInfo || store.appVersionInfo || {};
-    const version = appCfg.version || store.appVersion || '0.0.2';
+    let version = appCfg.version || store.appVersion || MIN_OFFICIAL_VERSION;
+    if (isVersionGreater(MIN_OFFICIAL_VERSION, version)) {
+      version = MIN_OFFICIAL_VERSION;
+    }
     const tag = version.startsWith('v') ? version : `v${version}`;
     const targetUrl = appCfg.downloadUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/download/${tag}/Story.in-AI-Manager.exe`;
     res.redirect(302, targetUrl);
   } catch (_) {
-    res.redirect(302, 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.2/Story.in-AI-Manager.exe');
+    res.redirect(302, `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${MIN_OFFICIAL_VERSION}/Story.in-AI-Manager.exe`);
   }
 });
 

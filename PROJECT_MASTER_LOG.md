@@ -343,6 +343,20 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Binary standalone `Story.in-AI-Manager.exe` (163 MB) berhasil dikompilasi menggunakan .NET 8 SDK.
    - Rilis publik `v0.0.3` berhasil diterbitkan di repositori GitHub `studioentaf-bit/dyariinapp` dan aset binary telah diunggah.
 
+### H. Penguatan Deteksi Pembaruan Desktop & Jaminan Tampilan Versi 0.0.3 di Website
+1. **Penegakan Versi Minimum di Backend (`server/index.js`)**:
+   - Dibuat fungsi pembanding versi `isVersionGreater(MIN_OFFICIAL_VERSION, version)` dengan `MIN_OFFICIAL_VERSION = '0.0.3'`.
+   - Endpoint `/api/app-version`, `/api/app/version`, dan `/api/app/download` dijamin tidak akan pernah menyajikan versi `0.0.2` meskipun database memiliki konfigurasi lama.
+2. **Pembersihan Cache Frontend (`DownloadAppView.jsx`, `HomeView.jsx`, `StoreContext.jsx`)**:
+   - Menambahkan guard proteksi agar tampilan halaman download dan beranda web langsung merender `0.0.3` (Resmi) tanpa terpengaruh cache lama browser (`0.0.2`).
+3. **Dual-Channel Auto-Update Desktop WPF**:
+   - Fungsi `CheckForUpdatesAsync` di `MainWindow.xaml.cs` diperkuat dengan pengecekan ganda:
+     1. Mengecek endpoint web resmi `/api/app-version`.
+     2. Mengecek langsung GitHub Releases API (`api.github.com/repos/studioentaf-bit/dyariinapp/releases/latest`) sehingga pembaruan terdeteksi secara instan tanpa jeda cache.
+4. **Pop-Up Rekomendasi Update Otomatis saat First Launch**:
+   - Pada saat pengguna pertama kali membuka aplikasi desktop yang belum diperbarui, sistem otomatis mendeteksi rilis baru dalam 1.2 detik dan menampilkan pop-up modal `UpdateDialog`.
+   - Pengguna dapat langsung mengklik **"Update Otomatis Sekarang"** (auto-download & in-place update) atau **"Unduh di Browser"**.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
