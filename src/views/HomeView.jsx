@@ -166,7 +166,13 @@ export const HomeView = () => {
                     onClick={() => navigateTo('product-detail', products[0].id)}
                     className="absolute bottom-4 right-2 sm:right-4 w-48 sm:w-56 bg-white rounded-3xl shadow-xl border border-[#D5E3D8] transform rotate-3 hover:rotate-0 hover:scale-105 transition-all duration-300 cursor-pointer z-10 overflow-hidden"
                   >
-                    <img src={products[0].image} alt={products[0].name} className="w-full h-28 object-cover" />
+                    <img 
+                      src={products[0].image} 
+                      alt={products[0].name} 
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-28 object-cover" 
+                    />
                     <div className="p-3">
                       <p className="font-heading font-bold text-xs text-[#1C352D] leading-tight truncate">{products[0].name}</p>
                       <p className="text-[10px] text-[#EE7C6B] font-bold mt-1">
@@ -445,6 +451,8 @@ export const HomeView = () => {
                 <img 
                   src={bundleProduct.image} 
                   alt={bundleProduct.name}
+                  loading="lazy"
+                  decoding="async"
                   className="rounded-2xl max-h-64 object-cover shadow-lg border border-[#F5DDD6]"
                 />
               </div>
@@ -483,6 +491,8 @@ export const HomeView = () => {
                 <img 
                   src={testi.avatar} 
                   alt={testi.author} 
+                  loading="lazy"
+                  decoding="async"
                   className="w-8 h-8 rounded-full object-cover border border-[#E5EAE4]"
                 />
                 <span className="font-heading font-bold text-xs text-[#1C352D]">

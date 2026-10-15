@@ -69,6 +69,8 @@ export const CartDrawer = () => {
                     <img 
                       src={item.image} 
                       alt={item.name} 
+                      loading="lazy"
+                      decoding="async"
                       className="w-14 h-14 rounded-xl object-cover border border-dyariborder/60"
                     />
                     <div>

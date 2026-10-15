@@ -485,6 +485,8 @@ export const PublicInvoiceView = () => {
                           <img 
                             src={settings?.payment?.qrisImageUrl || "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=400&q=80"} 
                             alt="QRIS Barcode" 
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover rounded-lg" 
                           />
                         </div>

@@ -175,6 +175,8 @@ export const UserDashboardView = () => {
                 <img 
                   src={user.avatar} 
                   alt={user.name} 
+                  loading="lazy"
+                  decoding="async"
                   className="w-9 h-9 rounded-full object-cover border border-dyariborder shrink-0"
                 />
               ) : (

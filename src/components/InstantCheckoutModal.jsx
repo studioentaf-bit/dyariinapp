@@ -292,6 +292,8 @@ export const InstantCheckoutModal = () => {
                 <img 
                   src={item.image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80'} 
                   alt={item.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-12 h-12 rounded-xl object-cover border border-[#E5EAE4] shrink-0 bg-white"
                 />
               )}
@@ -489,6 +491,8 @@ export const InstantCheckoutModal = () => {
                 <img 
                   src={qrisImage} 
                   alt="QRIS Pembayaran dyari.in" 
+                  loading="lazy"
+                  decoding="async"
                   className="w-full aspect-square object-contain rounded-2xl bg-white p-2 shadow-2xs"
                 />
                 <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[10px] font-bold text-[#1C352D]">

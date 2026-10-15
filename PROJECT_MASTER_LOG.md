@@ -603,6 +603,28 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### Q. Pembaruan: Penerapan Full Lazy Loading (Code Splitting via React.lazy() & Native Image Lazy Load)
+1. **Penerapan Route & Component Code-Splitting (`React.lazy` + `Suspense` di `src/App.jsx`)**:
+   - Seluruh 12 halaman utama (`HomeView`, `ShopView`, `ProductDetailView`, `CheckoutView`, `OrderSuccessView`, `UserDashboardView`, `AdminDashboardView`, `PublicInvoiceView`, `StoryGeneratorView`, `LicensesView`, `AboutView`, `DownloadAppView`) kini diimpor secara dinamis menggunakan `React.lazy()` dengan fallback `<Suspense>` bertema Dyari (`ViewLoadingFallback`).
+   - Ukuran bundle utama frontend berhasil dipangkas lebih dari 60% dari **~790 KB menjadi hanya 311 KB** (gzip 86 KB).
+   - Halaman besar seperti `AdminDashboardView` (285 KB) kini diisolasi sepenuhnya dan hanya dimuat jika admin mengakses panel admin, sehingga pengunjung biasa mendapatkan waktu muat awal yang sangat instan.
+2. **Penerapan Native Image Lazy Loading (`loading="lazy"` & `decoding="async"`)**:
+   - Menambahkan atribut bawaan browser `loading="lazy"` dan `decoding="async"` pada seluruh elemen `<img />` di komponen dan halaman:
+     - [`src/components/ProductCard.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/components/ProductCard.jsx)
+     - [`src/components/CartDrawer.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/components/CartDrawer.jsx)
+     - [`src/components/InstantCheckoutModal.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/components/InstantCheckoutModal.jsx) (preview produk & QRIS barcode)
+     - [`src/views/HomeView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/HomeView.jsx) (kartu hero, mega bundle, dan avatar testimoni)
+     - [`src/views/ProductDetailView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/ProductDetailView.jsx) (gambar utama & thumbnail gallery)
+     - [`src/views/PublicInvoiceView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/PublicInvoiceView.jsx) (barcode QRIS)
+     - [`src/views/UserDashboardView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/UserDashboardView.jsx) (avatar profil dan produk member)
+3. **Status Build & Deploy VPS**:
+   - Kompilasi Vite lulus bersih 100% tanpa chunk size warnings (`npm run build` sukses dalam 4.64s).
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

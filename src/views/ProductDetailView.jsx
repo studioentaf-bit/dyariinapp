@@ -100,6 +100,8 @@ export const ProductDetailView = () => {
             <img 
               src={images[activeImageIdx]} 
               alt={product.name}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-all duration-300"
             />
             {product.badge && (
@@ -125,7 +127,7 @@ export const ProductDetailView = () => {
                       : 'border-dyariborder opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                  <img src={img} alt="thumbnail" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
