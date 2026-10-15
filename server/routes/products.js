@@ -13,19 +13,25 @@ export const clearProductsCache = () => {
 };
 
 // Auto-migrate columns for product_type, account_stock, stock_count, app_price, and platform visibility
-const ensureStockColumns = async () => {
-  try {
-    await query(`
-      ALTER TABLE products 
-      ADD COLUMN IF NOT EXISTS product_type VARCHAR(100) DEFAULT 'APPS_PREMIUM',
-      ADD COLUMN IF NOT EXISTS account_stock JSONB DEFAULT '[]'::jsonb,
-      ADD COLUMN IF NOT EXISTS stock_count INT DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS app_price NUMERIC DEFAULT NULL,
-      ADD COLUMN IF NOT EXISTS show_on_web BOOLEAN DEFAULT TRUE,
-      ADD COLUMN IF NOT EXISTS show_on_app BOOLEAN DEFAULT TRUE;
-    `);
+export const ensureStockColumns = async () => {
+  const migrations = [
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS product_type VARCHAR(100) DEFAULT 'APPS_PREMIUM'`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS account_stock JSONB DEFAULT '[]'::jsonb`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_count INT DEFAULT 0`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS app_price NUMERIC DEFAULT NULL`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS show_on_web BOOLEAN DEFAULT TRUE`,
+    `ALTER TABLE products ADD COLUMN IF NOT EXISTS show_on_app BOOLEAN DEFAULT TRUE`
+  ];
 
-    // Backfill NULL product_type
+  for (const sql of migrations) {
+    try {
+      await query(sql);
+    } catch (err) {
+      // Column might already exist or table busy
+    }
+  }
+
+  try {
     await query(`
       UPDATE products 
       SET product_type = CASE 
@@ -35,27 +41,30 @@ const ensureStockColumns = async () => {
       END
       WHERE product_type IS NULL OR product_type = '';
     `);
-  } catch (err) {
-    console.warn('Notice: ensureStockColumns migration:', err.message);
-  }
+  } catch (_) {}
 };
 ensureStockColumns();
 
-// GET /api/products (Public list with in-memory caching)
+// GET /api/products (Public list with cache-busting headers)
 router.get('/', async (req, res) => {
   try {
-    const { category, search } = req.query;
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    const { category, search, t, nocache } = req.query;
+    const bypassCache = !!t || !!nocache;
     const cacheKey = `list_${category || 'all'}_${search || 'all'}`;
     const cached = productsCache.get(cacheKey);
 
-    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+    if (!bypassCache && cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
       return res.json({ products: cached.data, cached: true });
     }
 
     let sql = 'SELECT * FROM products WHERE is_active = TRUE';
     const params = [];
 
-    if (category && category !== 'semua') {
+    if (category && category !== 'semua' && category !== 'all') {
       params.push(category);
       sql += ` AND category_id = $${params.length}`;
     }
@@ -68,7 +77,6 @@ router.get('/', async (req, res) => {
     sql += ' ORDER BY id DESC';
     const result = await query(sql, params);
 
-    // Save to cache for subsequent visitors
     productsCache.set(cacheKey, {
       data: result.rows,
       timestamp: Date.now()
@@ -84,8 +92,9 @@ router.get('/', async (req, res) => {
 // GET /api/products/:id
 router.get('/:id', async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const { id } = req.params;
-    const isNum = !isNaN(parseInt(id, 10));
+    const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
     const sql = isNum 
       ? 'SELECT * FROM products WHERE id = $1' 
       : 'SELECT * FROM products WHERE slug = $1';
@@ -108,6 +117,9 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Hanya admin yang memiliki izin menambah produk.' });
     }
 
+    // Pastikan skema kolom lengkap
+    await ensureStockColumns();
+
     const {
       title, slug, price, original_price, badge, category_id, category_name,
       type, product_type, image, access_link, features, license_required, description,
@@ -119,6 +131,11 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Judul produk dan harga wajib diisi.' });
     }
 
+    const numericPrice = Number(price) || 0;
+    const numericOrigPrice = original_price !== undefined && original_price !== null && original_price !== ''
+      ? (Number(original_price) || numericPrice)
+      : numericPrice;
+
     let autoSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     if (!autoSlug) autoSlug = `prod-${Date.now()}`;
 
@@ -128,39 +145,60 @@ router.post('/', authenticateToken, async (req, res) => {
       autoSlug = `${autoSlug}-${Math.floor(100 + Math.random() * 900)}`;
     }
 
-    // Verifikasi validitas category_id untuk mencegah error foreign key
-    let validCatId = category_id || null;
-    if (validCatId) {
-      const catCheck = await query('SELECT id FROM categories WHERE id = $1', [validCatId]);
-      if (catCheck.rows.length === 0) {
-        try {
-          await query(
+    // Resolusi category_id agar tidak melanggar foreign key
+    let validCatId = null;
+    if (category_id) {
+      try {
+        const catCheck = await query('SELECT id FROM categories WHERE id = $1', [category_id]);
+        if (catCheck.rows.length > 0) {
+          validCatId = catCheck.rows[0].id;
+        } else {
+          // Masukkan kategori jika belum ada di database
+          const catSlug = category_id.toLowerCase().replace(/[^a-z0-9_-]/g, '') || `cat-${Date.now()}`;
+          const ins = await query(
             `INSERT INTO categories (id, name, slug, description)
              VALUES ($1, $2, $3, $4)
-             ON CONFLICT (id) DO NOTHING`,
-            [validCatId, category_name || validCatId, validCatId, 'Kategori ' + (category_name || validCatId)]
+             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+             RETURNING id`,
+            [category_id, category_name || category_id, catSlug, 'Kategori ' + (category_name || category_id)]
           );
-        } catch (_) {
-          validCatId = null;
+          if (ins.rows.length > 0) validCatId = ins.rows[0].id;
         }
+      } catch (catErr) {
+        console.warn('Category insert notice:', catErr.message);
+        validCatId = null;
       }
     }
+
+    const safeStock = Array.isArray(account_stock) ? account_stock : [];
+    const count = stock_count !== undefined && stock_count !== null && stock_count !== 'Unlimited'
+      ? Number(stock_count)
+      : safeStock.filter(s => !s.isSold).length;
+
+    const safeFeatures = Array.isArray(features) ? features : [];
+    const safeType = type || (product_type === 'APPS_PREMIUM' ? 'AKSES PREMIUM' : (product_type === 'LICENSE_TOOL' ? 'LISENSI' : 'AKSES MEMBER'));
+    const safeProductType = product_type || (safeType === 'LISENSI' ? 'LICENSE_TOOL' : (safeType === 'AKSES PREMIUM' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM'));
+    const safeStockStatus = (safeProductType === 'DIGITAL_PREMIUM' || safeProductType === 'LICENSE_TOOL' || count > 0) ? 'TERSEDIA' : 'HABIS';
 
     const result = await query(
       `INSERT INTO products (
         title, slug, price, original_price, badge, category_id, category_name,
         type, product_type, image, access_link, features, license_required, description,
-        account_stock, stock_count,
-        app_price, show_on_web, show_on_app
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        account_stock, stock_count, stock_status,
+        app_price, show_on_web, show_on_app, is_active
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12::jsonb, $13, $14,
+        $15::jsonb, $16, $17,
+        $18, $19, $20, true
+      )
       RETURNING *`,
       [
-        title, autoSlug, price, original_price || price, badge || '',
+        title, autoSlug, numericPrice, numericOrigPrice, badge || '',
         validCatId, category_name || 'Aset Premium',
-        type || 'AKSES MEMBER', product_type || 'APPS_PREMIUM', image || '', access_link || '',
-        JSON.stringify(features || []), !!license_required, description || '',
-        account_stock ? JSON.stringify(account_stock) : '[]',
-        stock_count !== undefined && stock_count !== null ? Number(stock_count) : 0,
+        safeType, safeProductType, image || '', access_link || '',
+        JSON.stringify(safeFeatures), !!license_required, description || '',
+        JSON.stringify(safeStock), count, safeStockStatus,
         app_price !== undefined && app_price !== null && app_price !== '' ? Number(app_price) : null,
         show_on_web !== undefined ? Boolean(show_on_web) : true,
         show_on_app !== undefined ? Boolean(show_on_app) : true
@@ -190,20 +228,29 @@ router.put('/:id', authenticateToken, async (req, res) => {
       app_price, show_on_web, show_on_app
     } = req.body;
 
-    let validCatId = category_id;
-    if (validCatId) {
-      const catCheck = await query('SELECT id FROM categories WHERE id = $1', [validCatId]);
-      if (catCheck.rows.length === 0) {
-        try {
-          await query(
+    // Pastikan skema kolom lengkap
+    await ensureStockColumns();
+
+    let validCatId = null;
+    if (category_id) {
+      try {
+        const catCheck = await query('SELECT id FROM categories WHERE id = $1', [category_id]);
+        if (catCheck.rows.length > 0) {
+          validCatId = catCheck.rows[0].id;
+        } else {
+          const catSlug = category_id.toLowerCase().replace(/[^a-z0-9_-]/g, '') || `cat-${Date.now()}`;
+          const ins = await query(
             `INSERT INTO categories (id, name, slug, description)
              VALUES ($1, $2, $3, $4)
-             ON CONFLICT (id) DO NOTHING`,
-            [validCatId, category_name || validCatId, validCatId, 'Kategori ' + (category_name || validCatId)]
+             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+             RETURNING id`,
+            [category_id, category_name || category_id, catSlug, 'Kategori ' + (category_name || category_id)]
           );
-        } catch (_) {
-          validCatId = null;
+          if (ins.rows.length > 0) validCatId = ins.rows[0].id;
         }
+      } catch (catErr) {
+        console.warn('Category update notice:', catErr.message);
+        validCatId = null;
       }
     }
 

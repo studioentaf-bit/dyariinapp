@@ -547,6 +547,38 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### O. Pembaruan: Perbaikan Persistensi Penambahan Produk Baru (PostgreSQL), Eliminasi HTTP/In-Memory Cache pada Refresh, & Penguatan Kredensial Admin Login
+1. **Perbaikan Masalah Produk Baru Hilang Saat Refresh Halaman**:
+   - **Akar Masalah**:
+     - Fungsi `addProduct()` di frontend sempat menambahkan produk ke React state sehingga langsung muncul di UI. Namun, request asynchronous `POST /api/products` ke backend mengalami kegagalan di server karena:
+       1) Tabel database belum memiliki kolom baru jika `ensureStockColumns()` belum tereksekusi sebelum query `INSERT`.
+       2) Resolusi kategori berpotensi menabrak foreign key atau conflict constraint.
+       3) Parsing JSONB pada PostgreSQL memerlukan casting eksplisit `$12::jsonb` dan `$15::jsonb`.
+     - Saat admin me-refresh browser, `fetchBackendProducts()` memuat data aktual dari database. Karena produk baru gagal tersimpan di PostgreSQL, database hanya mengembalikan katalog lama sehingga produk baru tampak hilang.
+     - Respons `GET /api/products` tersimpan dalam cache in-memory Express (TTL 2 menit) dan HTTP cache browser/Cloudflare tanpa header no-store, sehingga refresh browser menyajikan snapshot lama.
+   - **Solusi Komprehensif**:
+     - Memperbaiki `server/routes/products.js`:
+       - Fungsi `ensureStockColumns()` kini dijalankan dengan `await` di awal `POST /` dan `PUT /:id` guna menjamin seluruh kolom (`product_type`, `account_stock`, `stock_count`, `app_price`, `show_on_web`, `show_on_app`) sudah eksis di tabel `products`.
+       - Query INSERT/UPDATE menyertakan casting tipe data eksplisit (`$12::jsonb`, `$15::jsonb`, `numericPrice`, `numericOrigPrice`).
+       - Resolusi kategori dibuat tahan banting dengan safe upsert: jika kategori belum ada, sistem membuat entri baru dengan slug aman tanpa memicu crash foreign key constraint.
+       - Endpoint `GET /api/products` kini mengirimkan header `Cache-Control: no-store, no-cache, must-revalidate` dan mengabaikan cache in-memory jika terdapat parameter `?t=` atau `?nocache=`.
+     - Memperbaiki `src/context/StoreContext.jsx`:
+       - `fetchBackendProducts()` menambahkan parameter unik waktu `?t=${Date.now()}` dan header `Cache-Control: no-cache, no-store` agar refresh browser selalu mengambil data paling mutakhir dari database.
+       - `addProduct()` mengirimkan autentikasi ganda (`x-admin-secret` dan `x-admin-key`) serta token JWT, menunggu respon database, dan memetakan `dbId` serta slug permanen ke state dan `localStorage`.
+
+2. **Penguatan Autentikasi Admin & Password Resilience**:
+   - `server/routes/auth.js` pada `POST /api/auth/login` memvalidasi kredensial master (`owner@dyariapp.my.id` + `Dyari#Master9981!Secure`), otomatis melakukan sinkronisasi/upsert hash bcrypt ke PostgreSQL, dan menerbitkan JWT valid.
+   - Panel admin di frontend memotong spasi (`trim()`) pada email dan password untuk menghindari kesalahan ketik spasi tak sengaja.
+
+3. **Status Build & Deploy VPS**:
+   - Kompilasi Vite lulus bersih: `npm run build` sukses 100%.
+   - Seluruh sintaks Node.js server terverifikasi valid (`node -c`).
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

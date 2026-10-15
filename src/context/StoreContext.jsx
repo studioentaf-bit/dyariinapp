@@ -734,7 +734,12 @@ export const StoreProvider = ({ children }) => {
     let isMounted = true;
     const fetchBackendProducts = async () => {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch(`/api/products?t=${Date.now()}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store',
+            'Pragma': 'no-cache'
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data && Array.isArray(data.products) && isMounted) {
@@ -761,7 +766,9 @@ export const StoreProvider = ({ children }) => {
 
             saveStoredProductStocks(savedStocks);
             setProducts(mapped);
-            localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+            try {
+              localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+            } catch (_) {}
           }
         }
       } catch (err) {
@@ -1730,10 +1737,11 @@ export const StoreProvider = ({ children }) => {
 
     // 2. Simpan permanen ke PostgreSQL backend API
     try {
-      const token = localStorage.getItem('dyari_auth_token');
+      const token = localStorage.getItem('token') || localStorage.getItem('dyari_auth_token');
       const headers = { 
         'Content-Type': 'application/json',
-        'x-admin-secret': 'Dyari#Master9981!Secure'
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -1747,8 +1755,8 @@ export const StoreProvider = ({ children }) => {
           original_price: product.originalPrice || product.price,
           badge: product.badge || '',
           category_id: product.category || 'aset-premium',
-          category_name: product.categoryName || 'Mega Bundle & Canva',
-          type: product.type || 'DIGITAL_PREMIUM',
+          category_name: product.categoryName || 'Aset Premium',
+          type: product.type || 'AKSES MEMBER',
           product_type: product.productType || 'DIGITAL_PREMIUM',
           account_stock: product.accountStock || [],
           stock_count: product.stockCount !== undefined && product.stockCount !== 'Unlimited' ? Number(product.stockCount) : 0,
@@ -1766,12 +1774,13 @@ export const StoreProvider = ({ children }) => {
       if (res.ok) {
         const saved = await res.json();
         if (saved.product) {
+          const mapped = mapBackendProduct(saved.product);
           setProducts(prev => {
-            const mapped = prev.map(p => p.id === product.id ? { ...p, dbId: saved.product.id } : p);
+            const mappedList = prev.map(p => p.id === product.id ? { ...p, ...mapped, dbId: saved.product.id, id: saved.product.slug || mapped.id } : p);
             try {
-              localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+              localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mappedList));
             } catch (_) {}
-            return mapped;
+            return mappedList;
           });
         }
         showToast('Tersimpan di Database', `${product.name} telah disimpan permanen ke database.`);
@@ -1797,10 +1806,11 @@ export const StoreProvider = ({ children }) => {
     });
 
     try {
-      const token = localStorage.getItem('dyari_auth_token');
+      const token = localStorage.getItem('token') || localStorage.getItem('dyari_auth_token');
       const headers = { 
         'Content-Type': 'application/json',
-        'x-admin-secret': 'Dyari#Master9981!Secure'
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -1846,9 +1856,10 @@ export const StoreProvider = ({ children }) => {
     });
 
     try {
-      const token = localStorage.getItem('dyari_auth_token');
+      const token = localStorage.getItem('token') || localStorage.getItem('dyari_auth_token');
       const headers = {
-        'x-admin-secret': 'Dyari#Master9981!Secure'
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
       };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
