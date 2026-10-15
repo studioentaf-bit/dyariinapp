@@ -458,6 +458,39 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### M. Pembaruan v0.0.8: Perbaikan Total Fulfillment Checkout Produk Digital, Pengurangan Stok Riil PostgreSQL, & Sinkronisasi Menu Shop Desktop App
+1. **Perbaikan Fulfillment Produk Shop Digital vs Lisensi**:
+   - **Akar Masalah**: Sebelumnya, saat status pesanan diubah menjadi `LUNAS` oleh admin, `server/routes/orders.js` secara membabi-buta menerbitkan lisensi ke tabel `licenses` untuk semua produk (termasuk produk digital toko seperti Gemini Pro, Canva, G-Drive, dll.). Selain itu, `InstantCheckoutModal.jsx` memiliki percabangan `{isLicense || generatedLicenseCode ? ...}` yang memaksa tampilan berubah menjadi "Lisensi Resmi Story Generator AI" lengkap dengan tombol "Langsung Buka Story Generator".
+   - **Solusi**:
+     - Memperbaiki `server/routes/orders.js` (`PUT /api/orders/:id/status`): Hanya produk yang terbukti merupakan alat lisensi (`license_required === true`, `category_id === 'tools-ai'`, `type === 'LISENSI'`, atau judul mengandung kata 'lisensi' / 'story generator') yang diterbitkan ke tabel `licenses`.
+     - Untuk produk shop digital non-lisensi: backend sama sekali **TIDAK** menerbitkan lisensi palsu, melainkan menetapkan kredensial akun / akses link langsung ke kolom `order_items.assigned_account` dan `order_items.access_link`.
+     - Memperbaiki `InstantCheckoutModal.jsx`: Percabangan kini murni mengacu pada jenis produk (`isLicense`). Jika produk yang dibeli adalah produk digital shop, modal checkout secara presisi menampilkan container **"Akses Produk Digital"** (berisi box kredensial akun/email/password lengkap dengan tombol salin, tombol **"Buka Akses / Unduh Materi Produk"**, dan petunjuk penggunaan paska pembelian).
+2. **Pengurangan Stok Otomatis Riil di Database PostgreSQL**:
+   - **Akar Masalah**: Saat admin menyetujui pesanan menjadi `LUNAS`, kolom `stock_count` dan array `account_stock` pada tabel `products` di PostgreSQL tidak pernah diperbarui, sehingga kuota produk tidak berkurang di database.
+   - **Solusi**:
+     - Di `server/routes/orders.js` pada saat `LUNAS`:
+       - Menelusuri baris akun belum terjual (`!s.isSold`) pada kolom `account_stock` (JSONB) di PostgreSQL.
+       - Menandai akun yang diambil sebanyak kuota pembelian dengan `isSold: true`, `soldTo: order.invoice_number`, `soldToEmail: order.customer_email`, dan timestamp penjualan `soldAt`.
+       - Menghitung sisa stok riil dan memperbarui kolom `stock_count` serta status stok (`stock_status`: `'TERSEDIA'` / `'HABIS'`).
+       - Menambah counter `sales_count` di tabel `products`.
+       - Mengosongkan cache memory server (`clearProductsCache()`) agar endpoint `GET /api/products` seketika menyajikan stok terbaru untuk seluruh platform.
+     - Di `src/context/StoreContext.jsx`:
+       - Memperbarui `fulfillOrderCredentials()` agar memotong stok lokal dan memanggil API `syncStockToBackend()` untuk semua produk digital.
+       - Menyinkronkan kolom `assigned_account` dan `access_link` dari backend ke state aplikasi pada fungsi `syncOrdersFromBackend()`.
+3. **Penyelarasan Menu Shop & Stok Aplikasi Desktop (`Story.in AI Manager` WPF)**:
+   - Memperbarui fungsi `ExtractStock()` di `MainWindow.xaml.cs` aplikasi desktop agar selain membaca `stock_count`, juga memeriksa array `account_stock` untuk menghitung akun yang belum terjual (`!isSold`).
+   - Memastikan harga produk shop maupun lisensi di aplikasi desktop konsisten 100% dengan data katalog website (`app_price` / `price`).
+   - Mengupdate versi aplikasi desktop di `AIPilotManager.csproj` ke versi `0.0.8`.
+4. **Kenaikan Versi ke v0.0.8 & Sinkronisasi Global**:
+   - Menyelaraskan seluruh konstanta rilis ke versi `0.0.8` di `server/index.js`, `src/context/StoreContext.jsx`, `src/views/DownloadAppView.jsx`, `src/views/HomeView.jsx`, dan WPF project.
+5. **Status Build & Deploy VPS**:
+   - Kompilasi Vite telah diuji dan lulus bersih: `npm run build` sukses 100%.
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

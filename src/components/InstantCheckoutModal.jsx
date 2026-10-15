@@ -98,13 +98,17 @@ export const InstantCheckoutModal = () => {
         if (res.ok) {
           const data = await res.json();
           if (data && data.order && (data.order.status === 'LUNAS' || data.order.status === 'Lunas')) {
-            // Temukan atau perbarui status pesanan
-            const updatedItems = currentOrder.items?.map(it => {
-              if (data.licenses && data.licenses.length > 0 && !it.generatedLicense) {
-                return { ...it, generatedLicense: data.licenses[0].license_key };
-              }
-              return it;
-            }) || [];
+            // Temukan atau perbarui status pesanan serta data fulfillment (kredensial / lisensi / link)
+            const updatedItems = (currentOrder.items || []).map((it, idx) => {
+              const backendItem = (data.items || []).find(bi => bi.product_id === it.id || bi.id === it.id) || (data.items || [])[idx] || {};
+              return {
+                ...it,
+                generatedLicense: backendItem.license_key || it.generatedLicense || (data.licenses && data.licenses.length > 0 ? data.licenses[0].license_key : null),
+                assignedAccount: backendItem.assigned_account || it.assignedAccount || null,
+                accessUrl: backendItem.access_link || it.accessUrl || it.masterAccessUrl || null,
+                masterAccessUrl: backendItem.access_link || it.masterAccessUrl || null
+              };
+            });
 
             setCurrentOrder(prev => ({
               ...prev,
@@ -121,7 +125,12 @@ export const InstantCheckoutModal = () => {
 
   if (!isOpen || !item) return null;
 
-  const isLicense = type === 'license';
+  const isLicense = type === 'license' ||
+    item?.productType === 'LICENSE_TOOL' ||
+    item?.category === 'tools-ai' ||
+    item?.type === 'LISENSI' ||
+    (item?.name || '').toLowerCase().includes('lisensi') ||
+    (item?.name || '').toLowerCase().includes('story generator');
   const availableStock = !isLicense ? getProductAvailableStock(item) : 999;
   const unitPrice = Number(item.price || 0);
   const totalAmount = unitPrice * qty;
@@ -624,7 +633,7 @@ export const InstantCheckoutModal = () => {
             </div>
 
             {/* KONTEN LISENSI ATAU PRODUK */}
-            {isLicense || generatedLicenseCode ? (
+            {isLicense ? (
               <div className="p-4 bg-gradient-to-br from-[#1C352D] to-[#2E5545] text-white rounded-2xl shadow-md text-left space-y-3">
                 <div className="flex items-center justify-between border-b border-white/10 pb-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-[#A3E6B5]">
@@ -640,13 +649,14 @@ export const InstantCheckoutModal = () => {
                   <span className="text-[10px] text-gray-300 block mb-1">Kode Serial Lisensi Anda:</span>
                   <div className="flex items-center justify-between bg-black/30 rounded-xl p-2.5 border border-white/20">
                     <span className="font-mono font-black text-sm tracking-wider text-white select-all">
-                      {generatedLicenseCode}
+                      {generatedLicenseCode || 'DYARI-PRO-ACTIVE'}
                     </span>
                     <button
                       type="button"
                       onClick={() => {
+                        const codeToCopy = generatedLicenseCode || 'DYARI-PRO-ACTIVE';
                         if (navigator.clipboard) {
-                          navigator.clipboard.writeText(generatedLicenseCode);
+                          navigator.clipboard.writeText(codeToCopy);
                           setCopiedKey(true);
                           setTimeout(() => setCopiedKey(false), 2000);
                         }
@@ -677,11 +687,11 @@ export const InstantCheckoutModal = () => {
                   </span>
                 </div>
 
-                {assignedAccountCredential && (
+                {assignedAccountCredential ? (
                   <div>
                     <span className="text-[10px] text-gray-500 block mb-1">Akun / Kredensial Unik Anda:</span>
                     <div className="flex items-center justify-between bg-white rounded-xl p-2.5 border border-[#D5DDD6]">
-                      <span className="font-mono text-xs font-bold text-[#1C352D] select-all truncate max-w-[240px]">
+                      <span className="font-mono text-xs font-bold text-[#1C352D] select-all break-all max-w-[240px]">
                         {assignedAccountCredential}
                       </span>
                       <button
@@ -700,9 +710,9 @@ export const InstantCheckoutModal = () => {
                       </button>
                     </div>
                   </div>
-                )}
+                ) : null}
 
-                {accessUrl && (
+                {accessUrl ? (
                   <a
                     href={accessUrl}
                     target="_blank"
@@ -712,6 +722,18 @@ export const InstantCheckoutModal = () => {
                     <Download size={14} />
                     <span>Buka Akses / Unduh Materi Produk</span>
                   </a>
+                ) : (
+                  !assignedAccountCredential && (
+                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs">
+                      Pesanan Anda telah disetujui. Silakan klik tombol invoice di bawah untuk rincian materi digital Anda.
+                    </div>
+                  )
+                )}
+
+                {(fulfilledItem?.afterPurchaseMessage || item?.afterPurchaseMessage) && (
+                  <p className="text-[11px] text-gray-500 italic bg-white p-2.5 rounded-xl border border-[#E5EAE4]">
+                    💡 {fulfilledItem?.afterPurchaseMessage || item?.afterPurchaseMessage}
+                  </p>
                 )}
               </div>
             )}

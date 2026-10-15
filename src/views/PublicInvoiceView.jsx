@@ -236,13 +236,15 @@ export const PublicInvoiceView = () => {
                 <tbody className="divide-y divide-[#F0F4F1]">
                   {order?.items?.map((it, idx) => {
                     const prod = products.find(p => p.id === it.id || p.name === it.name);
-                    const pType = it.productType || prod?.productType || (
-                      it.name?.toLowerCase().includes('canva') || it.name?.toLowerCase().includes('capcut')
-                        ? 'APPS_PREMIUM'
-                        : it.name?.toLowerCase().includes('lisensi') || it.name?.toLowerCase().includes('license')
-                          ? 'LICENSE_TOOL'
-                          : 'DIGITAL_PREMIUM'
-                    );
+                    const isLicenseTool = prod?.productType === 'LICENSE_TOOL' ||
+                      prod?.category === 'tools-ai' ||
+                      prod?.type === 'LISENSI' ||
+                      (it.name || '').toLowerCase().includes('lisensi') ||
+                      (it.name || '').toLowerCase().includes('license') ||
+                      (it.name || '').toLowerCase().includes('story generator');
+                    const pType = isLicenseTool 
+                      ? 'LICENSE_TOOL' 
+                      : (it.assignedAccount || (it.name || '').toLowerCase().includes('canva') || (it.name || '').toLowerCase().includes('capcut') || (it.name || '').toLowerCase().includes('gemini') || (it.name || '').toLowerCase().includes('netflix') ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM');
 
                     return (
                       <tr key={idx} className="hover:bg-[#FCFAF5]">
@@ -302,17 +304,22 @@ export const PublicInvoiceView = () => {
               <div className="space-y-3">
                 {order?.items?.map((it, idx) => {
                   const prod = products.find(p => p.id === it.id || p.name === it.name);
-                  const pType = it.productType || prod?.productType;
+                  const isLicenseTool = prod?.productType === 'LICENSE_TOOL' ||
+                    prod?.category === 'tools-ai' ||
+                    prod?.type === 'LISENSI' ||
+                    (it.name || '').toLowerCase().includes('lisensi') ||
+                    (it.name || '').toLowerCase().includes('story generator');
+                  const pType = it.productType || prod?.productType || (isLicenseTool ? 'LICENSE_TOOL' : 'APPS_PREMIUM');
 
-                  // 1. APPS PREMIUM: Line Account / Exclusive Invite Link
-                  if (it.assignedAccount || pType === 'APPS_PREMIUM') {
-                    const cred = it.assignedAccount || 'https://canva.com/brand/join?invite=VIP-ALPHA-991';
+                  // 1. APPS & SHOP DIGITAL: Line Account / Exclusive Credentials
+                  if (it.assignedAccount || (!isLicenseTool && (pType === 'APPS_PREMIUM' || (it.name || '').toLowerCase().includes('gemini') || (it.name || '').toLowerCase().includes('canva')))) {
+                    const cred = it.assignedAccount || prod?.accessUrl || 'https://dyari.in/claim?id=' + order?.id;
                     return (
                       <div key={idx} className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2 text-left">
                         <div className="flex items-center justify-between">
                           <span className="inline-flex items-center gap-1.5 text-xs font-black text-blue-900">
                             <Smartphone size={14} />
-                            <span>Akun / Link Akses Eksklusif Anda (1x Pakai - Sold):</span>
+                            <span>Akun / Link Akses Eksklusif Anda:</span>
                           </span>
                           <span className="text-[10px] font-bold bg-blue-200/80 text-blue-900 px-2 py-0.5 rounded-full">
                             {it.name}
@@ -339,9 +346,9 @@ export const PublicInvoiceView = () => {
                     );
                   }
 
-                  // 2. LICENSE TOOLS: Auto Generated License Key
-                  if (it.generatedLicense || pType === 'LICENSE_TOOL') {
-                    const licenseKey = it.generatedLicense || 'DYARI-SUTRA-9281-PRO';
+                  // 2. LICENSE TOOLS: Auto Generated License Key (Hanya untuk produk lisensi)
+                  if (isLicenseTool && (it.generatedLicense || pType === 'LICENSE_TOOL')) {
+                    const licenseKey = it.generatedLicense || 'DYARI-TOOL-ACTIVE';
                     return (
                       <div key={idx} className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2 text-left">
                         <div className="flex items-center justify-between">

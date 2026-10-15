@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { query } from '../db.js';
 import { calculateExpiry } from './licenses.js';
+import { clearProductsCache } from './products.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dyari-secret-key-2026';
@@ -23,6 +24,20 @@ const checkIsAdmin = (req) => {
   }
   return false;
 };
+
+// Auto-migrate columns for order_items (assigned_account and access_link)
+const ensureOrderItemColumns = async () => {
+  try {
+    await query(`
+      ALTER TABLE order_items 
+      ADD COLUMN IF NOT EXISTS assigned_account TEXT,
+      ADD COLUMN IF NOT EXISTS access_link TEXT;
+    `);
+  } catch (err) {
+    console.warn('Notice: ensureOrderItemColumns migration:', err.message);
+  }
+};
+ensureOrderItemColumns();
 
 // GET /api/orders (Fetch all orders or member specific orders)
 router.get('/', async (req, res) => {
@@ -50,7 +65,9 @@ router.get('/', async (req, res) => {
               'product_price', oi.product_price,
               'quantity', oi.quantity,
               'subtotal', oi.subtotal,
-              'license_key', oi.license_key
+              'license_key', oi.license_key,
+              'assigned_account', oi.assigned_account,
+              'access_link', oi.access_link
             )
           ) FILTER (WHERE oi.id IS NOT NULL), '[]'
         ) AS items
@@ -121,15 +138,17 @@ router.post('/', async (req, res) => {
     // Insert order items safely resolving product_id as integer or null
     for (const it of items) {
       let resolvedProdId = null;
+      let accessLink = '';
       if (it.id) {
         const rawId = String(it.id).trim();
         if (!isNaN(parseInt(rawId, 10)) && /^\d+$/.test(rawId)) {
           resolvedProdId = parseInt(rawId, 10);
         } else {
           try {
-            const pRes = await query('SELECT id FROM products WHERE slug = $1 OR id::text = $1 LIMIT 1', [rawId]);
+            const pRes = await query('SELECT id, access_link FROM products WHERE slug = $1 OR id::text = $1 LIMIT 1', [rawId]);
             if (pRes.rows.length > 0) {
               resolvedProdId = pRes.rows[0].id;
+              accessLink = pRes.rows[0].access_link || '';
             }
           } catch (_) {}
         }
@@ -137,11 +156,12 @@ router.post('/', async (req, res) => {
 
       await query(
         `INSERT INTO order_items (
-          order_id, product_id, product_title, product_price, quantity, subtotal
-        ) VALUES ($1, $2, $3, $4, $5, $6)`,
+          order_id, product_id, product_title, product_price, quantity, subtotal, access_link
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
           newOrder.id, resolvedProdId, it.title || it.name || 'Produk Digital',
-          Number(it.price || 0), it.quantity || 1, Number(it.price || 0) * (it.quantity || 1)
+          Number(it.price || 0), it.quantity || 1, Number(it.price || 0) * (it.quantity || 1),
+          accessLink
         ]
       );
     }
@@ -172,7 +192,14 @@ router.get('/status/:id', async (req, res) => {
     }
     const order = orderRes.rows[0];
     const itemsRes = await query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
-    const licensesRes = await query('SELECT * FROM licenses WHERE user_email = $1 ORDER BY id DESC', [order.customer_email]);
+    
+    // Hanya ambil lisensi yang memang diterbitkan untuk item di dalam pesanan INI
+    const licensesRes = await query(`
+      SELECT l.* FROM licenses l
+      INNER JOIN order_items oi ON oi.license_key = l.license_key
+      WHERE oi.order_id = $1
+    `, [order.id]);
+
     res.json({ order, items: itemsRes.rows, licenses: licensesRes.rows });
   } catch (err) {
     res.status(500).json({ message: 'Gagal mengecek status pesanan: ' + err.message });
@@ -223,30 +250,136 @@ router.put('/:id/status', async (req, res) => {
         );
       }
 
-      // 2. Terbitkan lisensi jika belum ada
+      // 2. Fulfill masing-masing item pesanan sesuai jenis produknya:
       const itemsRes = await query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+      
       for (const item of itemsRes.rows) {
-        if (!item.license_key) {
-          const randomHex = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-          const licenseKey = `DYARI-${randomHex()}-${randomHex()}-${randomHex()}`;
-          const startDate = new Date();
-          const { expiryDate, isLifetime, durationLabel } = calculateExpiry('Selamanya (Lifetime)', startDate);
+        // Cari data produk di database
+        let product = null;
+        if (item.product_id) {
+          const pRes = await query('SELECT * FROM products WHERE id = $1 LIMIT 1', [item.product_id]);
+          if (pRes.rows.length > 0) product = pRes.rows[0];
+        }
+        if (!product && item.product_title) {
+          const pRes = await query('SELECT * FROM products WHERE title ILIKE $1 LIMIT 1', [item.product_title]);
+          if (pRes.rows.length > 0) product = pRes.rows[0];
+        }
 
-          await query(
-            `INSERT INTO licenses (
-              license_key, product_id, product_title, user_id, user_name, user_email,
-              status, license_type, duration_label, start_date, expiry_date, is_lifetime
-            ) VALUES ($1, $2, $3, $4, $5, $6, 'AKTIF', 'Personal License', $7, $8, $9, $10)`,
-            [
-              licenseKey, item.product_id, item.product_title, order.user_id,
-              order.customer_name, order.customer_email, durationLabel,
-              startDate, expiryDate, isLifetime
-            ]
-          );
+        const titleText = (item.product_title || (product ? product.title : '')).toLowerCase();
+        
+        // Identifikasi apakah produk ini adalah Tool Lisensi (Story Generator / Lisensi)
+        const isLicenseTool = (product && (
+          product.license_required === true ||
+          product.category_id === 'tools-ai' ||
+          product.type === 'LISENSI' ||
+          titleText.includes('lisensi') ||
+          titleText.includes('story generator')
+        )) || titleText.includes('lisensi') || titleText.includes('story generator');
 
-          await query('UPDATE order_items SET license_key = $1 WHERE id = $2', [licenseKey, item.id]);
+        if (isLicenseTool) {
+          // --- HANYA UNTUK LISENSI TOOLS: Buat Lisensi di tabel licenses ---
+          if (!item.license_key) {
+            const randomHex = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+            const licenseKey = `DYARI-${randomHex()}-${randomHex()}-${randomHex()}`;
+            const startDate = new Date();
+            const { expiryDate, isLifetime, durationLabel } = calculateExpiry('Selamanya (Lifetime)', startDate);
+
+            await query(
+              `INSERT INTO licenses (
+                license_key, product_id, product_title, user_id, user_name, user_email,
+                status, license_type, duration_label, start_date, expiry_date, is_lifetime
+              ) VALUES ($1, $2, $3, $4, $5, $6, 'AKTIF', 'Personal License', $7, $8, $9, $10)`,
+              [
+                licenseKey, item.product_id, item.product_title, order.user_id,
+                order.customer_name, order.customer_email, durationLabel,
+                startDate, expiryDate, isLifetime
+              ]
+            );
+
+            await query('UPDATE order_items SET license_key = $1 WHERE id = $2', [licenseKey, item.id]);
+          }
+
+          if (product) {
+            await query('UPDATE products SET sales_count = COALESCE(sales_count, 0) + $1 WHERE id = $2', [
+              item.quantity || 1,
+              product.id
+            ]);
+          }
+        } else {
+          // --- UNTUK PRODUK SHOP BIASA (GEMINI, CANVA, NETFLIX, ASET, DLL): KURANGI STOK & ASSIGN KREDENSIAL ---
+          if (product) {
+            let stockList = [];
+            if (Array.isArray(product.account_stock)) {
+              stockList = [...product.account_stock];
+            } else if (typeof product.account_stock === 'string') {
+              try { stockList = JSON.parse(product.account_stock); } catch (_) { stockList = []; }
+            }
+
+            const orderQty = Math.max(1, item.quantity || 1);
+            let assignedAccount = item.assigned_account || '';
+
+            // Jika ada baris stok akun di account_stock
+            if (stockList.length > 0) {
+              const availableIndices = [];
+              stockList.forEach((s, idx) => {
+                if (!s.isSold) availableIndices.push(idx);
+              });
+
+              if (availableIndices.length > 0 && !assignedAccount) {
+                const allocatedTexts = [];
+                const countToTake = Math.min(orderQty, availableIndices.length);
+                for (let i = 0; i < countToTake; i++) {
+                  const targetIdx = availableIndices[i];
+                  stockList[targetIdx] = {
+                    ...stockList[targetIdx],
+                    isSold: true,
+                    soldTo: order.invoice_number,
+                    soldToEmail: order.customer_email,
+                    soldAt: new Date().toISOString()
+                  };
+                  allocatedTexts.push(stockList[targetIdx].text);
+                }
+                assignedAccount = allocatedTexts.join('\n');
+              }
+            }
+
+            // Jika belum ada assignedAccount, gunakan access_link produk jika tersedia
+            if (!assignedAccount && product.access_link) {
+              assignedAccount = product.access_link;
+            }
+
+            // Hitung sisa stok aktual
+            const remainingCount = stockList.length > 0
+              ? stockList.filter(s => !s.isSold).length
+              : Math.max(0, (product.stock_count || 0) - orderQty);
+
+            const stockStatus = remainingCount > 0 ? 'TERSEDIA' : 'HABIS';
+
+            // Update stok dan penjualan di tabel products
+            await query(
+              `UPDATE products 
+               SET account_stock = $1::jsonb,
+                   stock_count = $2,
+                   stock_status = $3,
+                   sales_count = COALESCE(sales_count, 0) + $4,
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE id = $5`,
+              [JSON.stringify(stockList), remainingCount, stockStatus, orderQty, product.id]
+            );
+
+            // Update kredensial dan link akses pada order_items
+            await query(
+              `UPDATE order_items 
+               SET assigned_account = $1, access_link = $2 
+               WHERE id = $3`,
+              [assignedAccount || '', product.access_link || '', item.id]
+            );
+          }
         }
       }
+
+      // Bersihkan cache in-memory produk agar kuota stok langsung terbarui untuk web dan desktop
+      clearProductsCache();
     }
 
     res.json({ 

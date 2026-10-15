@@ -757,7 +757,10 @@ export const StoreProvider = ({ children }) => {
             price: Number(it.product_price || 0),
             quantity: Number(it.quantity || 1),
             subtotal: Number(it.subtotal || 0),
-            generatedLicense: it.license_key || null
+            generatedLicense: it.license_key || null,
+            assignedAccount: it.assigned_account || null,
+            accessUrl: it.access_link || null,
+            masterAccessUrl: it.access_link || null
           }));
 
           return {
@@ -1105,18 +1108,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.6') return parsed;
+        if (parsed.version === '0.0.8') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.6',
+      version: '0.0.8',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.6/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.8/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.6',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.8',
       releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: 'Versi 0.0.6: Perbaikan akurasi harga produk & lisensi toko desktop, auto-reload banner & fallback greeting, toggle sidebar permanen, top bar responsif anti-terpotong, preview 5:1 & alat crop banner di admin, card lisensi ringkas, dan deskripsi produk penuh.'
+      changelog: 'Versi 0.0.8: Perbaikan total fulfillment checkout produk digital (kredensial & link download riil tanpa bug lisensi keliru), auto-pengurangan stok database riil, dan sinkronisasi stok toko desktop & web.'
     };
   });
 
@@ -1160,8 +1163,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.6';
-            if (verData.version === '0.0.1' || verData.version === '0.0.2' || verData.version === '0.0.3' || verData.version === '0.0.4' || verData.version === '0.0.5') {
+            const minOfficial = '0.0.8';
+            if (verData.version === '0.0.1' || verData.version === '0.0.2' || verData.version === '0.0.3' || verData.version === '0.0.4' || verData.version === '0.0.5' || verData.version === '0.0.6' || verData.version === '0.0.7') {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
@@ -1485,11 +1488,14 @@ export const StoreProvider = ({ children }) => {
 
     const fulfilledItems = targetOrder.items.map(it => {
       const prod = tempProducts.find(p => p.id === it.id || p.name === it.name) || it;
-      const pType = it.productType || prod.productType || (
-        prod.type === 'LISENSI' 
-          ? 'LICENSE_TOOL' 
-          : (prod.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
-      );
+      const isTool = prod.productType === 'LICENSE_TOOL' || 
+        prod.type === 'LISENSI' || 
+        prod.category === 'tools-ai' || 
+        prod.category_id === 'tools-ai' ||
+        (prod.name || prod.title || '').toLowerCase().includes('lisensi') ||
+        (prod.name || prod.title || '').toLowerCase().includes('story generator');
+
+      const pType = it.productType || prod.productType || (isTool ? 'LICENSE_TOOL' : 'APPS_PREMIUM');
 
       const itemCopy = { 
         ...it, 
@@ -1497,17 +1503,42 @@ export const StoreProvider = ({ children }) => {
         afterPurchaseMessage: it.afterPurchaseMessage || prod.afterPurchaseMessage || ''
       };
 
-      // If already has credential, skip
-      if (itemCopy.assignedAccount || itemCopy.generatedLicense || itemCopy.masterAccessUrl) {
-        return itemCopy;
-      }
+      if (isTool) {
+        // Hanya jika tool lisensi
+        if (!itemCopy.generatedLicense) {
+          const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+          const prefix = (prod.licensePrefix || 'TOOL').toUpperCase().replace(/[^A-Z]/g, '');
+          const licCode = `DYARI-${prefix}-${Math.floor(1000 + Math.random() * 9000)}-${randomHex}`;
+          const expiryCalc = calculateLicenseExpiry(prod.licenseDuration || 'Selamanya (Lifetime)');
+          itemCopy.generatedLicense = licCode;
+          newLicensesToCreate.push({
+            id: `LIC-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`,
+            code: licCode,
+            productId: prod.id,
+            productName: prod.name,
+            customerEmail: buyerEmail,
+            customerName: buyerName,
+            type: prod.licenseType || 'PERSONAL',
+            status: 'Aktif',
+            startDate: expiryCalc.startDate,
+            createdAt: expiryCalc.createdAt,
+            expiryDate: expiryCalc.expiryDate,
+            expiresAt: expiryCalc.expiresAt,
+            isLifetime: expiryCalc.isLifetime,
+            durationLabel: expiryCalc.durationLabel
+          });
+        }
+      } else {
+        // Produk Shop Digital Biasa (bukan lisensi)
+        itemCopy.generatedLicense = null;
 
-      if (pType === 'APPS_PREMIUM') {
-        const prodIdx = tempProducts.findIndex(p => p.id === prod.id);
+        // Fulfill dari stok akun atau accessUrl
+        const prodIdx = tempProducts.findIndex(p => p.id === prod.id || p.name === prod.name);
         if (prodIdx !== -1) {
           const currentProd = { ...tempProducts[prodIdx] };
           const stockList = [...(currentProd.accountStock || [])];
           const availableIdx = stockList.findIndex(s => !s.isSold);
+
           if (availableIdx !== -1) {
             const soldStock = {
               ...stockList[availableIdx],
@@ -1524,34 +1555,22 @@ export const StoreProvider = ({ children }) => {
             currentProd.isAvailable = remainingCount > 0;
             tempProducts[prodIdx] = currentProd;
             updatedProducts = true;
+            syncStockToBackend(currentProd.dbId || currentProd.id, stockList);
           } else {
-            itemCopy.assignedAccount = currentProd.accessUrl || 'https://dyari.in/claim?id=' + targetOrder.id;
+            itemCopy.assignedAccount = currentProd.accessUrl || '';
+            if ((currentProd.stockCount || 0) > 0) {
+              const remaining = Math.max(0, currentProd.stockCount - (it.quantity || 1));
+              currentProd.stockCount = remaining;
+              currentProd.isAvailable = remaining > 0;
+              tempProducts[prodIdx] = currentProd;
+              updatedProducts = true;
+              syncStockToBackend(currentProd.dbId || currentProd.id, currentProd.accountStock || []);
+            }
           }
         }
-      } else if (pType === 'LICENSE_TOOL') {
-        const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const prefix = (prod.licensePrefix || 'TOOL').toUpperCase().replace(/[^A-Z]/g, '');
-        const licCode = `DYARI-${prefix}-${Math.floor(1000 + Math.random() * 9000)}-${randomHex}`;
-        const expiryCalc = calculateLicenseExpiry(prod.licenseDuration || 'Selamanya (Lifetime)');
-        itemCopy.generatedLicense = licCode;
-        newLicensesToCreate.push({
-          id: `LIC-${Date.now().toString().slice(-4)}-${Math.floor(10 + Math.random() * 90)}`,
-          code: licCode,
-          productId: prod.id,
-          productName: prod.name,
-          customerEmail: buyerEmail,
-          customerName: buyerName,
-          type: prod.licenseType || 'PERSONAL',
-          status: 'Aktif',
-          startDate: expiryCalc.startDate,
-          createdAt: expiryCalc.createdAt,
-          expiryDate: expiryCalc.expiryDate,
-          expiresAt: expiryCalc.expiresAt,
-          isLifetime: expiryCalc.isLifetime,
-          durationLabel: expiryCalc.durationLabel
-        });
-      } else {
-        itemCopy.masterAccessUrl = prod.accessUrl || '';
+
+        itemCopy.masterAccessUrl = prod.accessUrl || itemCopy.masterAccessUrl || '';
+        itemCopy.accessUrl = prod.accessUrl || itemCopy.accessUrl || '';
       }
 
       return itemCopy;
@@ -1559,6 +1578,14 @@ export const StoreProvider = ({ children }) => {
 
     if (updatedProducts) {
       setProducts(tempProducts);
+      const savedStocks = getStoredProductStocks();
+      tempProducts.forEach(p => {
+        if (p.accountStock) savedStocks[p.id] = p.accountStock;
+      });
+      saveStoredProductStocks(savedStocks);
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(tempProducts));
+      } catch (_) {}
     }
     if (newLicensesToCreate.length > 0) {
       setLicenses(prev => [...newLicensesToCreate, ...prev]);
