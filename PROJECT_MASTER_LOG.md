@@ -128,7 +128,19 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
 
 ---
 
-## 🚀 4. PANDUAN OPERASIONAL GIT & DEPLOY VPS
+## 🚨 4. SOP WAJIB DEPLOY & VERIFIKASI (MANDATORY DEPLOYMENT SOP)
+
+> [!IMPORTANT]
+> **ATURAN MUTLAK SISTEM (NON-NEGOTIABLE):** Setiap kali pengerjaan atau perbaikan selesai, AI Assistant **WAJIB** menjalankan dan menyertakan prosedur deploy ke VPS. Pekerjaan TIDAK boleh dianggap tuntas hanya dengan `git commit` dan `git push`. Alur 5-Langkah SOP Deploy berikut wajib ditaati setiap saat:
+> 
+> 1. **Compile & Build Test Lokal:** Jalankan `npm run build` di direktori proyek lokal untuk menjamin 0 error.
+> 2. **Git Commit & Push ke Main:** Lakukan commit deskriptif dan push ke `origin main`.
+> 3. **Instruksi & Eksekusi Deploy VPS (Wajib Disertakan):** Jalankan atau selalu sertakan perintah 1-baris deploy VPS di setiap akhir pesan agar sistem live langsung diperbarui:
+>    ```bash
+>    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+>    ```
+> 4. **Live Endpoint Health Check:** Lakukan verifikasi bahwa website dan endpoint produksi (`https://dyariapp.my.id`) merespons dengan benar.
+> 5. **Pencatatan Master Log:** Catat rincian perubahan pada berkas `PROJECT_MASTER_LOG.md` di bawah seksi versi terbaru dengan status deploy yang jelas.
 
 ### A. Alur Kerja Git (Commit & Push)
 Selalu gunakan konvensi commit yang rapi dan informatif:
@@ -438,6 +450,13 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Menyediakan fitur salin tautan 1-klik di menu Pengaturan Keamanan untuk menyalin URL rahasia panel admin ke clipboard.
    - Menambahkan fitur **Kunci Sesi Otomatis (Inactivity Auto-Lock)** yang memantau interaksi pengguna (mouse, keyboard, scroll) dan secara otomatis mengunci sesi panel admin setelah durasi tidak aktif tertentu (pilihan: 15m, 30m, 1 jam, 2 jam).
    - Menambahkan proteksi **Brute-Force Guard / Rate Limiter** pada form login admin: membekukan percobaan login selama 5 menit jika terjadi 5 kali kegagalan memasukkan kredensial secara berturut-turut lengkap dengan countdown timer.
+4. **Status Deploy & Eksekusi VPS**:
+   - Kode telah berhasil dibuild (`npm run build`) tanpa error.
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
 
 ---
 
