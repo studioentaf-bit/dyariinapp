@@ -895,9 +895,11 @@ export const AdminDashboardView = () => {
   const handleOpenEditProduct = (prod) => {
     setEditingProduct(prod);
     const pType = prod.productType || (
-      prod.type === 'LISENSI' 
+      prod.type === 'LISENSI' || prod.category === 'tools-ai'
         ? 'LICENSE_TOOL' 
-        : (prod.category === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
+        : (prod.type === 'AKSES PREMIUM' || prod.category === 'aplikasi' || /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(prod.name || '')
+            ? 'APPS_PREMIUM' 
+            : 'DIGITAL_PREMIUM')
     );
     setProductFormData({
       name: prod.name || '',

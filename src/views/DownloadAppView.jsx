@@ -19,8 +19,8 @@ export const DownloadAppView = () => {
   const { navigateTo, showToast, appVersionInfo } = useStore();
   const [downloading, setDownloading] = useState(false);
 
-  const rawVersion = appVersionInfo?.version || '0.0.8';
-  const currentVersion = (rawVersion === '0.0.1' || rawVersion === '0.0.2' || rawVersion === '0.0.3' || rawVersion === '0.0.4' || rawVersion === '0.0.5' || rawVersion === '0.0.6' || rawVersion === '0.0.7') ? '0.0.8' : rawVersion;
+  const rawVersion = appVersionInfo?.version || '0.0.9';
+  const currentVersion = ['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8'].includes(rawVersion) ? '0.0.9' : rawVersion;
   const currentDownloadUrl = appVersionInfo?.downloadUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${currentVersion}/Story.in-AI-Manager.exe`;
   const currentReleaseUrl = appVersionInfo?.releaseUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${currentVersion}`;
   const currentSize = appVersionInfo?.size || '163 MB';

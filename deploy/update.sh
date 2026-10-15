@@ -33,9 +33,10 @@ npm install --no-audit --no-fund
 npm run build
 
 # 4. Update Backend Express & PostgreSQL
-echo "⚙️ [3/5] Menginstal dependensi Backend (Node.js & PG)..."
+echo "⚙️ [3/5] Menginstal dependensi Backend & Sinkronisasi DB (Node.js & PG)..."
 cd "$APP_DIR/server"
 npm install --no-audit --no-fund
+node seed.js || true
 
 # 5. Restart proses PM2
 echo "🔄 [4/5] Me-restart proses backend PM2 (dyari-api)..."

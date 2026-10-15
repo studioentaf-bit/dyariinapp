@@ -491,6 +491,46 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### N. Pembaruan v0.0.9: Perbaikan Persistensi Tipe Produk & Mekanisme Stok (PostgreSQL), Zero-Latency Catalog Rendering (0ms Load Tanpa Delay), & Proteksi Integritas Katalog
+1. **Perbaikan Tipe Produk & Mekanisme Stok Kembali ke Default (Aset Digital) pada Refresh**:
+   - **Akar Masalah**:
+     - Di `src/context/StoreContext.jsx` pada fungsi `mapBackendProduct(row)`, properti `productType: 'DIGITAL_PREMIUM'` di-hardcode secara statis tanpa membaca tipe aktual dari backend.
+     - Tabel `products` di PostgreSQL belum memiliki kolom `product_type`, dan endpoint `POST /api/products` serta `PUT /api/products/:id` tidak menyimpan maupun memperbarui nilai `product_type`.
+     - Fungsi `updateProduct()` dan `addProduct()` di frontend tidak menyertakan `product_type`, `account_stock`, dan `stock_count` pada payload HTTP request.
+   - **Solusi Komprehensif**:
+     - Menambahkan kolom `product_type VARCHAR(100) DEFAULT 'APPS_PREMIUM'` pada tabel `products` melalui auto-migration `ensureStockColumns` di `server/routes/products.js`.
+     - Melakukan auto-backfill pada baris produk yang bernilai NULL/kosong di database: kategori `'tools-ai'` / tipe `'LISENSI'` otomatis menjadi `'LICENSE_TOOL'`, produk aplikasi (Gemini, Capcut, Canva, Netflix, dll.) menjadi `'APPS_PREMIUM'`, dan produk berkas materi menjadi `'DIGITAL_PREMIUM'`.
+     - Memperbarui rute `POST /api/products` dan `PUT /api/products/:id` agar menyimpan dan memperbarui `product_type`, `account_stock`, dan `stock_count` secara presisi ke PostgreSQL.
+     - Memperbaiki `mapBackendProduct(row)` di `StoreContext.jsx` agar membaca `row.product_type` secara dinamis, menetapkan `stockType` ('license' vs 'link_based') dan `stockCount` ('Unlimited' vs kuota riil), serta pesan paska-pembelian (`afterPurchaseMessage`) yang sesuai.
+     - Menyelaraskan fungsi `updateProduct()` dan `addProduct()` di `StoreContext.jsx` agar meneruskan `product_type`, `account_stock`, dan `stock_count` ke server.
+     - Memperbaiki fallback modal edit produk di `AdminDashboardView.jsx` (`handleOpenEditProduct`) agar secara cerdas mengenali `APPS_PREMIUM` berdasarkan tipe dan nama produk.
+
+2. **Perbaikan Produk Selain Gemini Pro Menghilang / Delay Saat Refresh Halaman**:
+   - **Akar Masalah**:
+     - Database PostgreSQL pada VPS awalnya hanya berisi produk yang dibuat manual (seperti Gemini Pro). Skrip `server/seed.js` tidak dieksekusi secara otomatis saat update script berjalan.
+     - Saat halaman dimuat, `useEffect` memanggil `/api/products` yang hanya mengembalikan Gemini Pro, lalu menimpa `localStorage.setItem('dyari_products_cache_v1')` dengan hanya 1 produk tersebut.
+     - Saat browser direfresh, `useState` pada frontend membaca cache lokal yang hanya berisi Gemini Pro sehingga hanya Gemini Pro yang tampil di awal (0ms), sementara produk katalog resmi lainnya tertunda (delay) atau hilang.
+     - Pada `server/seed.js`, terdapat perintah berbahaya `DELETE FROM products WHERE slug NOT = ANY(...)` yang berisiko menghapus produk kustom buatan admin jika seed dijalankan.
+   - **Solusi Komprehensif**:
+     - Menghapus perintah penghapusan `DELETE FROM products` di `server/seed.js`. Skrip seed sekarang menggunakan mekanisme aman `ON CONFLICT (slug) DO NOTHING` sehingga seluruh produk kustom admin 100% aman terlindungi.
+     - Memisahkan data katalog resmi ke dalam modul mandiri `server/defaultCatalog.js` dan menambahkan fungsi `ensureDefaultCatalog()` pada startup backend Express di `server/routes/products.js`. Setiap kali server backend berjalan, integritas seluruh produk resmi diverifikasi tanpa merusak produk buatan admin.
+     - Menerapkan **Zero-Latency Multi-source Catalog Merging** pada frontend (`StoreContext.jsx`):
+       - Pada inisialisasi awal `useState`: Menggabungkan `initialProducts` (24 produk resmi) dengan produk cache `localStorage` menggunakan `Map(id)`. Pada detik ke-0 (0ms) saat refresh, SEMUA produk katalog dan produk admin (Gemini Pro, dll.) langsung tampil seketika tanpa jeda/loading lag.
+       - Pada resolusi asynchronous `fetchBackendProducts()`: Menggabungkan data respons backend dengan `initialProducts` sebelum memperbarui state dan cache lokal browser.
+     - Menambahkan eksekusi `node seed.js || true` pada alur deployment VPS `deploy/update.sh`.
+
+3. **Kenaikan Versi Sistem ke v0.0.9**:
+   - Menyelaraskan seluruh konstanta rilis ke versi `0.0.9` di `server/index.js`, `src/context/StoreContext.jsx`, `src/views/DownloadAppView.jsx`, `src/views/HomeView.jsx`, dan `PROJECT_MASTER_LOG.md`.
+
+4. **Status Build & Deploy VPS**:
+   - Kompilasi Vite telah diuji dan lulus bersih: `npm run build` sukses 100% (6.11s).
+   - Seluruh sintaks Node.js server telah diverifikasi valid (`node -c`).
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

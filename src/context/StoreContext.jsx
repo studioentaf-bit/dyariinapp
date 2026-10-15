@@ -367,6 +367,30 @@ export const mapBackendProduct = (row) => {
     ? parsedStock.filter(s => !s.isSold).length 
     : (row.stock_count !== undefined && row.stock_count !== null ? Math.max(0, Number(row.stock_count) || 0) : 0);
 
+  // Dynamic Product Type resolution
+  let resolvedProductType = row.product_type;
+  if (!resolvedProductType) {
+    if (row.type === 'LISENSI' || row.category_id === 'tools-ai' || row.license_required) {
+      resolvedProductType = 'LICENSE_TOOL';
+    } else if (
+      row.type === 'AKSES PREMIUM' || 
+      row.category_id === 'aplikasi' || 
+      /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(row.title || '')
+    ) {
+      resolvedProductType = 'APPS_PREMIUM';
+    } else {
+      resolvedProductType = 'DIGITAL_PREMIUM';
+    }
+  }
+
+  const defaultAfterMsg = resolvedProductType === 'APPS_PREMIUM'
+    ? 'Akun/link eksklusif Anda tertera di atas. Harap simpan kredensial ini karena link/akun ini 1x pakai khusus Anda.'
+    : (resolvedProductType === 'LICENSE_TOOL'
+        ? 'Kunci lisensi akses tools Anda tertera di atas. Gunakan kode tersebut saat login ke software/tools.'
+        : 'Petunjuk Akses: Buka tautan di atas untuk langsung mengakses materi digital secara lengkap.');
+
+  const resolvedStockType = resolvedProductType === 'LICENSE_TOOL' ? 'license' : 'link_based';
+
   return {
     id: row.slug || `prod-${row.id}`,
     dbId: row.id,
@@ -375,7 +399,7 @@ export const mapBackendProduct = (row) => {
     category: row.category_id || 'aset-premium',
     categoryName: row.category_name || 'Mega Bundle & Canva',
     subcategory: row.category_name || 'Aset Digital',
-    type: row.type || 'DIGITAL_PREMIUM',
+    type: row.type || (resolvedProductType === 'LICENSE_TOOL' ? 'LISENSI' : (resolvedProductType === 'APPS_PREMIUM' ? 'AKSES PREMIUM' : 'AKSES MEMBER')),
     badge: row.badge || '',
     badgeColor: row.badge === 'NEW' ? 'bg-[#61A87D] text-white' : (row.badge ? 'bg-amber-600 text-white' : ''),
     mockupType: 'app',
@@ -389,8 +413,8 @@ export const mapBackendProduct = (row) => {
     show_on_app: row.show_on_app !== false,
     rating: Number(row.rating || 5.0),
     reviewsCount: Number(row.sales_count || 0),
-    productType: 'DIGITAL_PREMIUM',
-    afterPurchaseMessage: 'Petunjuk Akses: Buka tautan di atas untuk langsung mengakses materi digital secara lengkap.',
+    productType: resolvedProductType,
+    afterPurchaseMessage: defaultAfterMsg,
     image: row.image || '',
     accessUrl: row.access_link || '',
     gallery: [row.image || ''],
@@ -402,9 +426,9 @@ export const mapBackendProduct = (row) => {
       'Update Konten Berkala'
     ],
     accountStock: parsedStock,
-    stockCount: readyCount,
-    stockType: 'link_based',
-    isAvailable: readyCount > 0
+    stockCount: resolvedProductType === 'LICENSE_TOOL' ? 'Unlimited' : readyCount,
+    stockType: resolvedStockType,
+    isAvailable: resolvedProductType === 'LICENSE_TOOL' ? true : readyCount > 0
   };
 };
 
@@ -645,19 +669,26 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_products_cache_v1');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) baseProducts = parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Merge initialProducts with cached products so all items are instantly available at 0ms on refresh
+          const productMap = new Map();
+          initialProducts.forEach(p => productMap.set(p.id, p));
+          parsed.forEach(p => productMap.set(p.id, p));
+          baseProducts = Array.from(productMap.values());
+        }
       }
     } catch (_) {}
 
     return baseProducts.map(p => {
       const stockItems = savedStocks[p.id] || (Array.isArray(p.accountStock) ? p.accountStock : []);
       const readyCount = stockItems.filter(s => !s.isSold).length;
+      const isLic = p.productType === 'LICENSE_TOOL' || p.type === 'LISENSI';
       return {
         ...p,
         accountStock: stockItems,
-        stockCount: readyCount,
-        stockType: 'link_based',
-        isAvailable: readyCount > 0
+        stockCount: isLic ? 'Unlimited' : readyCount,
+        stockType: isLic ? 'license' : 'link_based',
+        isAvailable: isLic ? true : readyCount > 0
       };
     });
   });
@@ -681,17 +712,25 @@ export const StoreProvider = ({ children }) => {
               if (finalStock.length > 0) {
                 savedStocks[p.id] = finalStock;
               }
+              const isLic = p.productType === 'LICENSE_TOOL' || p.type === 'LISENSI';
               return {
                 ...p,
                 accountStock: finalStock,
-                stockCount: readyCount,
-                stockType: 'link_based',
-                isAvailable: readyCount > 0
+                stockCount: isLic ? 'Unlimited' : readyCount,
+                stockType: isLic ? 'license' : 'link_based',
+                isAvailable: isLic ? true : readyCount > 0
               };
             });
+
+            // Merge mapped backend products with initialProducts to guarantee zero missing products
+            const mergedMap = new Map();
+            initialProducts.forEach(p => mergedMap.set(p.id, p));
+            mapped.forEach(p => mergedMap.set(p.id, p));
+            const finalProductList = Array.from(mergedMap.values());
+
             saveStoredProductStocks(savedStocks);
-            setProducts(mapped);
-            localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+            setProducts(finalProductList);
+            localStorage.setItem('dyari_products_cache_v1', JSON.stringify(finalProductList));
           }
         }
       } catch (err) {
@@ -1108,18 +1147,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.8') return parsed;
+        if (parsed.version === '0.0.9') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.8',
+      version: '0.0.9',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.8/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.9/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.8',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.9',
       releaseDate: '2026-10-15',
       size: '163 MB',
-      changelog: 'Versi 0.0.8: Perbaikan total fulfillment checkout produk digital (kredensial & link download riil tanpa bug lisensi keliru), auto-pengurangan stok database riil, dan sinkronisasi stok toko desktop & web.'
+      changelog: 'Versi 0.0.9: Sinkronisasi tipe produk dan mekanisme stok permanen ke database, perbaikan loading katalog produk 0ms tanpa lag pada refresh, dan proteksi integritas katalog resmi.'
     };
   });
 
@@ -1163,8 +1202,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.8';
-            if (verData.version === '0.0.1' || verData.version === '0.0.2' || verData.version === '0.0.3' || verData.version === '0.0.4' || verData.version === '0.0.5' || verData.version === '0.0.6' || verData.version === '0.0.7') {
+            const minOfficial = '0.0.9';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
@@ -1679,6 +1718,9 @@ export const StoreProvider = ({ children }) => {
           category_id: product.category || 'aset-premium',
           category_name: product.categoryName || 'Mega Bundle & Canva',
           type: product.type || 'DIGITAL_PREMIUM',
+          product_type: product.productType || 'DIGITAL_PREMIUM',
+          account_stock: product.accountStock || [],
+          stock_count: product.stockCount !== undefined && product.stockCount !== 'Unlimited' ? Number(product.stockCount) : 0,
           image: product.image || '',
           access_link: product.accessUrl || '',
           features: product.features || [],
@@ -1742,6 +1784,10 @@ export const StoreProvider = ({ children }) => {
           category_id: updatedFields.category,
           category_name: updatedFields.categoryName,
           type: updatedFields.type,
+          product_type: updatedFields.productType,
+          account_stock: updatedFields.accountStock,
+          stock_count: updatedFields.stockCount !== undefined && updatedFields.stockCount !== 'Unlimited' ? Number(updatedFields.stockCount) : (Array.isArray(updatedFields.accountStock) ? updatedFields.accountStock.filter(s => !s.isSold).length : undefined),
+          license_required: updatedFields.productType === 'LICENSE_TOOL',
           image: updatedFields.image,
           access_link: updatedFields.accessUrl,
           features: updatedFields.features,

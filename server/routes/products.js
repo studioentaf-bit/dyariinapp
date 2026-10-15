@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db.js';
 import { authenticateToken } from './auth.js';
+import { categoriesData, productsData } from '../defaultCatalog.js';
 
 const router = express.Router();
 
@@ -12,17 +13,71 @@ export const clearProductsCache = () => {
   productsCache.clear();
 };
 
-// Auto-migrate columns for account_stock, stock_count, app_price, and platform visibility
+// Auto-seed missing official catalog products to guarantee 100% catalog availability
+const ensureDefaultCatalog = async () => {
+  try {
+    for (const cat of categoriesData) {
+      await query(
+        `INSERT INTO categories (id, name, slug, icon, description)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO NOTHING`,
+        [cat.id, cat.name, cat.slug, cat.icon || '', cat.description || '']
+      );
+    }
+
+    for (const p of productsData) {
+      const prodType = p.product_type || (
+        p.type === 'LISENSI' || p.category_id === 'tools-ai' || p.license_required
+          ? 'LICENSE_TOOL'
+          : (p.type === 'AKSES PREMIUM' || p.category_id === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
+      );
+
+      await query(
+        `INSERT INTO products (
+          title, slug, price, original_price, badge, category_id, category_name,
+          type, product_type, rating, sales_count, image, access_link, features,
+          license_required, description, is_active, show_on_web, show_on_app
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, TRUE, TRUE, TRUE)
+        ON CONFLICT (slug) DO NOTHING`,
+        [
+          p.title, p.slug, p.price, p.original_price || p.price, p.badge || '',
+          p.category_id, p.category_name, p.type || 'AKSES MEMBER', prodType,
+          p.rating || 5.0, p.sales_count || 0, p.image || '', p.access_link || '',
+          typeof p.features === 'string' ? p.features : JSON.stringify(p.features || []),
+          !!p.license_required, p.description || ''
+        ]
+      );
+    }
+  } catch (err) {
+    console.warn('Notice: ensureDefaultCatalog:', err.message);
+  }
+};
+
+// Auto-migrate columns for product_type, account_stock, stock_count, app_price, and platform visibility
 const ensureStockColumns = async () => {
   try {
     await query(`
       ALTER TABLE products 
+      ADD COLUMN IF NOT EXISTS product_type VARCHAR(100) DEFAULT 'APPS_PREMIUM',
       ADD COLUMN IF NOT EXISTS account_stock JSONB DEFAULT '[]'::jsonb,
       ADD COLUMN IF NOT EXISTS stock_count INT DEFAULT 0,
       ADD COLUMN IF NOT EXISTS app_price NUMERIC DEFAULT NULL,
       ADD COLUMN IF NOT EXISTS show_on_web BOOLEAN DEFAULT TRUE,
       ADD COLUMN IF NOT EXISTS show_on_app BOOLEAN DEFAULT TRUE;
     `);
+
+    // Backfill NULL product_type
+    await query(`
+      UPDATE products 
+      SET product_type = CASE 
+        WHEN type = 'LISENSI' OR category_id = 'tools-ai' OR license_required = TRUE THEN 'LICENSE_TOOL'
+        WHEN type = 'AKSES PREMIUM' OR category_id = 'aplikasi' OR title ILIKE '%gemini%' OR title ILIKE '%capcut%' OR title ILIKE '%canva%' OR title ILIKE '%netflix%' THEN 'APPS_PREMIUM'
+        ELSE 'DIGITAL_PREMIUM'
+      END
+      WHERE product_type IS NULL OR product_type = '';
+    `);
+
+    await ensureDefaultCatalog();
   } catch (err) {
     console.warn('Notice: ensureStockColumns migration:', err.message);
   }
@@ -98,7 +153,8 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const {
       title, slug, price, original_price, badge, category_id, category_name,
-      type, image, access_link, features, license_required, description,
+      type, product_type, image, access_link, features, license_required, description,
+      account_stock, stock_count,
       app_price, show_on_web, show_on_app
     } = req.body;
 
@@ -136,15 +192,18 @@ router.post('/', authenticateToken, async (req, res) => {
     const result = await query(
       `INSERT INTO products (
         title, slug, price, original_price, badge, category_id, category_name,
-        type, image, access_link, features, license_required, description,
+        type, product_type, image, access_link, features, license_required, description,
+        account_stock, stock_count,
         app_price, show_on_web, show_on_app
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
       RETURNING *`,
       [
         title, autoSlug, price, original_price || price, badge || '',
         validCatId, category_name || 'Aset Premium',
-        type || 'AKSES MEMBER', image || '', access_link || '',
+        type || 'AKSES MEMBER', product_type || 'APPS_PREMIUM', image || '', access_link || '',
         JSON.stringify(features || []), !!license_required, description || '',
+        account_stock ? JSON.stringify(account_stock) : '[]',
+        stock_count !== undefined && stock_count !== null ? Number(stock_count) : 0,
         app_price !== undefined && app_price !== null && app_price !== '' ? Number(app_price) : null,
         show_on_web !== undefined ? Boolean(show_on_web) : true,
         show_on_app !== undefined ? Boolean(show_on_app) : true
@@ -169,7 +228,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const {
       title, price, original_price, badge, category_id, category_name,
-      type, image, access_link, features, license_required, description, is_active,
+      type, product_type, image, access_link, features, license_required, description, is_active,
       account_stock, stock_count,
       app_price, show_on_web, show_on_app
     } = req.body;
@@ -192,7 +251,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     const isNum = !isNaN(parseInt(id, 10)) && /^\d+$/.test(id.toString());
-    const whereClause = isNum ? 'WHERE id = $19' : 'WHERE slug = $19';
+    const whereClause = isNum ? 'WHERE id = $20' : 'WHERE slug = $20';
 
     const result = await query(
       `UPDATE products SET
@@ -203,23 +262,24 @@ router.put('/:id', authenticateToken, async (req, res) => {
         category_id = COALESCE($5, category_id),
         category_name = COALESCE($6, category_name),
         type = COALESCE($7, type),
-        image = COALESCE($8, image),
-        access_link = COALESCE($9, access_link),
-        features = COALESCE($10, features),
-        license_required = COALESCE($11, license_required),
-        description = COALESCE($12, description),
-        is_active = COALESCE($13, is_active),
-        account_stock = CASE WHEN $14::jsonb IS NOT NULL THEN $14::jsonb ELSE account_stock END,
-        stock_count = COALESCE($15, stock_count),
-        app_price = CASE WHEN $16::text = 'CLEAR' THEN NULL WHEN $16::numeric IS NOT NULL THEN $16::numeric ELSE app_price END,
-        show_on_web = COALESCE($17, show_on_web),
-        show_on_app = COALESCE($18, show_on_app),
+        product_type = COALESCE($8, product_type),
+        image = COALESCE($9, image),
+        access_link = COALESCE($10, access_link),
+        features = COALESCE($11, features),
+        license_required = COALESCE($12, license_required),
+        description = COALESCE($13, description),
+        is_active = COALESCE($14, is_active),
+        account_stock = CASE WHEN $15::jsonb IS NOT NULL THEN $15::jsonb ELSE account_stock END,
+        stock_count = COALESCE($16, stock_count),
+        app_price = CASE WHEN $17::text = 'CLEAR' THEN NULL WHEN $17::numeric IS NOT NULL THEN $17::numeric ELSE app_price END,
+        show_on_web = COALESCE($18, show_on_web),
+        show_on_app = COALESCE($19, show_on_app),
         updated_at = CURRENT_TIMESTAMP
        ${whereClause}
        RETURNING *`,
       [
         title, price, original_price, badge, validCatId, category_name,
-        type, image, access_link, features ? JSON.stringify(features) : null,
+        type, product_type, image, access_link, features ? JSON.stringify(features) : null,
         license_required, description, is_active,
         account_stock !== undefined ? JSON.stringify(account_stock) : null,
         stock_count !== undefined ? Number(stock_count) : null,
