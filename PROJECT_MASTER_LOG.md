@@ -84,6 +84,10 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
   - Menghapus mekanisme auto-seeding bawaan `ensureDefaultCatalog()` pada startup backend dan menghapus `node seed.js` dari [`deploy/update.sh`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/deploy/update.sh). Database murni menjadi satu-satunya sumber kebenaran (source of truth). Produk yang dihapus admin tidak akan pernah muncul kembali.
   - Menyediakan endpoint backend `POST /api/products/cleanup-samples` dan tombol 1-klik **"Bersihkan Produk Sampel Default"** di panel admin untuk membersihkan 24 slug dummy bawaan template secara permanen dari database dan memori.
   - Menyinkronkan tampilan kartu katalog di [`ProductCard.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/components/ProductCard.jsx) dan [`ProductDetailView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/ProductDetailView.jsx).
+- **Security Hardening (Penghapusan Total URL Query Bypass)**:
+  - Menghapus secara permanen seluruh logika parameter query `?key=` dan `?secret=` di [`StoreContext.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/context/StoreContext.jsx).
+  - Akses `/#admin` tanpa autentikasi langsung ditolak dan dialihkan ke Beranda (`#home`).
+  - Tidak ada lagi jalan pintas URL. Akses panel admin murni hanya dapat dibuka melalui slug rahasia pemilik (default `/#dyari-vault-admin` atau slug kustom), dan wajib login menggunakan email dan password melalui form login resmi.
 
 ### [Commit 7678a6f] - 2026-10-14
 - **Fix (Download Rilis & Navbar):**

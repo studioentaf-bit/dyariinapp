@@ -519,15 +519,13 @@ export const StoreProvider = ({ children }) => {
         return 'admin';
       }
 
-      // Check direct /#admin access attempt: strictly block unauthorized discovery
+      // Check direct /#admin access attempt: strictly block unauthorized discovery (NO URL bypass)
       if (viewPart === 'admin') {
         const isAuth = localStorage.getItem('dyari_admin_session') === 'authenticated';
-        const params = queryPart ? new URLSearchParams(queryPart) : null;
-        const key = params ? (params.get('key') || params.get('secret')) : null;
-        if (isAuth || key === 'Dyari#Master9981!Secure') {
+        if (isAuth) {
           return 'admin';
         }
-        // Obfuscate / protect: bounce unauthenticated direct /#admin to home
+        // Strictly bounce unauthenticated direct /#admin attempts to home
         window.history.replaceState(null, '', '#home');
         return 'home';
       }
@@ -561,15 +559,13 @@ export const StoreProvider = ({ children }) => {
 
       if (viewPart === 'admin') {
         const isAuth = localStorage.getItem('dyari_admin_session') === 'authenticated';
-        const params = queryPart ? new URLSearchParams(queryPart) : null;
-        const key = params ? (params.get('key') || params.get('secret')) : null;
-        if (isAuth || key === 'Dyari#Master9981!Secure') {
-          window.history.replaceState(null, '', `#${activeAdminSlug}${queryPart ? '?' + queryPart : ''}`);
+        if (isAuth) {
+          window.history.replaceState(null, '', `#${activeAdminSlug}`);
           setCurrentView('admin');
           try { localStorage.setItem('dyari_current_view', 'admin'); } catch (_) {}
           return;
         }
-        // Block direct unauthenticated access to /#admin
+        // Strictly block direct unauthenticated access to /#admin (NO bypass)
         window.history.replaceState(null, '', '#home');
         setCurrentView('home');
         try { localStorage.setItem('dyari_current_view', 'home'); } catch (_) {}
