@@ -112,6 +112,7 @@ export const AdminDashboardView = () => {
     toggleStockSold,
     clearSoldStock,
     bulkDeleteStockItems,
+    cleanupSampleProducts,
     licenses,
     addLicense,
     updateLicenseStatus,
@@ -1038,9 +1039,12 @@ export const AdminDashboardView = () => {
     } else if (productFormData.productType === 'LICENSE_TOOL') {
       stockType = 'license';
       stockCount = 'Unlimited';
+      accountStock = [];
     } else {
-      stockType = 'link_based';
-      stockCount = accountStock.filter(s => !s.isSold).length;
+      // DIGITAL_PREMIUM (Aset & Materi Digital: tidak butuh stok, 1 link master sharing)
+      stockType = 'unlimited';
+      stockCount = 'Unlimited';
+      accountStock = [];
     }
 
     const payload = {
@@ -1049,7 +1053,7 @@ export const AdminDashboardView = () => {
       stockType,
       stockCount,
       accountStock,
-      isAvailable: stockType === 'license' ? true : (stockCount > 0),
+      isAvailable: productFormData.productType === 'APPS_PREMIUM' ? (stockCount > 0) : true,
       badge: productFormData.badge === 'NONE' ? '' : productFormData.badge,
       badgeColor: bColor
     };
@@ -3724,7 +3728,19 @@ export const AdminDashboardView = () => {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Bersihkan semua 24 produk sampel default bawaan template dari sistem dan database? Tindakan ini permanen.')) {
+                            cleanupSampleProducts();
+                          }
+                        }}
+                        className="px-3 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                        title="Hapus 24 produk sampel dummy bawaan template secara permanen"
+                      >
+                        <Trash2 size={13} />
+                        <span>Bersihkan Produk Sampel Default</span>
+                      </button>
                       <button
                         onClick={handleOpenAddProduct}
                         className="btn-dyari text-xs px-4 py-2 font-bold inline-flex items-center gap-1.5 shadow-sm"
@@ -3892,7 +3908,27 @@ export const AdminDashboardView = () => {
 
                                   {/* Status & Jumlah Stok */}
                                   <td className="py-3.5 px-4 text-center">
-                                    {isOutOfStock ? (
+                                    {pType === 'DIGITAL_PREMIUM' ? (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                          <span>Selalu Tersedia</span>
+                                        </span>
+                                        <span className="block text-[9px] text-warmgray font-medium">
+                                          1 Link Master (Sharing)
+                                        </span>
+                                      </div>
+                                    ) : pType === 'LICENSE_TOOL' ? (
+                                      <div className="space-y-0.5">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-200">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                          <span>Lisensi Siap</span>
+                                        </span>
+                                        <span className="block text-[9px] text-warmgray font-medium">
+                                          Auto-Generate Key
+                                        </span>
+                                      </div>
+                                    ) : isOutOfStock ? (
                                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                                         <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                         <span>HABIS (0 Stok)</span>
@@ -3901,7 +3937,7 @@ export const AdminDashboardView = () => {
                                       <div className="space-y-0.5">
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                          <span>{availableStock} Stok Ready</span>
+                                          <span>{availableStock} Akun Ready</span>
                                         </span>
                                         {hasAccountStock && (
                                           <span className="block text-[9px] text-warmgray font-mono">

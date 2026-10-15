@@ -306,16 +306,46 @@ export const mapBackendLicense = (lic) => {
 // --- UTILITY: KALKULASI STOK PRODUK REAL-TIME & PERSISTENSI ---
 export const getProductAvailableStock = (product) => {
   if (!product) return 0;
+
+  const pType = product.productType || (
+    product.type === 'LISENSI' || product.category === 'tools-ai'
+      ? 'LICENSE_TOOL'
+      : (product.type === 'AKSES PREMIUM' || product.category === 'aplikasi' || /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(product.name || '')
+          ? 'APPS_PREMIUM'
+          : 'DIGITAL_PREMIUM')
+  );
+
+  // DIGITAL_PREMIUM (Aset & Materi Digital) dan LICENSE_TOOL (Tools AI) TIDAK BUTUH STOK (Unlimited / Selalu Tersedia)
+  if (pType === 'DIGITAL_PREMIUM' || pType === 'LICENSE_TOOL' || product.stockType === 'unlimited' || product.stockType === 'license') {
+    return 999999;
+  }
+
+  // Hanya APPS_PREMIUM yang membutuhkan kuota stok riil finite
   if (Array.isArray(product.accountStock)) {
     return product.accountStock.filter(s => !s.isSold).length;
   }
-  if (product.stockCount !== undefined && product.stockCount !== null) {
+  if (product.stockCount !== undefined && product.stockCount !== null && product.stockCount !== 'Unlimited') {
     return Math.max(0, Number(product.stockCount) || 0);
   }
-  return 0; // Default mutlak 0 (HABIS) jika belum ada stok yang dimasukkan
+  return 0; // Default 0 (HABIS) hanya jika tipe APPS_PREMIUM belum diinput akun
 };
 
 export const isProductOutOfStock = (product) => {
+  if (!product) return false;
+
+  const pType = product.productType || (
+    product.type === 'LISENSI' || product.category === 'tools-ai'
+      ? 'LICENSE_TOOL'
+      : (product.type === 'AKSES PREMIUM' || product.category === 'aplikasi' || /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(product.name || '')
+          ? 'APPS_PREMIUM'
+          : 'DIGITAL_PREMIUM')
+  );
+
+  // Aset & Materi Digital dan Tools/Lisensi TIDAK PERNAH HABIS!
+  if (pType === 'DIGITAL_PREMIUM' || pType === 'LICENSE_TOOL' || product.stockType === 'unlimited' || product.stockType === 'license') {
+    return false;
+  }
+
   return getProductAvailableStock(product) <= 0;
 };
 
@@ -383,13 +413,16 @@ export const mapBackendProduct = (row) => {
     }
   }
 
+  const isDigital = resolvedProductType === 'DIGITAL_PREMIUM';
+  const isLicense = resolvedProductType === 'LICENSE_TOOL';
+
   const defaultAfterMsg = resolvedProductType === 'APPS_PREMIUM'
     ? 'Akun/link eksklusif Anda tertera di atas. Harap simpan kredensial ini karena link/akun ini 1x pakai khusus Anda.'
-    : (resolvedProductType === 'LICENSE_TOOL'
+    : (isLicense
         ? 'Kunci lisensi akses tools Anda tertera di atas. Gunakan kode tersebut saat login ke software/tools.'
-        : 'Petunjuk Akses: Buka tautan di atas untuk langsung mengakses materi digital secara lengkap.');
+        : 'Terima kasih telah berbelanja di dyari.in! Akses file master & materi dapat langsung dibuka melalui tautan akses di atas dengan akun login terdaftar Anda.');
 
-  const resolvedStockType = resolvedProductType === 'LICENSE_TOOL' ? 'license' : 'link_based';
+  const resolvedStockType = isDigital ? 'unlimited' : (isLicense ? 'license' : 'link_based');
 
   return {
     id: row.slug || `prod-${row.id}`,
@@ -399,7 +432,7 @@ export const mapBackendProduct = (row) => {
     category: row.category_id || 'aset-premium',
     categoryName: row.category_name || 'Mega Bundle & Canva',
     subcategory: row.category_name || 'Aset Digital',
-    type: row.type || (resolvedProductType === 'LICENSE_TOOL' ? 'LISENSI' : (resolvedProductType === 'APPS_PREMIUM' ? 'AKSES PREMIUM' : 'AKSES MEMBER')),
+    type: row.type || (isLicense ? 'LISENSI' : (resolvedProductType === 'APPS_PREMIUM' ? 'AKSES PREMIUM' : 'AKSES MEMBER')),
     badge: row.badge || '',
     badgeColor: row.badge === 'NEW' ? 'bg-[#61A87D] text-white' : (row.badge ? 'bg-amber-600 text-white' : ''),
     mockupType: 'app',
@@ -426,9 +459,9 @@ export const mapBackendProduct = (row) => {
       'Update Konten Berkala'
     ],
     accountStock: parsedStock,
-    stockCount: resolvedProductType === 'LICENSE_TOOL' ? 'Unlimited' : readyCount,
+    stockCount: (isDigital || isLicense) ? 'Unlimited' : readyCount,
     stockType: resolvedStockType,
-    isAvailable: resolvedProductType === 'LICENSE_TOOL' ? true : readyCount > 0
+    isAvailable: (isDigital || isLicense) ? true : (readyCount > 0)
   };
 };
 
@@ -664,31 +697,38 @@ export const StoreProvider = ({ children }) => {
   // Products & Orders List
   const [products, setProducts] = useState(() => {
     const savedStocks = getStoredProductStocks();
-    let baseProducts = initialProducts;
+    let baseProducts = [];
     try {
       const cached = localStorage.getItem('dyari_products_cache_v1');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge initialProducts with cached products so all items are instantly available at 0ms on refresh
-          const productMap = new Map();
-          initialProducts.forEach(p => productMap.set(p.id, p));
-          parsed.forEach(p => productMap.set(p.id, p));
-          baseProducts = Array.from(productMap.values());
+          baseProducts = parsed;
         }
       }
     } catch (_) {}
 
     return baseProducts.map(p => {
+      const pType = p.productType || (
+        p.type === 'LISENSI' || p.category === 'tools-ai'
+          ? 'LICENSE_TOOL'
+          : (p.type === 'AKSES PREMIUM' || p.category === 'aplikasi' || /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(p.name || '')
+              ? 'APPS_PREMIUM'
+              : 'DIGITAL_PREMIUM')
+      );
+      const isDigital = pType === 'DIGITAL_PREMIUM';
+      const isLic = pType === 'LICENSE_TOOL';
+
       const stockItems = savedStocks[p.id] || (Array.isArray(p.accountStock) ? p.accountStock : []);
       const readyCount = stockItems.filter(s => !s.isSold).length;
-      const isLic = p.productType === 'LICENSE_TOOL' || p.type === 'LISENSI';
+
       return {
         ...p,
+        productType: pType,
         accountStock: stockItems,
-        stockCount: isLic ? 'Unlimited' : readyCount,
-        stockType: isLic ? 'license' : 'link_based',
-        isAvailable: isLic ? true : readyCount > 0
+        stockCount: (isDigital || isLic) ? 'Unlimited' : readyCount,
+        stockType: isDigital ? 'unlimited' : (isLic ? 'license' : 'link_based'),
+        isAvailable: (isDigital || isLic) ? true : readyCount > 0
       };
     });
   });
@@ -701,10 +741,12 @@ export const StoreProvider = ({ children }) => {
         const res = await fetch('/api/products');
         if (res.ok) {
           const data = await res.json();
-          if (data && Array.isArray(data.products) && data.products.length > 0 && isMounted) {
+          if (data && Array.isArray(data.products) && isMounted) {
             const savedStocks = getStoredProductStocks();
             const mapped = data.products.map(row => {
               const p = mapBackendProduct(row);
+              const isDigital = p.productType === 'DIGITAL_PREMIUM';
+              const isLic = p.productType === 'LICENSE_TOOL';
               const localStock = savedStocks[p.id];
               // Prioritaskan stok lokal yang tersimpan jika ada, atau gunakan stok dari database
               const finalStock = (localStock && localStock.length > 0) ? localStock : (p.accountStock || []);
@@ -712,25 +754,18 @@ export const StoreProvider = ({ children }) => {
               if (finalStock.length > 0) {
                 savedStocks[p.id] = finalStock;
               }
-              const isLic = p.productType === 'LICENSE_TOOL' || p.type === 'LISENSI';
               return {
                 ...p,
                 accountStock: finalStock,
-                stockCount: isLic ? 'Unlimited' : readyCount,
-                stockType: isLic ? 'license' : 'link_based',
-                isAvailable: isLic ? true : readyCount > 0
+                stockCount: (isDigital || isLic) ? 'Unlimited' : readyCount,
+                stockType: isDigital ? 'unlimited' : (isLic ? 'license' : 'link_based'),
+                isAvailable: (isDigital || isLic) ? true : readyCount > 0
               };
             });
 
-            // Merge mapped backend products with initialProducts to guarantee zero missing products
-            const mergedMap = new Map();
-            initialProducts.forEach(p => mergedMap.set(p.id, p));
-            mapped.forEach(p => mergedMap.set(p.id, p));
-            const finalProductList = Array.from(mergedMap.values());
-
             saveStoredProductStocks(savedStocks);
-            setProducts(finalProductList);
-            localStorage.setItem('dyari_products_cache_v1', JSON.stringify(finalProductList));
+            setProducts(mapped);
+            localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
           }
         }
       } catch (err) {
@@ -1832,6 +1867,47 @@ export const StoreProvider = ({ children }) => {
     showToast('Produk Dihapus', `${p?.name || 'Produk'} telah dihapus.`);
   };
 
+  // Cleanup default template sample products
+  const cleanupSampleProducts = async () => {
+    const sampleSlugs = new Set([
+      'dyari-tools-pembuat-prompt-storybook', 'dyari-kumpulan-quiz-anak-sd', 'dyari-math-galaxy',
+      'dyari-40-storybook-anak', 'dyari-ship-math-batle-game', 'dyari-100-amalan-pembuka-rejeki',
+      'dyari-kalkulator-diet', 'dyari-latihan-menghafal-surah-pendek', 'dyari-cara-membuat-web',
+      'dyari-administrasi-guru-kelas-1', 'dyari-administrasi-guru-kelas-2', 'dyari-administrasi-guru-kelas-3',
+      'dyari-administrasi-guru-kelas-4', 'dyari-administrasi-guru-kelas-5', 'dyari-administrasi-guru-kelas-6',
+      'dyari-administrasi-kepala-sekolah', 'dyari-super-bundle-aset-canva', 'dyari-produk-digital-anak',
+      'dyari-buku-mewarnai-anak', 'dyari-worksheet-aktivitas-anak', 'dyari-game-labirin',
+      'dyari-game-quiz-islami', 'dyari-tools-skrip-dan-voice-over'
+    ]);
+
+    setProducts(prev => {
+      const updated = prev.filter(p => !sampleSlugs.has(p.id) && !sampleSlugs.has(p.slug));
+      try {
+        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('dyari_auth_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      await fetch('/api/products/cleanup-samples', {
+        method: 'POST',
+        headers
+      });
+      showToast('Pembersihan Selesai', 'Seluruh produk sampel default telah dibersihkan.');
+    } catch (e) {
+      console.warn('Gagal membersihkan produk sampel ke backend:', e);
+      showToast('Pembersihan Lokal', 'Produk sampel dibersihkan dari tampilan.');
+    }
+  };
+
   // Order Management
   const updateOrderStatus = async (orderId, newStatus) => {
     let targetUpdatedOrder = null;
@@ -2533,6 +2609,7 @@ export const StoreProvider = ({ children }) => {
       toggleStockSold,
       clearSoldStock,
       bulkDeleteStockItems,
+      cleanupSampleProducts,
       // Dynamic License Package Management (Unlimited Tiers)
       licensePackages: storeSettings.licensePackages || defaultLicensePackages,
       addLicensePackage,

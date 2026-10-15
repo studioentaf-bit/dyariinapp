@@ -1,7 +1,6 @@
 import express from 'express';
 import { query } from '../db.js';
 import { authenticateToken } from './auth.js';
-import { categoriesData, productsData } from '../defaultCatalog.js';
 
 const router = express.Router();
 
@@ -11,46 +10,6 @@ const CACHE_TTL_MS = 2 * 60 * 1000;
 
 export const clearProductsCache = () => {
   productsCache.clear();
-};
-
-// Auto-seed missing official catalog products to guarantee 100% catalog availability
-const ensureDefaultCatalog = async () => {
-  try {
-    for (const cat of categoriesData) {
-      await query(
-        `INSERT INTO categories (id, name, slug, icon, description)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (id) DO NOTHING`,
-        [cat.id, cat.name, cat.slug, cat.icon || '', cat.description || '']
-      );
-    }
-
-    for (const p of productsData) {
-      const prodType = p.product_type || (
-        p.type === 'LISENSI' || p.category_id === 'tools-ai' || p.license_required
-          ? 'LICENSE_TOOL'
-          : (p.type === 'AKSES PREMIUM' || p.category_id === 'aplikasi' ? 'APPS_PREMIUM' : 'DIGITAL_PREMIUM')
-      );
-
-      await query(
-        `INSERT INTO products (
-          title, slug, price, original_price, badge, category_id, category_name,
-          type, product_type, rating, sales_count, image, access_link, features,
-          license_required, description, is_active, show_on_web, show_on_app
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, TRUE, TRUE, TRUE)
-        ON CONFLICT (slug) DO NOTHING`,
-        [
-          p.title, p.slug, p.price, p.original_price || p.price, p.badge || '',
-          p.category_id, p.category_name, p.type || 'AKSES MEMBER', prodType,
-          p.rating || 5.0, p.sales_count || 0, p.image || '', p.access_link || '',
-          typeof p.features === 'string' ? p.features : JSON.stringify(p.features || []),
-          !!p.license_required, p.description || ''
-        ]
-      );
-    }
-  } catch (err) {
-    console.warn('Notice: ensureDefaultCatalog:', err.message);
-  }
 };
 
 // Auto-migrate columns for product_type, account_stock, stock_count, app_price, and platform visibility
@@ -76,8 +35,6 @@ const ensureStockColumns = async () => {
       END
       WHERE product_type IS NULL OR product_type = '';
     `);
-
-    await ensureDefaultCatalog();
   } catch (err) {
     console.warn('Notice: ensureStockColumns migration:', err.message);
   }
@@ -348,6 +305,33 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Delete product error:', error);
     res.status(500).json({ message: 'Gagal menghapus produk.' });
+  }
+});
+
+// POST /api/products/cleanup-samples (Admin cleanup default template products)
+router.post('/cleanup-samples', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Hanya admin yang dapat membersihkan produk sampel.' });
+    }
+
+    const sampleSlugs = [
+      'dyari-tools-pembuat-prompt-storybook', 'dyari-kumpulan-quiz-anak-sd', 'dyari-math-galaxy',
+      'dyari-40-storybook-anak', 'dyari-ship-math-batle-game', 'dyari-100-amalan-pembuka-rejeki',
+      'dyari-kalkulator-diet', 'dyari-latihan-menghafal-surah-pendek', 'dyari-cara-membuat-web',
+      'dyari-administrasi-guru-kelas-1', 'dyari-administrasi-guru-kelas-2', 'dyari-administrasi-guru-kelas-3',
+      'dyari-administrasi-guru-kelas-4', 'dyari-administrasi-guru-kelas-5', 'dyari-administrasi-guru-kelas-6',
+      'dyari-administrasi-kepala-sekolah', 'dyari-super-bundle-aset-canva', 'dyari-produk-digital-anak',
+      'dyari-buku-mewarnai-anak', 'dyari-worksheet-aktivitas-anak', 'dyari-game-labirin',
+      'dyari-game-quiz-islami', 'dyari-tools-skrip-dan-voice-over'
+    ];
+
+    const result = await query('DELETE FROM products WHERE slug = ANY($1::text[])', [sampleSlugs]);
+    clearProductsCache();
+    res.json({ message: `Berhasil membersihkan ${result.rowCount || 0} produk sampel default.` });
+  } catch (error) {
+    console.error('Cleanup samples error:', error);
+    res.status(500).json({ message: 'Gagal membersihkan produk sampel: ' + (error.message || error) });
   }
 });
 

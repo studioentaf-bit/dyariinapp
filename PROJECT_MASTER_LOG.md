@@ -75,6 +75,16 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
 
 ## 📜 3. CHRONOLOGICAL UPDATE LOG (CHANGELOG)
 
+### [Versi v0.0.10] - 2026-10-15
+- **Fix & Refactor (Tipe Produk & Mekanisme Stok Mandiri)**:
+  - **Aset & Materi Digital (`DIGITAL_PREMIUM`)**: Ditegaskan bahwa kategori ini **TIDAK MEMBUTUHKAN STOK FINITE**. Menggunakan 1 Master Link Akses Sharing (`accessUrl`). Di tabel admin tampil hijau: `Selalu Tersedia` • `1 Link Master (Sharing)`. Pada katalog publik dan detail produk, tombol beli selalu aktif dengan badge `Akses Instan`, tidak pernah "Habis (0 Stok)".
+  - **Tools AI Premium (`LICENSE_TOOL`)**: Tidak membutuhkan stok akun fisik manual. Berstatus `Lisensi Siap` • `Auto-Generate Key` dan otomatis men-generate lisensi dinamis saat transaksi disetujui.
+  - **Aplikasi Premium (`APPS_PREMIUM`)**: Satu-satunya kategori dengan stok akun finite (1 baris teks = 1 akun). Otomatis memotong baris akun saat pesanan disetujui, dan menampilkan label `HABIS (0 Stok)` hanya jika akun kosong.
+- **Pembersihan Permanen Produk Dummy / Bawaan Template**:
+  - Menghapus mekanisme auto-seeding bawaan `ensureDefaultCatalog()` pada startup backend dan menghapus `node seed.js` dari [`deploy/update.sh`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/deploy/update.sh). Database murni menjadi satu-satunya sumber kebenaran (source of truth). Produk yang dihapus admin tidak akan pernah muncul kembali.
+  - Menyediakan endpoint backend `POST /api/products/cleanup-samples` dan tombol 1-klik **"Bersihkan Produk Sampel Default"** di panel admin untuk membersihkan 24 slug dummy bawaan template secara permanen dari database dan memori.
+  - Menyinkronkan tampilan kartu katalog di [`ProductCard.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/components/ProductCard.jsx) dan [`ProductDetailView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/ProductDetailView.jsx).
+
 ### [Commit 7678a6f] - 2026-10-14
 - **Fix (Download Rilis & Navbar):**
   - **Fix GitHub Release 404**: Visibilitas repositori `studioentaf-bit/dyariinapp` diubah menjadi **Public** sehingga link rilis publik GitHub `v0.0.1` langsung menyajikan file download tanpa error 404.

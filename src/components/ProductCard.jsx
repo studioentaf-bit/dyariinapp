@@ -10,6 +10,13 @@ export const ProductCard = ({ product }) => {
   const hasLongDesc = rawDesc.length > 80 || rawDesc.includes('\n');
 
   // Ketersediaan Stok Sinkron & Valid dari Manajemen Stok (Default 0 / Habis jika belum diinput)
+  const pType = product.productType || (
+    product.category === 'tools-ai' || product.type === 'LISENSI'
+      ? 'LICENSE_TOOL'
+      : (product.category === 'aplikasi' || product.type === 'AKSES PREMIUM' || /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(product.name || '')
+          ? 'APPS_PREMIUM'
+          : 'DIGITAL_PREMIUM')
+  );
   const availableStock = getProductAvailableStock(product);
   const isOutOfStock = availableStock <= 0;
 
@@ -110,6 +117,16 @@ export const ProductCard = ({ product }) => {
             <span className="text-[10px] sm:text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               <span>Habis</span>
+            </span>
+          ) : pType === 'DIGITAL_PREMIUM' ? (
+            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Akses Instan</span>
+            </span>
+          ) : pType === 'LICENSE_TOOL' ? (
+            <span className="text-[10px] sm:text-[11px] font-bold text-purple-800 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+              <span>Lisensi Siap</span>
             </span>
           ) : (
             <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1">

@@ -34,7 +34,14 @@ export const ProductDetailView = () => {
 
   const images = product.gallery && product.gallery.length > 0 ? product.gallery : [product.image];
 
-  // Ketersediaan Stok Sinkron & Valid dari Manajemen Stok (Default 0 / Habis jika belum diinput)
+  // Tipe Produk & Ketersediaan Stok Sinkron & Valid dari Manajemen Stok
+  const pType = product.productType || (
+    product.category === 'tools-ai' || product.type === 'LISENSI'
+      ? 'LICENSE_TOOL'
+      : (product.category === 'aplikasi' || product.type === 'AKSES PREMIUM' || /gemini|capcut|canva|netflix|chatgpt|youtube/i.test(product.name || '')
+          ? 'APPS_PREMIUM'
+          : 'DIGITAL_PREMIUM')
+  );
   const availableStock = getProductAvailableStock ? getProductAvailableStock(product) : (Array.isArray(product.accountStock) ? product.accountStock.filter(s => !s.isSold).length : (Number(product.stockCount) || 0));
   const isOutOfStock = availableStock <= 0;
 
@@ -187,7 +194,31 @@ export const ProductDetailView = () => {
           </div>
 
           {/* Keterangan Jumlah Stok Produk */}
-          {isOutOfStock ? (
+          {pType === 'DIGITAL_PREMIUM' ? (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-emerald-900">
+                  Status Ketersediaan: SELALU TERSEDIA
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-emerald-800 bg-white border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
+                Akses Instan Master Link
+              </span>
+            </div>
+          ) : pType === 'LICENSE_TOOL' ? (
+            <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                <span className="font-heading font-extrabold text-xs sm:text-sm text-purple-900">
+                  Status Ketersediaan: LISENSI SIAP
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-purple-800 bg-white border border-purple-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
+                Auto-Generate Key
+              </span>
+            </div>
+          ) : isOutOfStock ? (
             <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
@@ -196,7 +227,7 @@ export const ProductDetailView = () => {
                 </span>
               </div>
               <span className="text-[11px] font-bold text-rose-700 bg-white border border-rose-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
-                0 Stok Ready
+                0 Akun Ready
               </span>
             </div>
           ) : (
@@ -208,7 +239,7 @@ export const ProductDetailView = () => {
                 </span>
               </div>
               <span className="text-[11px] font-mono font-bold text-emerald-800 bg-white border border-emerald-200 px-2.5 py-0.5 rounded-lg shadow-2xs">
-                {availableStock} Stok Ready
+                {availableStock} Akun Ready
               </span>
             </div>
           )}
