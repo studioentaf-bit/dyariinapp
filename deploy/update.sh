@@ -28,14 +28,20 @@ git fetch origin main
 git reset --hard origin/main
 
 # 3. Build Frontend Vite
-echo "📦 [2/5] Menginstal dependensi & build Frontend React (Vite)..."
-npm install --no-audit --no-fund
+echo "📦 [2/5] Memeriksa dependensi & build Frontend React (Vite)..."
+if [ ! -d "node_modules" ] || [ package.json -nt node_modules ]; then
+  npm install --no-audit --no-fund --prefer-offline || npm install --no-audit --no-fund
+fi
 npm run build
 
 # 4. Update Backend Express & PostgreSQL
-echo "⚙️ [3/5] Menginstal dependensi Backend (Node.js & PG)..."
+echo "⚙️ [3/5] Memeriksa dependensi Backend (Node.js & PG)..."
 cd "$APP_DIR/server"
-npm install --no-audit --no-fund
+if [ ! -d "node_modules" ] || [ package.json -nt node_modules ]; then
+  npm install --no-audit --no-fund --prefer-offline || npm install --no-audit --no-fund
+else
+  echo "✅ Dependensi backend sudah terpasang & mutakhir."
+fi
 
 # 5. Restart proses PM2
 echo "🔄 [4/5] Me-restart proses backend PM2 (dyari-api)..."
