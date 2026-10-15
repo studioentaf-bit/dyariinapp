@@ -642,13 +642,16 @@ export const StoreProvider = ({ children }) => {
   // Bersihkan cache dummy data lama jika tersisa di browser
   useEffect(() => {
     try {
-      const keysToClean = ['dyari_cart', 'dyari_current_user', 'dyari_member_user', 'dyari_orders', 'dyari_purchased_products', 'dyari_licenses', 'dyari_customers'];
+      const keysToClean = ['dyari_cart', 'dyari_current_user', 'dyari_member_user', 'dyari_orders', 'dyari_purchased_products', 'dyari_licenses', 'dyari_customers', 'dyari_products_cache_v1'];
       keysToClean.forEach(key => {
         const val = localStorage.getItem(key);
         if (val && (val.includes('alya') || val.includes('Alya') || val.includes('Dimas') || val.includes('Nadya'))) {
           localStorage.removeItem(key);
         }
       });
+      // Bersihkan juga cache produk v1 yang sempat hanya menyimpan Gemini Pro parsial
+      localStorage.removeItem('dyari_products_cache_v1');
+
       const savedCart = localStorage.getItem('dyari_cart');
       if (savedCart && (savedCart.includes('cyberton-bundle-edukasi-anak') && savedCart.includes('cyberton-ribuan-bank-konten'))) {
         try {
@@ -690,12 +693,24 @@ export const StoreProvider = ({ children }) => {
     } catch (_) {}
   }, [categories]);
 
+  // Loading state produk dari database
+  const [isProductsLoading, setIsProductsLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('dyari_products_cache_v2');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return false;
+      }
+    } catch (_) {}
+    return true;
+  });
+
   // Products & Orders List
   const [products, setProducts] = useState(() => {
     const savedStocks = getStoredProductStocks();
     let baseProducts = [];
     try {
-      const cached = localStorage.getItem('dyari_products_cache_v1');
+      const cached = localStorage.getItem('dyari_products_cache_v2');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -728,6 +743,15 @@ export const StoreProvider = ({ children }) => {
       };
     });
   });
+
+  // Reaktif simpan seluruh produk ke cache lokal dyari_products_cache_v2 setiap kali state berubah
+  useEffect(() => {
+    if (Array.isArray(products) && products.length > 0) {
+      try {
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(products));
+      } catch (_) {}
+    }
+  }, [products]);
 
   // Sinkronisasi data produk langsung dari PostgreSQL Database
   useEffect(() => {
@@ -767,12 +791,16 @@ export const StoreProvider = ({ children }) => {
             saveStoredProductStocks(savedStocks);
             setProducts(mapped);
             try {
-              localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mapped));
+              localStorage.setItem('dyari_products_cache_v2', JSON.stringify(mapped));
             } catch (_) {}
           }
         }
       } catch (err) {
         console.warn('API /api/products tidak terjangkau, menggunakan data cadangan lokal.', err);
+      } finally {
+        if (isMounted) {
+          setIsProductsLoading(false);
+        }
       }
     };
     fetchBackendProducts();
@@ -1661,7 +1689,7 @@ export const StoreProvider = ({ children }) => {
       });
       saveStoredProductStocks(savedStocks);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(tempProducts));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(tempProducts));
       } catch (_) {}
     }
     if (newLicensesToCreate.length > 0) {
@@ -1730,7 +1758,7 @@ export const StoreProvider = ({ children }) => {
     setProducts(prev => {
       const updated = [product, ...prev];
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(updated));
       } catch (_) {}
       return updated;
     });
@@ -1778,7 +1806,7 @@ export const StoreProvider = ({ children }) => {
           setProducts(prev => {
             const mappedList = prev.map(p => p.id === product.id ? { ...p, ...mapped, dbId: saved.product.id, id: saved.product.slug || mapped.id } : p);
             try {
-              localStorage.setItem('dyari_products_cache_v1', JSON.stringify(mappedList));
+              localStorage.setItem('dyari_products_cache_v2', JSON.stringify(mappedList));
             } catch (_) {}
             return mappedList;
           });
@@ -1800,7 +1828,7 @@ export const StoreProvider = ({ children }) => {
     setProducts(prev => {
       const updated = prev.map(p => p.id === id ? { ...p, ...updatedFields } : p);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(updated));
       } catch (_) {}
       return updated;
     });
@@ -1850,7 +1878,7 @@ export const StoreProvider = ({ children }) => {
     setProducts(prev => {
       const updated = prev.filter(prod => prod.id !== id);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(updated));
       } catch (_) {}
       return updated;
     });
@@ -1890,7 +1918,7 @@ export const StoreProvider = ({ children }) => {
     setProducts(prev => {
       const updated = prev.filter(p => !sampleSlugs.has(p.id) && !sampleSlugs.has(p.slug));
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(updated));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(updated));
       } catch (_) {}
       return updated;
     });
@@ -2117,7 +2145,7 @@ export const StoreProvider = ({ children }) => {
         return p;
       });
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(next));
       } catch (_) {}
       return next;
     });
@@ -2212,7 +2240,7 @@ export const StoreProvider = ({ children }) => {
 
       saveStoredProductStocks(savedStocks);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(next));
       } catch (_) {}
       return next;
     });
@@ -2249,7 +2277,7 @@ export const StoreProvider = ({ children }) => {
       });
       saveStoredProductStocks(savedStocks);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(next));
       } catch (_) {}
       return next;
     });
@@ -2287,7 +2315,7 @@ export const StoreProvider = ({ children }) => {
       });
       saveStoredProductStocks(savedStocks);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(next));
       } catch (_) {}
       return next;
     });
@@ -2317,7 +2345,7 @@ export const StoreProvider = ({ children }) => {
       });
       saveStoredProductStocks(savedStocks);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(next));
       } catch (_) {}
       return next;
     });
@@ -2346,7 +2374,7 @@ export const StoreProvider = ({ children }) => {
       });
       saveStoredProductStocks(savedStocks);
       try {
-        localStorage.setItem('dyari_products_cache_v1', JSON.stringify(next));
+        localStorage.setItem('dyari_products_cache_v2', JSON.stringify(next));
       } catch (_) {}
       return next;
     });
@@ -2573,6 +2601,7 @@ export const StoreProvider = ({ children }) => {
       deleteCategory,
       products,
       setProducts,
+      isProductsLoading,
       orders,
       setOrders,
       lastOrder,

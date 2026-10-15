@@ -4,7 +4,7 @@ import { ProductCard } from '../components/ProductCard';
 import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 export const ShopView = () => {
-  const { products, categories, activeCategory, setActiveCategory, searchQuery, setSearchQuery } = useStore();
+  const { products, isProductsLoading, categories, activeCategory, setActiveCategory, searchQuery, setSearchQuery } = useStore();
   const [sortBy, setSortBy] = useState('popular'); // 'popular' | 'newest' | 'price-low' | 'price-high'
   const [visibleCount, setVisibleCount] = useState(24);
 
@@ -138,7 +138,18 @@ export const ShopView = () => {
       </div>
 
       {/* Grid Produk: Desktop 4 kolom, Tablet 2 kolom, Mobile 2 kolom (spec #10) */}
-      {sortedProducts.length === 0 ? (
+      {isProductsLoading && products.length === 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
+          {[1, 2, 3, 4].map(n => (
+            <div key={n} className="bg-white rounded-2xl border border-dyariborder p-4 space-y-4 shadow-2xs">
+              <div className="w-full h-44 bg-[#F0F4F1] rounded-xl"></div>
+              <div className="h-4 bg-[#F0F4F1] rounded w-3/4"></div>
+              <div className="h-3 bg-[#F0F4F1] rounded w-1/2"></div>
+              <div className="h-9 bg-[#F0F4F1] rounded-xl mt-4"></div>
+            </div>
+          ))}
+        </div>
+      ) : sortedProducts.length === 0 ? (
         <div className="bg-white rounded-dyari-lg border border-dyariborder p-12 text-center space-y-4 my-8">
           <div className="w-16 h-16 rounded-full bg-sage mx-auto flex items-center justify-center text-forest text-2xl">
             🔍

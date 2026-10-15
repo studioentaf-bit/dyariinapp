@@ -75,6 +75,7 @@ import {
 export const AdminDashboardView = () => {
   const { 
     products, 
+    isProductsLoading,
     orders, 
     setOrders,
     customers, 
@@ -3889,6 +3890,19 @@ export const AdminDashboardView = () => {
                               (adminProductPage - 1) * adminProductsPerPage,
                               adminProductPage * adminProductsPerPage
                             );
+
+                            if (isProductsLoading && products.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={9} className="py-12 text-center text-warmgray text-xs">
+                                    <div className="inline-flex items-center gap-2 font-medium">
+                                      <span className="w-4 h-4 border-2 border-forest border-t-transparent rounded-full animate-spin"></span>
+                                      <span>Menyinkronkan data katalog produk dari database...</span>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            }
 
                             if (paginatedAdminProducts.length === 0) {
                               return (

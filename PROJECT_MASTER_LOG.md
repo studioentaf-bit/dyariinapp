@@ -579,6 +579,30 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### P. Pembaruan: Sinkronisasi Tampil Bersamaan (Zero Delay Pop-In) untuk Seluruh Produk Shop & Admin (Eliminasi Stale Cache Parsial)
+1. **Perbaikan Masalah Google Pro (Gemini) Muncul Lebih Dulu Sementara Produk Lain (CapCut, GPT) Tertunda Beberapa Detik**:
+   - **Akar Masalah**:
+     - Browser pengguna menyimpan snapshot lama di `localStorage` dengan kunci `dyari_products_cache_v1` saat katalog produk di browser baru berisi Gemini Pro saja.
+     - Saat halaman direfresh (F5), React secara instan (0ms) membaca data dari cache lokal `localStorage`, sehingga Gemini Pro langsung tampil seketika di layar.
+     - Di saat yang sama, proses `fetchBackendProducts()` berjalan secara asynchronous mengirimkan HTTP request ke VPS. Begitu respons database diterima 1-2 detik kemudian, barulah produk CapCut dan GPT di-render ke layar (*layout pop-in*).
+     - Selain itu, tidak ada `useEffect` reaktif terpusat yang mengunci sinkronisasi otomatis antara `products` state dengan `localStorage`, dan tidak ada indikator loading terpadu (*skeleton loader*) saat produk pertama kali dimuat.
+   - **Solusi Komprehensif**:
+     - **Pembaruan Kunci Cache ke `dyari_products_cache_v2` & Pembersihan Otomatis:** Mengubah kunci penyimpanan lokal ke `dyari_products_cache_v2` dan secara otomatis menghapus `dyari_products_cache_v1` dari browser saat aplikasi dimuat. Hal ini membuang seluruh snapshot lama yang hanya berisi Gemini Pro secara tuntas.
+     - **Auto-Sync Reaktif Terpusat (`useEffect([products])`):** Menambahkan listener reaktif di [`StoreContext.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/context/StoreContext.jsx) sehingga setiap kali state `products` berubah (termasuk saat database merespons dengan 3 produk lengkap), seluruh produk otomatis disimpan ke `dyari_products_cache_v2`. Pada setiap refresh berikutnya, SEMUA 3 PRODUK tampil serempak pada detik ke-0 (0ms).
+     - **Indikator Loading Terpadu (`isProductsLoading` & Skeleton):**
+       - Menambahkan status `isProductsLoading` di `StoreContext`.
+       - Di [`ShopView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/ShopView.jsx), jika produk masih dimuat dari server dan belum ada data, sistem menampilkan skeleton card animasi yang serasi, mencegah tampilan kosong maupun pop-in produk sebagian.
+       - Di [`AdminDashboardView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/AdminDashboardView.jsx), tabel produk menampilkan baris spinner sinkronisasi yang jelas saat memuat.
+
+2. **Status Build & Deploy VPS**:
+   - Kompilasi Vite lulus bersih: `npm run build` sukses 100% (7.62s).
+   - Seluruh sintaks JavaScript/JSX terverifikasi valid.
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
