@@ -126,7 +126,9 @@ export const AdminDashboardView = () => {
     addCategory,
     updateCategory,
     deleteCategory,
-    syncOrdersFromBackend
+    syncOrdersFromBackend,
+    adminSecretSlug,
+    updateAdminSecretSlug
   } = useStore();
 
   // Navigation & Sub-tabs State (Persisten saat browser di-refresh)
@@ -192,11 +194,12 @@ export const AdminDashboardView = () => {
       let query = `menu=${activeMenu}`;
       if (activeMenu === 'produk-lisensi') query += `&subtab=${subTabProduk}`;
       if (activeMenu === 'pengaturan') query += `&settings_tab=${subTabPengaturan}`;
-      if (window.location.hash.startsWith('#admin')) {
-        window.history.replaceState(null, '', `#admin?${query}`);
+      const slug = adminSecretSlug || 'dyari-vault-admin';
+      if (window.location.hash.startsWith('#admin') || window.location.hash.startsWith(`#${slug}`)) {
+        window.history.replaceState(null, '', `#${slug}?${query}`);
       }
     } catch (_) {}
-  }, [activeMenu, subTabProduk, subTabPengaturan]);
+  }, [activeMenu, subTabProduk, subTabPengaturan, adminSecretSlug]);
 
   // Sidebar Hide/Show State
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -364,8 +367,55 @@ export const AdminDashboardView = () => {
 
   // Dashboard Analytics Timeframe Filter (Harian, Mingguan, Bulanan, Rentang Tertentu)
   const [dashboardTimeFilter, setDashboardTimeFilter] = useState('daily'); // 'daily' | 'weekly' | 'monthly' | 'custom'
-  const [customDateStart, setCustomDateStart] = useState('2026-08-01');
-  const [customDateEnd, setCustomDateEnd] = useState('2026-08-28');
+  const [customDateStart, setCustomDateStart] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().slice(0, 10);
+  });
+  const [customDateEnd, setCustomDateEnd] = useState(() => {
+    return new Date().toISOString().slice(0, 10);
+  });
+
+  // Helper: Parse order date robustly across ISO and localized ID formats
+  const parseOrderDate = (o) => {
+    if (!o) return new Date();
+    if (o.createdAt) {
+      const d = new Date(o.createdAt);
+      if (!isNaN(d.getTime())) return d;
+    }
+    if (o.created_at) {
+      const d = new Date(o.created_at);
+      if (!isNaN(d.getTime())) return d;
+    }
+    if (o.date) {
+      const direct = new Date(o.date);
+      if (!isNaN(direct.getTime())) return direct;
+      
+      const parts = String(o.date).match(/(\d{1,2})[/\s-]([A-Za-z]+|\d{1,2})[/\s-](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{2}))?/);
+      if (parts) {
+        const day = parseInt(parts[1], 10);
+        let month = 0;
+        const monthStr = parts[2].toLowerCase();
+        const monthMap = {
+          'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'mei': 4, 'may': 4,
+          'jun': 5, 'jul': 6, 'agu': 7, 'agt': 7, 'aug': 7,
+          'sep': 8, 'okt': 9, 'oct': 9, 'nop': 10, 'nov': 10, 'des': 11, 'dec': 11
+        };
+        if (monthMap[monthStr.slice(0, 3)] !== undefined) {
+          month = monthMap[monthStr.slice(0, 3)];
+        } else if (!isNaN(parseInt(monthStr, 10))) {
+          month = parseInt(monthStr, 10) - 1;
+        }
+        let year = parseInt(parts[3], 10);
+        if (year < 100) year += 2000;
+        const hour = parts[4] ? parseInt(parts[4], 10) : 0;
+        const min = parts[5] ? parseInt(parts[5], 10) : 0;
+        const d = new Date(year, month, day, hour, min);
+        if (!isNaN(d.getTime())) return d;
+      }
+    }
+    return new Date();
+  };
 
   // Helper for generating full 24-hour activity points (every 1 hour from 00:00 to 24:00)
   const generate24HourlyPoints = (activeOrdersList = []) => {
@@ -377,29 +427,29 @@ export const AdminDashboardView = () => {
     ];
 
     const hourCounts = new Array(25).fill(0);
+    const hourRevenue = new Array(25).fill(0);
 
     (activeOrdersList || []).forEach(o => {
-      if (o.date) {
-        const timeMatch = o.date.match(/(\d{1,2}):(\d{2})/);
-        if (timeMatch) {
-          const h = parseInt(timeMatch[1], 10);
-          if (h >= 0 && h <= 24) {
-            hourCounts[h] = (hourCounts[h] || 0) + 1;
-          }
-        }
+      const d = parseOrderDate(o);
+      const h = d.getHours();
+      if (h >= 0 && h <= 23) {
+        hourCounts[h] = (hourCounts[h] || 0) + 1;
+        hourRevenue[h] = (hourRevenue[h] || 0) + (Number(o.total) || 0);
       }
     });
 
-    const maxCount = Math.max(...hourCounts, 1);
-    const hasTransactions = (activeOrdersList || []).length > 0;
+    const maxCount = Math.max(...hourCounts, 0);
+    const hasTransactions = (activeOrdersList || []).length > 0 && maxCount > 0;
 
     return hours.map((t, idx) => {
-      const c = hasTransactions ? hourCounts[idx] : 0;
+      const c = hourCounts[idx] || 0;
+      const rev = hourRevenue[idx] || 0;
       const pct = hasTransactions && maxCount > 0 ? Math.round((c / maxCount) * 100) : 0;
       return {
         time: t,
         label: `${t} WIB`,
         count: c,
+        revenue: rev,
         percent: pct,
         isPeak: hasTransactions && c > 0 && c === maxCount
       };
@@ -408,12 +458,148 @@ export const AdminDashboardView = () => {
 
   // Helper for synchronized 24h activity chart & product sales trend chart (100% DINAMIS DARI DATA ORDER RIIL)
   const getAnalyticsData = () => {
-    const isPaid = (o) => o.status === 'Lunas' || o.status === 'Selesai';
-    const relevantOrders = (orders || []).filter(isPaid);
+    const now = new Date();
+    const isPaid = (o) => o.status === 'Lunas' || o.status === 'Selesai' || o.status === 'TERBAYAR';
+    const allPaidOrders = (orders || []).filter(isPaid);
 
-    // Kumpulkan seluruh item yang dibeli dari pesanan yang sah
+    let filteredOrders = [];
+    let trendLabels = [];
+    let trendRevenue = [];
+    let periodTitle = '';
+    let periodLabel = '';
+
+    if (dashboardTimeFilter === 'daily') {
+      periodTitle = 'Harian (24 Jam Terakhir)';
+      periodLabel = 'Hari Ini (24 Jam)';
+      trendLabels = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59'];
+      trendRevenue = new Array(trendLabels.length).fill(0);
+
+      // Filter pesanan dari 24 jam terakhir / hari ini
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+      filteredOrders = allPaidOrders.filter(o => {
+        const d = parseOrderDate(o);
+        return d >= startOfToday && d <= endOfToday;
+      });
+
+      // Distribusikan ke 8 slot jam (00:00, 03:00, dst)
+      filteredOrders.forEach(o => {
+        const d = parseOrderDate(o);
+        const h = d.getHours();
+        const slotIdx = Math.min(8, Math.floor(h / 3));
+        trendRevenue[slotIdx] += (Number(o.total) || 0);
+      });
+
+    } else if (dashboardTimeFilter === 'weekly') {
+      periodTitle = 'Mingguan (7 Hari Terakhir)';
+      periodLabel = '7 Hari Terakhir';
+      
+      const daySlots = [];
+      trendLabels = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        daySlots.push(d.toDateString());
+        const lbl = i === 0 ? 'Hari Ini' : (i === 1 ? 'Kemarin' : d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }));
+        trendLabels.push(lbl);
+      }
+      trendRevenue = new Array(7).fill(0);
+
+      const startOfRange = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
+      const endOfRange = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+      filteredOrders = allPaidOrders.filter(o => {
+        const d = parseOrderDate(o);
+        return d >= startOfRange && d <= endOfRange;
+      });
+
+      filteredOrders.forEach(o => {
+        const d = parseOrderDate(o);
+        const idx = daySlots.indexOf(d.toDateString());
+        if (idx !== -1) {
+          trendRevenue[idx] += (Number(o.total) || 0);
+        }
+      });
+
+    } else if (dashboardTimeFilter === 'monthly') {
+      periodTitle = 'Bulanan (30 Hari Terakhir)';
+      periodLabel = '30 Hari Terakhir';
+      trendLabels = ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'];
+      trendRevenue = new Array(4).fill(0);
+
+      const startOfRange = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      startOfRange.setHours(0, 0, 0, 0);
+
+      filteredOrders = allPaidOrders.filter(o => {
+        const d = parseOrderDate(o);
+        return d >= startOfRange && d <= now;
+      });
+
+      filteredOrders.forEach(o => {
+        const d = parseOrderDate(o);
+        const diffDays = Math.floor((now.getTime() - d.getTime()) / (24 * 60 * 60 * 1000));
+        let slot = 3; // Minggu 4 (0-7 hari lalu)
+        if (diffDays >= 22) slot = 0; // Minggu 1 (22-30 hari lalu)
+        else if (diffDays >= 15) slot = 1; // Minggu 2 (15-21 hari lalu)
+        else if (diffDays >= 8) slot = 2; // Minggu 3 (8-14 hari lalu)
+        trendRevenue[slot] += (Number(o.total) || 0);
+      });
+
+    } else if (dashboardTimeFilter === 'custom') {
+      periodTitle = `Rentang Kustom (${customDateStart} s/d ${customDateEnd})`;
+      periodLabel = `${customDateStart} s/d ${customDateEnd}`;
+
+      const startDate = new Date(`${customDateStart}T00:00:00`);
+      const endDate = new Date(`${customDateEnd}T23:59:59`);
+      const validStart = isNaN(startDate.getTime()) ? new Date(now.getTime() - 7 * 24 * 3600 * 1000) : startDate;
+      const validEnd = isNaN(endDate.getTime()) ? now : endDate;
+
+      filteredOrders = allPaidOrders.filter(o => {
+        const d = parseOrderDate(o);
+        return d >= validStart && d <= validEnd;
+      });
+
+      const spanDays = Math.max(1, Math.round((validEnd.getTime() - validStart.getTime()) / (24 * 3600 * 1000)));
+
+      if (spanDays <= 7) {
+        const daySlots = [];
+        trendLabels = [];
+        for (let i = 0; i < spanDays; i++) {
+          const d = new Date(validStart.getTime() + i * 24 * 3600 * 1000);
+          daySlots.push(d.toDateString());
+          trendLabels.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+        }
+        trendRevenue = new Array(trendLabels.length).fill(0);
+
+        filteredOrders.forEach(o => {
+          const d = parseOrderDate(o);
+          const idx = daySlots.indexOf(d.toDateString());
+          if (idx !== -1) {
+            trendRevenue[idx] += (Number(o.total) || 0);
+          }
+        });
+      } else {
+        const numSlots = 5;
+        trendLabels = [];
+        const intervalMs = (validEnd.getTime() - validStart.getTime()) / (numSlots - 1);
+        for (let i = 0; i < numSlots; i++) {
+          const d = new Date(validStart.getTime() + i * intervalMs);
+          trendLabels.push(d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+        }
+        trendRevenue = new Array(numSlots).fill(0);
+
+        filteredOrders.forEach(o => {
+          const d = parseOrderDate(o);
+          const ratio = (d.getTime() - validStart.getTime()) / Math.max(1, (validEnd.getTime() - validStart.getTime()));
+          const slot = Math.min(numSlots - 1, Math.max(0, Math.round(ratio * (numSlots - 1))));
+          trendRevenue[slot] += (Number(o.total) || 0);
+        });
+      }
+    }
+
+    // Kumpulkan seluruh item yang dibeli dari pesanan yang sesuai filter
     const soldItems = [];
-    relevantOrders.forEach(o => {
+    filteredOrders.forEach(o => {
       (o.items || []).forEach(it => {
         soldItems.push({
           ...it,
@@ -422,10 +608,10 @@ export const AdminDashboardView = () => {
       });
     });
 
-    const totalSales = relevantOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalSales = filteredOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     const totalUnits = soldItems.reduce((sum, it) => sum + (it.quantity || 1), 0);
 
-    // Peringkat produk terlaris
+    // Peringkat produk terlaris dalam periode terfilter
     const productStatsMap = new Map();
     soldItems.forEach(it => {
       const match = (products || []).find(p => p.id === it.id || p.name === it.name) || it;
@@ -452,53 +638,36 @@ export const AdminDashboardView = () => {
         percent: totalSales > 0 ? Math.round((p.revenue / totalSales) * 100) : 0
       }));
 
-    const periodConfig = {
-      daily: {
-        title: 'Harian (24 Jam Terakhir)',
-        periodLabel: 'Hari Ini (24 Jam)',
-        trendLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59']
-      },
-      weekly: {
-        title: 'Mingguan (7 Hari Terakhir)',
-        periodLabel: '7 Hari Terakhir',
-        trendLabels: ['H-6', 'H-5', 'H-4', 'H-3', 'H-2', 'Kemarin', 'Hari Ini']
-      },
-      monthly: {
-        title: 'Bulanan (30 Hari Terakhir)',
-        periodLabel: '30 Hari Terakhir',
-        trendLabels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4']
-      },
-      custom: {
-        title: `Rentang Kustom (${customDateStart} s/d ${customDateEnd})`,
-        periodLabel: `${customDateStart} s/d ${customDateEnd}`,
-        trendLabels: ['Periode Awal', 'Periode Tengah', 'Periode Akhir']
-      }
-    }[dashboardTimeFilter] || {
-      title: 'Harian (24 Jam Terakhir)',
-      periodLabel: 'Hari Ini (24 Jam)',
-      trendLabels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '23:59']
-    };
+    // Data jam aktivitas riil 24 jam penuh dari pesanan terfilter
+    const hourlyPoints = generate24HourlyPoints(filteredOrders);
 
-    // Buat kurva pendapatan berdasarkan data riil
-    let trendRevenue = new Array(periodConfig.trendLabels.length).fill(0);
-    if (totalSales > 0) {
-      trendRevenue[trendRevenue.length - 1] = totalSales;
+    let peakHour = hourlyPoints.find(p => p.isPeak);
+    if (!peakHour && hourlyPoints.length > 0) {
+      peakHour = hourlyPoints.reduce((max, cur) => cur.count > max.count ? cur : max, hourlyPoints[0]);
     }
 
-    const hourlyPoints = generate24HourlyPoints(relevantOrders);
+    const peakHourText = totalSales > 0 && peakHour && peakHour.count > 0
+      ? `Jam ${peakHour.time} WIB (${peakHour.count} Transaksi, Rp ${peakHour.revenue.toLocaleString('id-ID')})`
+      : 'Belum ada transaksi';
+
+    const peakBadge = totalSales > 0 && peakHour && peakHour.count > 0
+      ? `🔥 Jam Ramai: ${peakHour.time} WIB`
+      : 'Menunggu Transaksi Pertama';
+
+    const advice = totalSales > 0 
+      ? `Tercatat total omset Rp ${totalSales.toLocaleString('id-ID')} dari ${totalUnits} unit produk digital (${filteredOrders.length} transaksi lunas) pada periode ${periodLabel}.${peakHour && peakHour.count > 0 ? ` Aktivitas transaksi terpadat tercatat pada pukul ${peakHour.time} WIB.` : ''}`
+      : `Belum ada transaksi penjualan lunas pada periode ${periodLabel}. Kurva omset dan aktivitas jam ramai akan otomatis terbentuk begitu pesanan pembeli masuk dan terverifikasi lunas.`;
 
     return {
-      title: periodConfig.title,
-      periodLabel: periodConfig.periodLabel,
+      title: periodTitle,
+      periodLabel,
       totalSales,
       totalUnits,
-      peakHourText: totalSales > 0 ? 'Data jam transaksi terdata' : 'Belum ada transaksi',
-      peakBadge: totalSales > 0 ? '✓ Transaksi Aktif Terdata' : 'Menunggu Transaksi Pertama',
-      advice: totalSales > 0 
-        ? `Tercatat total omset Rp ${totalSales.toLocaleString('id-ID')} dari ${totalUnits} unit produk digital yang berhasil terjual.`
-        : 'Belum ada transaksi penjualan pada periode ini. Kurva pendapatan dan daftar produk terlaris akan otomatis terisi secara real-time begitu pesanan pembeli masuk dan terkonfirmasi lunas.',
+      peakHourText,
+      peakBadge,
+      advice,
       hourlyPoints,
-      trendLabels: periodConfig.trendLabels,
+      trendLabels,
       trendRevenue,
       topProducts
     };
@@ -1433,6 +1602,70 @@ export const AdminDashboardView = () => {
   const MASTER_ADMIN_EMAIL = 'owner@dyariapp.my.id';
   const MASTER_ADMIN_PASS = 'Dyari#Master9981!Secure';
 
+  // Brute-force protection: Rate limit failed login attempts
+  const [loginLockCountdown, setLoginLockCountdown] = useState(0);
+
+  useEffect(() => {
+    const checkLock = () => {
+      const lockUntil = parseInt(localStorage.getItem('dyari_admin_lock_until') || '0', 10);
+      const now = Date.now();
+      if (lockUntil > now) {
+        setLoginLockCountdown(Math.ceil((lockUntil - now) / 1000));
+      } else {
+        setLoginLockCountdown(0);
+      }
+    };
+    checkLock();
+    const interval = setInterval(() => {
+      const lockUntil = parseInt(localStorage.getItem('dyari_admin_lock_until') || '0', 10);
+      const remaining = Math.ceil((lockUntil - Date.now()) / 1000);
+      if (remaining > 0) {
+        setLoginLockCountdown(remaining);
+      } else {
+        setLoginLockCountdown(0);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-lock inactivity guard (default 60 minutes)
+  const [autoLockMinutes, setAutoLockMinutes] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem('dyari_admin_autolock_minutes') || '60', 10);
+    } catch (_) {
+      return 60;
+    }
+  });
+
+  const [slugInput, setSlugInput] = useState(adminSecretSlug || 'dyari-vault-admin');
+
+  useEffect(() => {
+    if (adminSecretSlug) setSlugInput(adminSecretSlug);
+  }, [adminSecretSlug]);
+
+  // Sesi auto-lock inactivity guard
+  useEffect(() => {
+    if (!isAdminAuthenticated || autoLockMinutes <= 0) return;
+
+    let timeoutId = null;
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        handleAdminLogout();
+        showToast('Sesi Berakhir', 'Panel admin otomatis dikunci karena tidak ada aktivitas.');
+      }, autoLockMinutes * 60 * 1000);
+    };
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(e => window.removeEventListener(e, resetTimer));
+    };
+  }, [isAdminAuthenticated, autoLockMinutes]);
+
   // State untuk form ubah kredensial di tab Pengaturan -> Keamanan
   const [adminSecurityForm, setAdminSecurityForm] = useState(() => {
     const saved = JSON.parse(localStorage.getItem('dyari_custom_admin') || '{}');
@@ -1447,6 +1680,12 @@ export const AdminDashboardView = () => {
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setAdminAuthError('');
+
+    if (loginLockCountdown > 0) {
+      setAdminAuthError(`Percobaan login dikunci sementara demi keamanan. Silakan tunggu ${loginLockCountdown} detik.`);
+      return;
+    }
+
     setIsAuthLoading(true);
 
     try {
@@ -1463,6 +1702,9 @@ export const AdminDashboardView = () => {
       if (apiRes && apiRes.ok) {
         const data = await apiRes.json();
         if (data.user && data.user.role === 'admin') {
+          localStorage.removeItem('dyari_admin_fail_attempts');
+          localStorage.removeItem('dyari_admin_lock_until');
+          setLoginLockCountdown(0);
           localStorage.setItem('dyari_admin_session', 'authenticated');
           if (data.token) localStorage.setItem('dyari_auth_token', data.token);
           setIsAdminAuthenticated(true);
@@ -1478,11 +1720,23 @@ export const AdminDashboardView = () => {
       const validPass = savedAdmin.password || MASTER_ADMIN_PASS;
 
       if (inputEmail === validEmail && inputPass === validPass) {
+        localStorage.removeItem('dyari_admin_fail_attempts');
+        localStorage.removeItem('dyari_admin_lock_until');
+        setLoginLockCountdown(0);
         localStorage.setItem('dyari_admin_session', 'authenticated');
         setIsAdminAuthenticated(true);
         showToast('Login Berhasil', 'Akses panel administrator diberikan.');
       } else {
-        setAdminAuthError('Email atau kata sandi administrator salah. Akses ditolak.');
+        const failAttempts = parseInt(localStorage.getItem('dyari_admin_fail_attempts') || '0', 10) + 1;
+        localStorage.setItem('dyari_admin_fail_attempts', failAttempts);
+        if (failAttempts >= 5) {
+          const lockUntil = Date.now() + 5 * 60 * 1000;
+          localStorage.setItem('dyari_admin_lock_until', lockUntil);
+          setLoginLockCountdown(300);
+          setAdminAuthError('Terlalu banyak percobaan gagal (5x). Akses login dibekukan selama 5 menit.');
+        } else {
+          setAdminAuthError(`Email atau kata sandi administrator salah. (Percobaan ke-${failAttempts} dari 5)`);
+        }
       }
     } catch {
       setAdminAuthError('Terjadi kesalahan verifikasi sistem.');
@@ -1661,13 +1915,18 @@ export const AdminDashboardView = () => {
 
             <button
               type="submit"
-              disabled={isAuthLoading}
+              disabled={isAuthLoading || loginLockCountdown > 0}
               className="w-full py-3 rounded-xl bg-forest text-white font-heading font-bold text-xs hover:bg-[#152a24] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 mt-2"
             >
               {isAuthLoading ? (
                 <>
                   <RefreshCw size={14} className="animate-spin" />
                   <span>Memverifikasi Otorisasi...</span>
+                </>
+              ) : loginLockCountdown > 0 ? (
+                <>
+                  <Lock size={14} className="text-amber-300" />
+                  <span>Terkunci Sementara ({loginLockCountdown}s)</span>
                 </>
               ) : (
                 <>
@@ -2814,6 +3073,18 @@ export const AdminDashboardView = () => {
                                   title="Kirim Invoice via WhatsApp"
                                 >
                                   <MessageCircle size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (window.confirm(`Yakin ingin menghapus transaksi ${tx.id} (${tx.customer}) secara permanen? Data yang telah dihapus tidak dapat dipulihkan.`)) {
+                                      await deleteOrder(tx.id);
+                                    }
+                                  }}
+                                  className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition cursor-pointer"
+                                  title="Hapus Transaksi Permanen"
+                                >
+                                  <Trash2 size={13} />
                                 </button>
                                 <button
                                   onClick={() => setSelectedOrderDetails(tx)}
@@ -5532,6 +5803,115 @@ export const AdminDashboardView = () => {
                       </button>
                     </div>
                   </form>
+
+                  {/* MODUL 2: PENGATURAN URL RAHASIA & PROTEKSI AKSES ADMIN */}
+                  <div className="pt-6 border-t border-[#F0F4F1] space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+                        <Key size={16} />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-extrabold text-sm text-forest">URL Akses Rahasia Administrator</h3>
+                        <p className="text-[11px] text-warmgray">Amankan panel admin dari pencarian URL umum (misal /#admin) dengan custom slug rahasia.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-[#FAFBF9] border border-[#E5EAE4] space-y-3">
+                      <span className="text-[11px] font-bold text-forest block">Tautan Akses Rahasia Saat Ini:</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={`${window.location.origin}/#${adminSecretSlug || 'dyari-vault-admin'}`}
+                          className="flex-1 bg-white border border-[#E5EAE4] rounded-xl px-3 py-2 text-xs font-mono text-forest select-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = `${window.location.origin}/#${adminSecretSlug || 'dyari-vault-admin'}`;
+                            navigator.clipboard.writeText(url);
+                            showToast('URL Disalin', 'Tautan akses rahasia admin berhasil disalin.');
+                          }}
+                          className="btn-dyari text-xs px-3.5 py-2 font-bold shrink-0 inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Copy size={13} />
+                          <span>Salin URL</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5 pt-2 border-t border-[#E5EAE4]/60">
+                        <label className="text-[11px] font-bold text-forest">Kustomisasi Slug URL Rahasia (Tanpa Tanda #):</label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-warmgray">/#</span>
+                          <input
+                            type="text"
+                            value={slugInput}
+                            onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                            placeholder="dyari-vault-admin"
+                            className="flex-1 bg-white border border-[#E5EAE4] rounded-xl px-3 py-1.5 text-xs font-mono text-forest focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (updateAdminSecretSlug(slugInput)) {
+                                window.history.replaceState(null, '', `#${slugInput}?menu=pengaturan&settings_tab=keamanan`);
+                              }
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-forest hover:bg-[#1a3329] text-white text-xs font-bold transition shadow-2xs cursor-pointer"
+                          >
+                            Terapkan Slug
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-warmgray">
+                          Gunakan minimal 6 karakter kombinasi huruf, angka, atau strip (contoh: <code>dyari-sys-admin-9981</code>).
+                        </p>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] leading-relaxed flex items-start gap-2">
+                        <ShieldCheck size={14} className="shrink-0 mt-0.5 text-emerald-600" />
+                        <span>
+                          <strong>Proteksi Berlapis Aktif:</strong> Pengunjung publik atau bot yang mencoba membuka langsung <code>/#admin</code> tanpa kunci atau sesi aktif akan secara otomatis diblokir dan dialihkan kembali ke Halaman Beranda.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* MODUL 3: KUNCI SESI OTOMATIS (INACTIVITY AUTO-LOCK) */}
+                  <div className="pt-6 border-t border-[#F0F4F1] space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                        <Clock size={16} />
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-extrabold text-sm text-forest">Batas Waktu Sesi (Inactivity Auto-Lock)</h3>
+                        <p className="text-[11px] text-warmgray">Kunci sesi panel admin secara otomatis saat tidak ada aktivitas mouse/keyboard.</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-[#FAFBF9] border border-[#E5EAE4] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div>
+                        <span className="font-bold text-forest block">Kunci Otomatis Setelah:</span>
+                        <span className="text-[11px] text-warmgray">Mencegah akses tak berizin saat meninggalkan perangkat.</span>
+                      </div>
+
+                      <select
+                        value={autoLockMinutes}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setAutoLockMinutes(val);
+                          localStorage.setItem('dyari_admin_autolock_minutes', val);
+                          showToast('Auto-Lock Diperbarui', val === 0 ? 'Kunci otomatis dinonaktifkan.' : `Sesi akan terkunci setelah ${val} menit tanpa aktivitas.`);
+                        }}
+                        className="bg-white border border-[#E5EAE4] rounded-xl px-3 py-1.5 text-xs font-bold text-forest focus:outline-none"
+                      >
+                        <option value={15}>15 Menit</option>
+                        <option value={30}>30 Menit</option>
+                        <option value={60}>60 Menit (1 Jam - Rekomendasi)</option>
+                        <option value={120}>120 Menit (2 Jam)</option>
+                        <option value={0}>Nonaktifkan Auto-Lock</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -261,4 +261,40 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
+// DELETE /api/orders/:id (Admin deletes order and its order_items)
+router.delete('/:id', async (req, res) => {
+  try {
+    if (!checkIsAdmin(req)) {
+      return res.status(403).json({ message: 'Akses ditolak. Memerlukan hak administrator.' });
+    }
+    const { id } = req.params;
+    const cleanId = String(id || '').replace('#', '').trim();
+    const isNum = !isNaN(parseInt(cleanId, 10)) && /^\d+$/.test(cleanId);
+    const sql = isNum
+      ? 'SELECT * FROM orders WHERE id = $1 OR invoice_number = $2 LIMIT 1'
+      : 'SELECT * FROM orders WHERE invoice_number = $1 LIMIT 1';
+    const params = isNum ? [parseInt(cleanId, 10), cleanId] : [cleanId];
+
+    const orderCheck = await query(sql, params);
+    if (orderCheck.rows.length === 0) {
+      return res.status(404).json({ message: 'Pesanan tidak ditemukan.' });
+    }
+
+    const order = orderCheck.rows[0];
+    // Delete items first
+    await query('DELETE FROM order_items WHERE order_id = $1', [order.id]);
+    // Delete order
+    await query('DELETE FROM orders WHERE id = $1', [order.id]);
+
+    res.json({ 
+      message: `Pesanan ${order.invoice_number || order.id} berhasil dihapus permanen.`, 
+      deletedId: order.id,
+      invoiceNumber: order.invoice_number
+    });
+  } catch (error) {
+    console.error('Delete order error:', error);
+    res.status(500).json({ message: 'Gagal menghapus pesanan: ' + error.message });
+  }
+});
+
 export default router;

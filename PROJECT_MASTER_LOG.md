@@ -422,6 +422,23 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Diterbitkan ke [GitHub Release v0.0.6](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.6).
    - Seluruh versi di web dan backend disinkronkan ke `0.0.6`.
 
+### L. Pembaruan v0.0.7: Validasi Kurva & Jam Ramai Dashboard Riil, Fitur Hapus Riwayat Transaksi, dan Peningkatan Keamanan Obfuscated URL Admin
+1. **Validasi & Integrasi Data Grafik Dashboard (Kurva Omset & Analisa Jam Ramai 24 Jam)**:
+   - Memperbaiki `getAnalyticsData()` di `AdminDashboardView.jsx` agar memfilter data pesanan nyata (`orders`) secara presisi berdasarkan filter periode waktu yang aktif: **Harian (24 Jam / Hari Ini)**, **Mingguan (7 Hari Terakhir)**, **Bulanan (30 Hari Terakhir)**, dan **Rentang Tertentu (Custom Date Range)**.
+   - Mengganti logika lama yang memusatkan total omset hanya pada slot terakhir menjadi pembagian omset riil berbasis interval waktu (per 3 jam untuk harian, per hari untuk mingguan, per minggu untuk bulanan, dan 5 titik interval seragam untuk rentang kustom).
+   - Menyelaraskan grafik kedua (Analisa Aktivitas Transaksi & Jam Ramai 24 Jam Penuh: 00:00 - 24:00 WIB) dengan daftar pesanan terfilter yang sama, menghitung kepadatan transaksi dan total omset per jam secara akurat, serta mendeteksi jam puncak transaksi (*peak prime-time hour*).
+   - Mengintegrasikan peringkat produk terlaris, total omset, total unit, dan ringkasan advice dinamis agar sinkron dengan periode analitik yang dipilih.
+2. **Tombol Hapus Transaksi di Menu Riwayat Transaksi**:
+   - Menambahkan rute backend `DELETE /api/orders/:id` di `server/routes/orders.js` dengan proteksi otorisasi administrator. Rute ini menghapus data relasi pada tabel `order_items` dan `orders` secara bersih di PostgreSQL.
+   - Mengembangkan fungsi `deleteOrder(orderId)` di `StoreContext.jsx` agar memanggil API penghapusan backend dan memperbarui state lokal serta cache `localStorage`.
+   - Menambahkan tombol aksi hapus (ikon tong sampah `Trash2` berwarna merah) pada tabel Riwayat Transaksi di `AdminDashboardView.jsx` lengkap dengan dialog konfirmasi keamanan pencegahan salah klik.
+3. **Peningkatan Keamanan Panel Admin & Obfuscated Secret Route Slug**:
+   - Menutup akses publik langsung ke `/#admin`: pengunjung publik atau bot yang mencoba mengetik `/#admin` tanpa sesi admin aktif atau tanpa token kunci akan langsung dialihkan secara otomatis ke Beranda (`#home`).
+   - Menerapkan sistem URL rahasia berbasis custom slug (default: `/#dyari-vault-admin` atau slug yang dapat diubah sesuai preferensi admin di tab Keamanan).
+   - Menyediakan fitur salin tautan 1-klik di menu Pengaturan Keamanan untuk menyalin URL rahasia panel admin ke clipboard.
+   - Menambahkan fitur **Kunci Sesi Otomatis (Inactivity Auto-Lock)** yang memantau interaksi pengguna (mouse, keyboard, scroll) dan secara otomatis mengunci sesi panel admin setelah durasi tidak aktif tertentu (pilihan: 15m, 30m, 1 jam, 2 jam).
+   - Menambahkan proteksi **Brute-Force Guard / Rate Limiter** pada form login admin: membekukan percobaan login selama 5 menit jika terjadi 5 kali kegagalan memasukkan kredensial secara berturut-turut lengkap dengan countdown timer.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

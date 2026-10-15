@@ -425,16 +425,62 @@ export const StoreProvider = ({ children }) => {
     return null;
   });
 
+  const getStoredAdminSlug = () => {
+    try {
+      return localStorage.getItem('dyari_admin_secret_slug') || 'dyari-vault-admin';
+    } catch (_) {
+      return 'dyari-vault-admin';
+    }
+  };
+
+  const [adminSecretSlug, setAdminSecretSlug] = useState(getStoredAdminSlug);
+
+  const updateAdminSecretSlug = (newSlug) => {
+    const clean = String(newSlug || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').trim();
+    if (!clean || clean.length < 6 || clean === 'admin' || clean === 'home') {
+      showToast('Slug Tidak Valid', 'Gunakan minimal 6 karakter alfanumerik (huruf, angka, strip).');
+      return false;
+    }
+    try {
+      localStorage.setItem('dyari_admin_secret_slug', clean);
+      setAdminSecretSlug(clean);
+      showToast('URL Admin Diperbarui', `URL akses admin kini menggunakan slug: /#${clean}`);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
   const [currentView, setCurrentView] = useState(() => {
     try {
       const hash = (window.location.hash || '').replace('#', '').trim();
-      const [viewPart] = hash.split('?');
-      const validViews = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
+      const [viewPart, queryPart] = hash.split('?');
+      const activeAdminSlug = localStorage.getItem('dyari_admin_secret_slug') || 'dyari-vault-admin';
+
+      // Check if hash matches secret admin slug
+      if (viewPart === activeAdminSlug) {
+        return 'admin';
+      }
+
+      // Check direct /#admin access attempt: strictly block unauthorized discovery
+      if (viewPart === 'admin') {
+        const isAuth = localStorage.getItem('dyari_admin_session') === 'authenticated';
+        const params = queryPart ? new URLSearchParams(queryPart) : null;
+        const key = params ? (params.get('key') || params.get('secret')) : null;
+        if (isAuth || key === 'Dyari#Master9981!Secure') {
+          return 'admin';
+        }
+        // Obfuscate / protect: bounce unauthenticated direct /#admin to home
+        window.history.replaceState(null, '', '#home');
+        return 'home';
+      }
+
+      const validViews = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail', 'checkout', 'order-success', 'dashboard', 'invoice', 'story-generator'];
       if (viewPart && validViews.includes(viewPart)) {
         return viewPart;
       }
       const saved = localStorage.getItem('dyari_current_view');
-      if (saved && validViews.includes(saved)) {
+      if (saved && (validViews.includes(saved) || saved === 'admin')) {
         return saved;
       }
     } catch (_) {}
@@ -448,7 +494,32 @@ export const StoreProvider = ({ children }) => {
     const handleHash = () => {
       const rawHash = (window.location.hash || '').replace('#', '').trim();
       const [viewPart, queryPart] = rawHash.split('?');
-      const validViews = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail', 'checkout', 'order-success', 'dashboard', 'admin', 'invoice', 'story-generator'];
+      const activeAdminSlug = localStorage.getItem('dyari_admin_secret_slug') || 'dyari-vault-admin';
+
+      if (viewPart === activeAdminSlug) {
+        setCurrentView('admin');
+        try { localStorage.setItem('dyari_current_view', 'admin'); } catch (_) {}
+        return;
+      }
+
+      if (viewPart === 'admin') {
+        const isAuth = localStorage.getItem('dyari_admin_session') === 'authenticated';
+        const params = queryPart ? new URLSearchParams(queryPart) : null;
+        const key = params ? (params.get('key') || params.get('secret')) : null;
+        if (isAuth || key === 'Dyari#Master9981!Secure') {
+          window.history.replaceState(null, '', `#${activeAdminSlug}${queryPart ? '?' + queryPart : ''}`);
+          setCurrentView('admin');
+          try { localStorage.setItem('dyari_current_view', 'admin'); } catch (_) {}
+          return;
+        }
+        // Block direct unauthenticated access to /#admin
+        window.history.replaceState(null, '', '#home');
+        setCurrentView('home');
+        try { localStorage.setItem('dyari_current_view', 'home'); } catch (_) {}
+        return;
+      }
+
+      const validViews = ['home', 'shop', 'licenses', 'download', 'about', 'product-detail', 'checkout', 'order-success', 'dashboard', 'invoice', 'story-generator'];
       if (viewPart && validViews.includes(viewPart)) {
         setCurrentView(viewPart);
         try {
@@ -1162,6 +1233,16 @@ export const StoreProvider = ({ children }) => {
 
   const navigateTo = (view, productId = null) => {
     if (productId) setSelectedProductId(productId);
+    if (view === 'admin') {
+      const activeAdminSlug = localStorage.getItem('dyari_admin_secret_slug') || 'dyari-vault-admin';
+      setCurrentView('admin');
+      try {
+        localStorage.setItem('dyari_current_view', 'admin');
+        window.location.hash = activeAdminSlug;
+      } catch (_) {}
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     setCurrentView(view);
     try {
       localStorage.setItem('dyari_current_view', view);
@@ -1732,9 +1813,38 @@ export const StoreProvider = ({ children }) => {
     return targetUpdatedOrder;
   };
 
-  const deleteOrder = (orderId) => {
-    setOrders(prev => prev.filter(o => o.id !== orderId));
-    showToast('Pesanan Dihapus', `Pesanan ${orderId} telah dihapus.`);
+  const deleteOrder = async (orderId) => {
+    try {
+      const cleanId = String(orderId || '').replace('#', '').trim();
+      const token = localStorage.getItem('token') || localStorage.getItem('dyari_auth_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-admin-secret': 'Dyari#Master9981!Secure',
+        'x-admin-key': 'Dyari#Master9981!Secure'
+      };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      await fetch(`/api/orders/${cleanId}`, {
+        method: 'DELETE',
+        headers
+      }).catch(err => console.warn('Backend order delete error:', err));
+    } catch (err) {
+      console.warn('Delete order API error:', err);
+    }
+
+    setOrders(prev => {
+      const updated = prev.filter(o => o.id !== orderId && o.dbId !== orderId);
+      try {
+        localStorage.setItem('dyari_orders_v2', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      window.dispatchEvent(new Event('dyari_order_created'));
+    } catch (_) {}
+
+    showToast('Pesanan Dihapus', `Pesanan ${orderId} telah dihapus permanen.`);
   };
 
   // Coupon Management
@@ -2328,7 +2438,9 @@ export const StoreProvider = ({ children }) => {
       sendInvoiceWhatsApp,
       activeInvoiceId,
       setActiveInvoiceId,
-      // Admin functions
+      // Admin functions & security
+      adminSecretSlug,
+      updateAdminSecretSlug,
       addProduct,
       updateProduct,
       deleteProduct,
