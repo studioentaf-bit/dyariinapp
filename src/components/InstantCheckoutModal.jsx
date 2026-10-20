@@ -30,7 +30,8 @@ export const InstantCheckoutModal = () => {
     storeSettings,
     showToast,
     navigateTo,
-    openInvoice
+    openInvoice,
+    fetchBackendProducts
   } = useStore();
 
   const { isOpen, item, type, step, order } = instantCheckout;
@@ -115,6 +116,11 @@ export const InstantCheckoutModal = () => {
               status: 'Lunas',
               items: updatedItems
             }));
+
+            // Refresh produk di background agar stok terupdate
+            if (typeof fetchBackendProducts === 'function') {
+              fetchBackendProducts();
+            }
           }
         }
       } catch (_) {}
@@ -191,6 +197,9 @@ export const InstantCheckoutModal = () => {
         const data = await res.json();
         if (data && data.order && (data.order.status === 'LUNAS' || data.order.status === 'Lunas')) {
           setCurrentOrder(prev => ({ ...prev, status: 'Lunas' }));
+          if (typeof fetchBackendProducts === 'function') {
+            fetchBackendProducts();
+          }
           showToast('Pembayaran Terverifikasi!', 'Pesanan Anda telah disetujui admin.');
           setIsCheckingStatus(false);
           return;

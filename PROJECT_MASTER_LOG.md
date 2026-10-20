@@ -625,8 +625,43 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### R. Pembaruan: Perbaikan Pengurangan Stok Produk Shop saat Checkout & Pembayaran Sukses (Sinkronisasi Backend & Frontend Berbasis Qty)
+1. **Akar Masalah Stok Tidak Berkurang saat Checkout / Pembayaran Sukses**:
+   - **Salah Klasifikasi Sebagai Alat Lisensi (`isLicenseTool`)**: Di `server/routes/orders.js`, terdapat kondisi `product.category_id === 'tools-ai'` yang menyebabkan produk shop AI (Gemini Pro, ChatGPT, Capcut, dll.) dianggap sebagai alat lisensi. Akibatnya, backend menerbitkan kode lisensi dan sengaja melewatkan (*skip*) proses pemotongan stok akun/stok numerik produk shop.
+   - **Resolusi `product_id` Gagal / Bernilai NULL di Database**: Saat pembuatan pesanan, item pesanan hanya membawa slug string atau `it.id`, sehingga query pencarian produk pada tabel `products` tidak menemukan ID numerik produk dan membiarkan `order_items.product_id` bernilai NULL.
+   - **Frontend Hanya Memotong 1 Akun Terlepas dari Jumlah Pembelian (`qty`)**: Logika fulfillment sebelumnya hanya menggunakan `findIndex` satu kali sehingga pembeli yang membeli 2 atau lebih unit hanya memotong 1 akun.
+   - **Stale Cache `localStorage` Menimpa Data Database**: Pada `fetchBackendProducts()`, pengecekan stok lokal sempat memprioritaskan data `localStorage` lama yang belum terpotong di atas data database PostgreSQL.
+   - **Array `accountStock` Kosong Menghapus Nilai Stok Numerik**: Pemeriksaan `Array.isArray(product.accountStock)` yang bernilai `true` untuk array kosong `[]` menyebabkan fungsi `getProductAvailableStock` mengembalikan 0 dan mengabaikan `stockCount`.
+
+2. **Solusi Komprehensif yang Diterapkan**:
+   - **Backend PostgreSQL (`server/routes/orders.js`)**:
+     - Memperbaiki resolusi `product_id` pada `POST /api/orders` dengan memeriksa `it.product_id || it.dbId || it.id`, mencari ke tabel `products` berdasarkan ID integer, slug, maupun nama produk secara akurat.
+     - Pada `PUT /api/orders/:id/status` saat pesanan disetujui (`LUNAS`):
+       - Mengisolasi `isLicenseTool` khusus untuk produk yang murni bertipe `LICENSE_TOOL` atau memiliki flag `license_required` khusus Story Generator.
+       - Untuk produk shop (`APPS_PREMIUM` dan produk finite stock): backend mengambil hingga sejumlah `orderQty` akun yang belum terjual (`!s.isSold`), menandainya sebagai terjual (`isSold: true`, `soldTo`, `soldToEmail`, `soldAt`), dan menetapkannya ke `order_items.assigned_account`.
+       - Jika baris akun kosong, backend langsung memotong stok numerik `stock_count = Math.max(0, currentStock - orderQty)`.
+       - Memperbarui status stok (`TERSEDIA` vs `HABIS`), menambah counter `sales_count`, dan memanggil `clearProductsCache()` agar stok langsung ter-refresh seketika di seluruh platform.
+   - **Frontend React Context (`src/context/StoreContext.jsx`)**:
+     - Memperbaiki `getProductAvailableStock()`: hanya memeriksa baris akun jika array memiliki panjang lebih dari 0 (`accountStock.length > 0`), dan melakukan fallback yang benar ke `stockCount`.
+     - Memperbarui `fetchBackendProducts()` sebagai `useCallback` yang menjadikan PostgreSQL sebagai satu-satunya sumber kebenaran (*single source of truth*), mengekspornya ke context provider sebagai `fetchBackendProducts` dan `refreshProducts`.
+     - Memperbarui `fulfillOrderCredentials()` dan `completeOrder()` agar memproses pemotongan stok akun dan stok numerik secara presisi sesuai jumlah pembelian `orderQty` / `requiredQty`, serta menyinkronkannya ke backend dengan `syncStockToBackend(productId, stockList, remainingCount)`.
+     - Menyinkronkan pesanan checkout biasa (`completeOrder` & `createPendingOrder`) ke backend PostgreSQL via `POST /api/orders`.
+     - Pada `updateOrderStatus()`: menunggu respons backend `PUT /api/orders/:id/status` dan langsung memanggil `await fetchBackendProducts()`.
+   - **Modal Checkout Instan (`src/components/InstantCheckoutModal.jsx`)**:
+     - Saat polling mendeteksi pesanan telah `LUNAS` (atau saat tombol cek manual diklik), sistem secara otomatis memicu `fetchBackendProducts()` sehingga kartu produk di latar belakang seketika menampilkan sisa stok yang telah berkurang.
+
+3. **Status Build & Deploy VPS**:
+   - Kompilasi Vite lulus bersih 100%: `npm run build` sukses.
+   - Seluruh sintaks Node.js server terverifikasi valid (`node -c`).
+   - Perubahan telah dicommit dan dipush ke branch `origin main`.
+   - **Perintah Deploy VPS (Eksekusi Wajib):**
+     ```bash
+     cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+     ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
+
 
 

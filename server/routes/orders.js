@@ -139,19 +139,36 @@ router.post('/', async (req, res) => {
     for (const it of items) {
       let resolvedProdId = null;
       let accessLink = '';
-      if (it.id) {
-        const rawId = String(it.id).trim();
-        if (!isNaN(parseInt(rawId, 10)) && /^\d+$/.test(rawId)) {
-          resolvedProdId = parseInt(rawId, 10);
+      const rawId = it.product_id || it.dbId || it.id;
+      if (rawId) {
+        const strId = String(rawId).trim();
+        if (!isNaN(parseInt(strId, 10)) && /^\d+$/.test(strId)) {
+          resolvedProdId = parseInt(strId, 10);
+          try {
+            const pRes = await query('SELECT access_link FROM products WHERE id = $1 LIMIT 1', [resolvedProdId]);
+            if (pRes.rows.length > 0) accessLink = pRes.rows[0].access_link || '';
+          } catch (_) {}
         } else {
           try {
-            const pRes = await query('SELECT id, access_link FROM products WHERE slug = $1 OR id::text = $1 LIMIT 1', [rawId]);
+            const pRes = await query(
+              'SELECT id, access_link FROM products WHERE slug = $1 OR id::text = $1 OR title ILIKE $2 LIMIT 1', 
+              [strId, it.title || it.name || '']
+            );
             if (pRes.rows.length > 0) {
               resolvedProdId = pRes.rows[0].id;
               accessLink = pRes.rows[0].access_link || '';
             }
           } catch (_) {}
         }
+      }
+      if (!resolvedProdId && (it.title || it.name)) {
+        try {
+          const pRes = await query('SELECT id, access_link FROM products WHERE title ILIKE $1 LIMIT 1', [it.title || it.name]);
+          if (pRes.rows.length > 0) {
+            resolvedProdId = pRes.rows[0].id;
+            accessLink = pRes.rows[0].access_link || '';
+          }
+        } catch (_) {}
       }
 
       await query(
@@ -254,27 +271,28 @@ router.put('/:id/status', async (req, res) => {
       const itemsRes = await query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
       
       for (const item of itemsRes.rows) {
-        // Cari data produk di database
+        // Cari data produk di database secara menyeluruh
         let product = null;
         if (item.product_id) {
           const pRes = await query('SELECT * FROM products WHERE id = $1 LIMIT 1', [item.product_id]);
           if (pRes.rows.length > 0) product = pRes.rows[0];
         }
         if (!product && item.product_title) {
-          const pRes = await query('SELECT * FROM products WHERE title ILIKE $1 LIMIT 1', [item.product_title]);
+          const cleanTitle = item.product_title.trim();
+          const pRes = await query(
+            'SELECT * FROM products WHERE title ILIKE $1 OR title ILIKE $2 OR slug ILIKE $1 LIMIT 1', 
+            [cleanTitle, `%${cleanTitle}%`]
+          );
           if (pRes.rows.length > 0) product = pRes.rows[0];
         }
 
         const titleText = (item.product_title || (product ? product.title : '')).toLowerCase();
         
-        // Identifikasi apakah produk ini adalah Tool Lisensi (Story Generator / Lisensi)
-        const isLicenseTool = (product && (
-          product.license_required === true ||
-          product.category_id === 'tools-ai' ||
-          product.type === 'LISENSI' ||
-          titleText.includes('lisensi') ||
-          titleText.includes('story generator')
-        )) || titleText.includes('lisensi') || titleText.includes('story generator');
+        // Identifikasi: HANYA Tool Lisensi (Story Generator / Software Tool) yang menerbitkan lisensi
+        // Produk Shop (Aplikasi Premium seperti Gemini, Capcut, ChatGPT, Netflix, Canva, dsb) BUKAN lisensi tool!
+        const isLicenseTool = (product && product.product_type === 'LICENSE_TOOL') ||
+          (product && product.type === 'LISENSI' && (titleText.includes('lisensi story') || titleText.includes('story generator'))) ||
+          (!product && (titleText.includes('lisensi story') || titleText.includes('story generator')));
 
         if (isLicenseTool) {
           // --- HANYA UNTUK LISENSI TOOLS: Buat Lisensi di tabel licenses ---
@@ -306,7 +324,7 @@ router.put('/:id/status', async (req, res) => {
             ]);
           }
         } else {
-          // --- UNTUK PRODUK SHOP BIASA (GEMINI, CANVA, NETFLIX, ASET, DLL): KURANGI STOK & ASSIGN KREDENSIAL ---
+          // --- UNTUK PRODUK SHOP (GEMINI, CAPCUT, GPT, CANVA, NETFLIX, ASET DIGITAL, DLL): KURANGI STOK SESUAI QTY & ASSIGN KREDENSIAL ---
           if (product) {
             let stockList = [];
             if (Array.isArray(product.account_stock)) {
@@ -315,7 +333,7 @@ router.put('/:id/status', async (req, res) => {
               try { stockList = JSON.parse(product.account_stock); } catch (_) { stockList = []; }
             }
 
-            const orderQty = Math.max(1, item.quantity || 1);
+            const orderQty = Math.max(1, Number(item.quantity) || 1);
             let assignedAccount = item.assigned_account || '';
 
             // Jika ada baris stok akun di account_stock
@@ -325,7 +343,7 @@ router.put('/:id/status', async (req, res) => {
                 if (!s.isSold) availableIndices.push(idx);
               });
 
-              if (availableIndices.length > 0 && !assignedAccount) {
+              if (availableIndices.length > 0) {
                 const allocatedTexts = [];
                 const countToTake = Math.min(orderQty, availableIndices.length);
                 for (let i = 0; i < countToTake; i++) {
@@ -339,7 +357,9 @@ router.put('/:id/status', async (req, res) => {
                   };
                   allocatedTexts.push(stockList[targetIdx].text);
                 }
-                assignedAccount = allocatedTexts.join('\n');
+                if (!assignedAccount) {
+                  assignedAccount = allocatedTexts.join('\n');
+                }
               }
             }
 
@@ -348,12 +368,16 @@ router.put('/:id/status', async (req, res) => {
               assignedAccount = product.access_link;
             }
 
-            // Hitung sisa stok aktual
+            // Hitung sisa stok aktual:
+            // 1. Jika ada baris akun, hitung akun yang belum terjual
+            // 2. Jika tidak ada baris akun, kurangi stok angka (stock_count) sejumlah orderQty
+            const currentStockCount = Number(product.stock_count) || 0;
             const remainingCount = stockList.length > 0
               ? stockList.filter(s => !s.isSold).length
-              : Math.max(0, (product.stock_count || 0) - orderQty);
+              : Math.max(0, currentStockCount - orderQty);
 
-            const stockStatus = remainingCount > 0 ? 'TERSEDIA' : 'HABIS';
+            const isDigitalSharing = product.product_type === 'DIGITAL_PREMIUM';
+            const stockStatus = (isDigitalSharing || remainingCount > 0) ? 'TERSEDIA' : 'HABIS';
 
             // Update stok dan penjualan di tabel products
             await query(

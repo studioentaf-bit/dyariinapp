@@ -320,14 +320,15 @@ export const getProductAvailableStock = (product) => {
     return 999999;
   }
 
-  // Hanya APPS_PREMIUM yang membutuhkan kuota stok riil finite
-  if (Array.isArray(product.accountStock)) {
+  // Kuota stok riil: Cek akun baris terlebih dahulu jika ada
+  if (Array.isArray(product.accountStock) && product.accountStock.length > 0) {
     return product.accountStock.filter(s => !s.isSold).length;
   }
+  // Jika menggunakan kuota angka stockCount
   if (product.stockCount !== undefined && product.stockCount !== null && product.stockCount !== 'Unlimited') {
     return Math.max(0, Number(product.stockCount) || 0);
   }
-  return 0; // Default 0 (HABIS) hanya jika tipe APPS_PREMIUM belum diinput akun
+  return 0; // Default 0 (HABIS) hanya jika tipe APPS_PREMIUM belum diinput akun/stok
 };
 
 export const isProductOutOfStock = (product) => {
@@ -367,10 +368,13 @@ export const saveStoredProductStocks = (stocksMap) => {
 };
 
 // Helper sinkronisasi stok ke PostgreSQL backend API
-const syncStockToBackend = (productId, stockList) => {
+const syncStockToBackend = (productId, stockList, explicitCount) => {
   if (!productId) return;
   const safeStock = Array.isArray(stockList) ? stockList : [];
-  const readyCount = safeStock.filter(s => !s.isSold).length;
+  const readyCount = explicitCount !== undefined 
+    ? Number(explicitCount) 
+    : (safeStock.length > 0 ? safeStock.filter(s => !s.isSold).length : 0);
+
   fetch(`/api/products/${productId}/stock`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -754,58 +758,70 @@ export const StoreProvider = ({ children }) => {
   }, [products]);
 
   // Sinkronisasi data produk langsung dari PostgreSQL Database
-  useEffect(() => {
-    let isMounted = true;
-    const fetchBackendProducts = async () => {
-      try {
-        const res = await fetch(`/api/products?t=${Date.now()}`, {
-          headers: {
-            'Cache-Control': 'no-cache, no-store',
-            'Pragma': 'no-cache'
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.products) && isMounted) {
-            const savedStocks = getStoredProductStocks();
-            const mapped = data.products.map(row => {
-              const p = mapBackendProduct(row);
-              const isDigital = p.productType === 'DIGITAL_PREMIUM';
-              const isLic = p.productType === 'LICENSE_TOOL';
-              const localStock = savedStocks[p.id];
-              // Prioritaskan stok lokal yang tersimpan jika ada, atau gunakan stok dari database
-              const finalStock = (localStock && localStock.length > 0) ? localStock : (p.accountStock || []);
-              const readyCount = finalStock.filter(s => !s.isSold).length;
-              if (finalStock.length > 0) {
-                savedStocks[p.id] = finalStock;
-              }
-              return {
-                ...p,
-                accountStock: finalStock,
-                stockCount: (isDigital || isLic) ? 'Unlimited' : readyCount,
-                stockType: isDigital ? 'unlimited' : (isLic ? 'license' : 'link_based'),
-                isAvailable: (isDigital || isLic) ? true : readyCount > 0
-              };
-            });
-
-            saveStoredProductStocks(savedStocks);
-            setProducts(mapped);
-            try {
-              localStorage.setItem('dyari_products_cache_v2', JSON.stringify(mapped));
-            } catch (_) {}
-          }
+  const fetchBackendProducts = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/products?t=${Date.now()}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store',
+          'Pragma': 'no-cache'
         }
-      } catch (err) {
-        console.warn('API /api/products tidak terjangkau, menggunakan data cadangan lokal.', err);
-      } finally {
-        if (isMounted) {
-          setIsProductsLoading(false);
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.products)) {
+          const savedStocks = getStoredProductStocks();
+          const mapped = data.products.map(row => {
+            const p = mapBackendProduct(row);
+            const isDigital = p.productType === 'DIGITAL_PREMIUM';
+            const isLic = p.productType === 'LICENSE_TOOL';
+
+            // Sumber kebenaran utama adalah PostgreSQL Database
+            let finalStock = Array.isArray(p.accountStock) ? p.accountStock : [];
+            let readyCount = finalStock.length > 0 ? finalStock.filter(s => !s.isSold).length : 0;
+
+            // Jika accountStock kosong di DB tapi ada stockCount numerik di DB
+            if (finalStock.length === 0 && p.stockCount !== undefined && p.stockCount !== null && p.stockCount !== 'Unlimited') {
+              readyCount = Math.max(0, Number(p.stockCount) || 0);
+            }
+
+            // Fallback ke savedStocks lokal HANYA jika DB sama sekali belum punya data stok akun
+            if (finalStock.length === 0 && readyCount === 0 && savedStocks[p.id]?.length > 0) {
+              finalStock = savedStocks[p.id];
+              readyCount = finalStock.filter(s => !s.isSold).length;
+            }
+
+            if (finalStock.length > 0) {
+              savedStocks[p.id] = finalStock;
+            }
+
+            return {
+              ...p,
+              accountStock: finalStock,
+              stockCount: (isDigital || isLic) ? 'Unlimited' : readyCount,
+              stockType: isDigital ? 'unlimited' : (isLic ? 'license' : 'link_based'),
+              isAvailable: (isDigital || isLic) ? true : readyCount > 0
+            };
+          });
+
+          saveStoredProductStocks(savedStocks);
+          setProducts(mapped);
+          try {
+            localStorage.setItem('dyari_products_cache_v2', JSON.stringify(mapped));
+          } catch (_) {}
+          return mapped;
         }
       }
-    };
-    fetchBackendProducts();
-    return () => { isMounted = false; };
+    } catch (err) {
+      console.warn('API /api/products tidak terjangkau, menggunakan data cadangan lokal.', err);
+    } finally {
+      setIsProductsLoading(false);
+    }
+    return null;
   }, []);
+
+  useEffect(() => {
+    fetchBackendProducts();
+  }, [fetchBackendProducts]);
 
   const [orders, setOrders] = useState(() => {
     try {
@@ -1061,6 +1077,8 @@ export const StoreProvider = ({ children }) => {
           payment_method: 'QRIS',
           items: [{
             id: orderItem.id,
+            dbId: item.dbId || (typeof item.id === 'number' ? item.id : null),
+            product_id: item.dbId || (typeof item.id === 'number' ? item.id : null),
             name: orderItem.name,
             title: orderItem.name,
             price: unitPrice,
@@ -1389,28 +1407,46 @@ export const StoreProvider = ({ children }) => {
         // Find current product in state or map
         const currentProd = updatedProductsMap.get(prod.id) || { ...prod };
         const stockList = [...(currentProd.accountStock || [])];
-        const availableIdx = stockList.findIndex(s => !s.isSold);
+        const requiredQty = Math.max(1, Number(cartItem.quantity) || 1);
+        const assignedAccounts = [];
         
-        if (availableIdx !== -1) {
-          const soldStock = {
-            ...stockList[availableIdx],
-            isSold: true,
-            soldTo: newOrderId,
-            soldToEmail: buyerEmail,
-            soldAt: orderDate
-          };
-          stockList[availableIdx] = soldStock;
-          itemCopy.assignedAccount = soldStock.text;
-        } else {
-          // Fallback if no stock left
-          itemCopy.assignedAccount = currentProd.accessUrl || 'https://dyari.in/claim-account?id=' + newOrderId;
+        for (let q = 0; q < requiredQty; q++) {
+          const availableIdx = stockList.findIndex(s => !s.isSold);
+          if (availableIdx !== -1) {
+            const soldStock = {
+              ...stockList[availableIdx],
+              isSold: true,
+              soldTo: newOrderId,
+              soldToEmail: buyerEmail,
+              soldAt: orderDate
+            };
+            stockList[availableIdx] = soldStock;
+            assignedAccounts.push(soldStock.text);
+          } else {
+            break;
+          }
         }
-        
-        const remainingCount = stockList.filter(s => !s.isSold).length;
-        currentProd.accountStock = stockList;
-        currentProd.stockCount = remainingCount;
-        currentProd.isAvailable = remainingCount > 0;
-        updatedProductsMap.set(prod.id, currentProd);
+
+        if (assignedAccounts.length > 0) {
+          itemCopy.assignedAccount = assignedAccounts.join('\n---\n');
+          const remainingCount = stockList.filter(s => !s.isSold).length;
+          currentProd.accountStock = stockList;
+          currentProd.stockCount = remainingCount;
+          currentProd.isAvailable = remainingCount > 0;
+          updatedProductsMap.set(prod.id, currentProd);
+          syncStockToBackend(currentProd.dbId || currentProd.id, stockList, remainingCount);
+        } else {
+          // Fallback jika tidak ada baris akun
+          itemCopy.assignedAccount = currentProd.accessUrl || 'https://dyari.in/claim-account?id=' + newOrderId;
+          const currentCount = Number(currentProd.stockCount) || 0;
+          if (currentCount > 0) {
+            const remaining = Math.max(0, currentCount - requiredQty);
+            currentProd.stockCount = remaining;
+            currentProd.isAvailable = remaining > 0;
+            updatedProductsMap.set(prod.id, currentProd);
+            syncStockToBackend(currentProd.dbId || currentProd.id, currentProd.accountStock || [], remaining);
+          }
+        }
       } else if (pType === 'LICENSE_TOOL') {
         // Generate unique license
         const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -1447,6 +1483,13 @@ export const StoreProvider = ({ children }) => {
     // Apply product updates to products state
     if (updatedProductsMap.size > 0) {
       setProducts(prev => prev.map(p => updatedProductsMap.has(p.id) ? updatedProductsMap.get(p.id) : p));
+      const savedStocks = getStoredProductStocks();
+      updatedProductsMap.forEach((val, key) => {
+        if (val.accountStock && val.accountStock.length > 0) {
+          savedStocks[key] = val.accountStock;
+        }
+      });
+      saveStoredProductStocks(savedStocks);
     }
 
     // Add any generated licenses
@@ -1470,6 +1513,53 @@ export const StoreProvider = ({ children }) => {
     setOrders([newOrder, ...orders]);
     setLastOrder(newOrder);
     setActiveInvoiceId(newOrderId.replace('#', ''));
+
+    // Persist order to PostgreSQL backend and mark LUNAS
+    (async () => {
+      try {
+        const token = localStorage.getItem('dyari_auth_token');
+        const headers = { 
+          'Content-Type': 'application/json',
+          'x-admin-secret': 'Dyari#Master9981!Secure',
+          'x-admin-key': 'Dyari#Master9981!Secure'
+        };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const cleanInvoice = newOrderId.replace('#', '').trim();
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            invoice_number: cleanInvoice,
+            customer_name: buyerName,
+            customer_email: buyerEmail,
+            customer_phone: phone || user?.phone || '',
+            payment_method: paymentMethod || 'QRIS',
+            items: cart.map(item => ({
+              id: item.id,
+              dbId: item.dbId || (typeof item.id === 'number' ? item.id : null),
+              product_id: item.dbId || (typeof item.id === 'number' ? item.id : null),
+              name: item.name || item.title,
+              title: item.name || item.title,
+              price: Number(item.price || 0),
+              quantity: item.quantity || 1
+            })),
+            notes: 'Pembelian via Cart Checkout'
+          })
+        });
+
+        if (res.ok) {
+          await fetch(`/api/orders/${cleanInvoice}/status`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ status: 'LUNAS' })
+          });
+          await fetchBackendProducts();
+        }
+      } catch (err) {
+        console.warn('Error syncing completeOrder to backend:', err);
+      }
+    })();
 
     // Add purchased products
     const newPurchasedIds = cart.map(item => item.id);
@@ -1533,6 +1623,45 @@ export const StoreProvider = ({ children }) => {
 
     setOrders([newOrder, ...orders]);
     setLastOrder(newOrder);
+
+    // Persist pending order to PostgreSQL backend
+    (async () => {
+      try {
+        const token = localStorage.getItem('dyari_auth_token');
+        const headers = { 
+          'Content-Type': 'application/json',
+          'x-admin-secret': 'Dyari#Master9981!Secure',
+          'x-admin-key': 'Dyari#Master9981!Secure'
+        };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const cleanInvoice = newOrderId.replace('#', '').trim();
+        await fetch('/api/orders', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            invoice_number: cleanInvoice,
+            customer_name: buyerName,
+            customer_email: buyerEmail,
+            customer_phone: phone || user?.phone || '',
+            payment_method: paymentMethod || 'QRIS',
+            items: cart.map(item => ({
+              id: item.id,
+              dbId: item.dbId || (typeof item.id === 'number' ? item.id : null),
+              product_id: item.dbId || (typeof item.id === 'number' ? item.id : null),
+              name: item.name || item.title,
+              title: item.name || item.title,
+              price: Number(item.price || 0),
+              quantity: item.quantity || 1
+            })),
+            notes: 'Pembelian Pending via Cart Checkout'
+          })
+        });
+      } catch (err) {
+        console.warn('Error syncing createPendingOrder to backend:', err);
+      }
+    })();
+
     clearCart();
     openInvoice(newOrderId);
     showToast('Pesanan Dibuat', `Menunggu pembayaran untuk pesanan ${newOrderId}`);
@@ -1642,34 +1771,45 @@ export const StoreProvider = ({ children }) => {
         if (prodIdx !== -1) {
           const currentProd = { ...tempProducts[prodIdx] };
           const stockList = [...(currentProd.accountStock || [])];
-          const availableIdx = stockList.findIndex(s => !s.isSold);
+          const requiredQty = Math.max(1, Number(it.quantity) || 1);
+          const assignedAccounts = [];
 
-          if (availableIdx !== -1) {
-            const soldStock = {
-              ...stockList[availableIdx],
-              isSold: true,
-              soldTo: targetOrder.id,
-              soldToEmail: buyerEmail,
-              soldAt: orderDate
-            };
-            stockList[availableIdx] = soldStock;
-            itemCopy.assignedAccount = soldStock.text;
+          for (let q = 0; q < requiredQty; q++) {
+            const availableIdx = stockList.findIndex(s => !s.isSold);
+            if (availableIdx !== -1) {
+              const soldStock = {
+                ...stockList[availableIdx],
+                isSold: true,
+                soldTo: targetOrder.id,
+                soldToEmail: buyerEmail,
+                soldAt: orderDate
+              };
+              stockList[availableIdx] = soldStock;
+              assignedAccounts.push(soldStock.text);
+            } else {
+              break;
+            }
+          }
+
+          if (assignedAccounts.length > 0) {
+            itemCopy.assignedAccount = assignedAccounts.join('\n---\n');
             const remainingCount = stockList.filter(s => !s.isSold).length;
             currentProd.accountStock = stockList;
             currentProd.stockCount = remainingCount;
             currentProd.isAvailable = remainingCount > 0;
             tempProducts[prodIdx] = currentProd;
             updatedProducts = true;
-            syncStockToBackend(currentProd.dbId || currentProd.id, stockList);
+            syncStockToBackend(currentProd.dbId || currentProd.id, stockList, remainingCount);
           } else {
             itemCopy.assignedAccount = currentProd.accessUrl || '';
-            if ((currentProd.stockCount || 0) > 0) {
-              const remaining = Math.max(0, currentProd.stockCount - (it.quantity || 1));
+            const currentCount = Number(currentProd.stockCount) || 0;
+            if (currentCount > 0) {
+              const remaining = Math.max(0, currentCount - requiredQty);
               currentProd.stockCount = remaining;
               currentProd.isAvailable = remaining > 0;
               tempProducts[prodIdx] = currentProd;
               updatedProducts = true;
-              syncStockToBackend(currentProd.dbId || currentProd.id, currentProd.accountStock || []);
+              syncStockToBackend(currentProd.dbId || currentProd.id, currentProd.accountStock || [], remaining);
             }
           }
         }
@@ -1982,11 +2122,14 @@ export const StoreProvider = ({ children }) => {
         ? 'LUNAS' 
         : (newStatus === 'Batal' ? 'BATAL' : 'MENUNGGU_PEMBAYARAN');
 
-      fetch(`/api/orders/${cleanId}/status`, {
+      const res = await fetch(`/api/orders/${cleanId}/status`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ status: backendStatus })
-      }).catch(() => {});
+      });
+      if (res.ok && backendStatus === 'LUNAS') {
+        await fetchBackendProducts();
+      }
     } catch (_) {}
 
     try {
@@ -2602,6 +2745,8 @@ export const StoreProvider = ({ children }) => {
       products,
       setProducts,
       isProductsLoading,
+      fetchBackendProducts,
+      refreshProducts: fetchBackendProducts,
       orders,
       setOrders,
       lastOrder,
