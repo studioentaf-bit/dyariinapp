@@ -745,6 +745,44 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+### V. Pembaruan Logo Robot Maskot Hijau 3D, Tema Terang Soft Variatif, dan Redesain Total Dashboard Identik Image 2 (Rilis v0.0.10)
+1. **Generasi Logo & Executable Icon Baru**:
+   - Sumber logo: Gambar maskot robot hijau 3D futuristik berwajah ramah dan berkacamata neon.
+   - Diekspor ke aset aplikasi:
+     - High-resolution PNG (1024x1024, 1.06 MB): [`story-in-manager-wpf/Assets/app_logo.png`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Assets/app_logo.png) dan [`Story-in-AI-Manager/Assets/app_logo.png`](file:///c:/Users/studi/Downloads/metafori/Story-in-AI-Manager/Assets/app_logo.png).
+     - Multi-resolution Windows Icon (182 KB, frame 256x256, 128x128, 64x64, 48x48, 32x32, 16x16): [`story-in-manager-wpf/Assets/icon.ico`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Assets/icon.ico) dan [`Story-in-AI-Manager/Assets/icon.ico`](file:///c:/Users/studi/Downloads/metafori/Story-in-AI-Manager/Assets/icon.ico).
+   - Seluruh executable `.exe`, window icon, dan top/sidebar avatar kini otomatis menggunakan icon robot hijau 3D tersebut.
+
+2. **Pembaruan Palet Warna Global: Soft Light & Variatif**:
+   - [`App.xaml`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/App.xaml): Mengubah seluruh palet warna dari dominasi dark menjadi terang soft (*soft light*):
+     - Background App: `#f8fafc`, Sidebar & Card: `#ffffff`, Border: `#e2e8f0` / `#cbd5e1`.
+     - Teks Utama: `#0f172a`, Teks Sekunder: `#475569`, Teks Muted: `#94a3b8`.
+     - Aksen variatif cerah: Blue (`#3b82f6`), Indigo (`#6366f1`), Purple (`#a855f7`), Pink (`#ec4899`), Emerald (`#10b981`), serta soft color badge pills (`#eff6ff`, `#f5f3ff`, `#fdf2f8`, `#ecfdf5`).
+
+3. **Redesain Total Dashboard Identik Image 2 (Semua Tombol Shortcut Tool di Dashboard Ditiadakan)**:
+   - Sesuai instruksi user, seluruh tombol menu dan kartu shortcut platform yang sebelumnya memenuhi dashboard dihilangkan dari tengah layar (navigasi tool terpusat rapi hanya pada menu sidebar).
+   - Konten dashboard dirombak 100% mengikuti referensi visual:
+     - **Hero Banner**: Maskot robot 3D di squircle + ucapan *"Selamat datang kembali"* + *"Workspace kreatif Anda siap digunakan"* + kaligrafi halus *"Buat Konten Lebih Mudah & Produktif"*.
+     - **Status Akun Panel**: Terletak di kanan atas sejajar Hero Banner (Google Flow, Dola AI, ChatGPT dengan badge hijau `● Online` dan header `✓ Semua Terhubung`).
+     - **4 Stat Metric Cards**: Total Platform (`4`, blue), Total Akun (`3`, purple), Generasi Hari Ini (`12`, pink), Berhasil Diproses (`96%`, emerald).
+     - **Bagian Tengah 2 Kolom**:
+       - *Aktivitas Generasi*: Grafik kurva garis smooth 7 hari (6 Des - 12 Des 2026) dengan gradient area fill dan titik interaktif.
+       - *Riwayat Terbaru*: Tabel transaksi & aktivitas eksekusi 6 baris lengkap dengan badge status `✓ Selesai` dan `⏳ Diproses`.
+     - **Bagian Bawah: Tutorial & Panduan**: 3 kartu video preview bersih (*"Mulai Menggunakan Story.in"*, *"Mengelola Akun AI"*, *"Membuat Konten Pertama"*).
+     - **Integritas C#**: Seluruh named element C# lama dipertahankan di container hidden `Visibility="Collapsed"` sehingga kompilasi bersih (zero CS0103 error).
+
+4. **Kompilasi Ulang, Distribusi Lokal, & Sinkronisasi GitHub Release**:
+   - Kompilasi `dotnet publish -c Release -r win-x64 --self-contained true` menghasilkan binary `Story.in-AI-Manager.exe` (165 MB).
+   - Menutup instance lama yang sedang aktif dan menyinkronkan file `.exe` baru ke:
+     - `c:\Users\studi\Downloads\metafori\Story.in-AI-Manager.exe`
+     - `c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe`
+   - Mengunggah ulang asset binary ke [GitHub Release v0.0.10](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.10) menggunakan `--clobber`.
+
+5. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
