@@ -659,6 +659,26 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
      ```
 
+### S. Pembaruan v0.0.9 Desktop: Kompilasi Binary WPF ke v0.0.9, Rilis Resmi GitHub v0.0.9, & Penyelarasan Ekosistem (Fix 404 Auto-Updater)
+1. **Latar Belakang & Akar Masalah**:
+   - Backend web `dyariapp.my.id` mengumumkan versi sistem resmi **v0.0.9**.
+   - Namun, file executable desktop `Story.in-AI-Manager.exe` yang terdistribusi dan ada di GitHub Releases sebelumnya baru mencapai versi `v0.0.6`.
+   - Ketika pengguna membuka aplikasi desktop dan menekan tombol *Update Otomatis*, aplikasi mencoba mengunduh `https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.9/Story.in-AI-Manager.exe` yang menghasilkan error **404 (Not Found)** karena file release `v0.0.9` belum pernah diunggah ke GitHub.
+2. **Tindakan Penyelesaian Komprehensif**:
+   - **Pembaruan Kode Sumber Desktop WPF (`story-in-manager-wpf`)**:
+     - `AIPilotManager.csproj`: Menaikkan versi target ke `<Version>0.0.9</Version>`, `<AssemblyVersion>0.0.9.0</AssemblyVersion>`, dan `<FileVersion>0.0.9.0</FileVersion>`.
+     - `MainWindow.xaml.cs`: Memperbarui konstanta `public const string CurrentAppVersion = "0.0.9";`.
+     - `MainWindow.xaml`: Memperbarui badge header versi menjadi `Text="v0.0.9"`.
+   - **Kompilasi Ulang Binary Portable (.NET 8 SDK)**:
+     - Melakukan build single-file self-contained x64 menggunakan `C:\Users\studi\.dotnet\dotnet.exe publish` dengan output executable `Story.in-AI-Manager.exe` (163 MB).
+     - Menyalin file binary baru ke direktori siap pakai:
+       - `c:\Users\studi\Downloads\metafori\Story.in-AI-Manager.exe`
+       - `c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe`
+   - **Penerbitan Resmi GitHub Release v0.0.9**:
+     - Menerbitkan release tag publik `v0.0.9` di [GitHub Release v0.0.9](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.9).
+     - Mengunggah file aset binary standalone `Story.in-AI-Manager.exe` langsung ke release tag tersebut.
+     - Endpoint unduhan `https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.9/Story.in-AI-Manager.exe` kini terverifikasi aktif (HTTP 302 Found) dan siap diunduh otomatis tanpa error 404.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
