@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.10';
+const MIN_OFFICIAL_VERSION = '0.0.11';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
@@ -100,7 +100,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: appCfg.releaseDate || '2026-10-21',
       size: appCfg.size || '165 MB',
-      changelog: appCfg.changelog || `Versi ${version}: Unifikasi 1 lisensi resmi untuk 100% semua menu dan fitur aktif tanpa batasan tier, logo cybernetic teal/emerald baru, dashboard diringkas lebih elegan dan minimalis, serta modernisasi UI dark obsidian/emerald di seluruh menu.`
+      changelog: appCfg.changelog || `Versi ${version}: Versi 0.0.11: Logo maskot robot hijau 3D baru, tema terang soft dengan aksen warna-warni variatif, redesain total dashboard identik mock-up (tanpa tombol shortcut menu di tengah dashboard, grafik garis kurva aktivitas 7 hari, tabel riwayat 6 baris, video tutorial & panduan).`
     });
   } catch (err) {
     res.json({
@@ -111,7 +111,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: '2026-10-21',
       size: '165 MB',
-      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Unifikasi 1 lisensi resmi untuk 100% semua menu dan fitur aktif tanpa batasan tier, logo cybernetic teal/emerald baru, dashboard diringkas lebih elegan dan minimalis, serta modernisasi UI dark obsidian/emerald di seluruh menu.`
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Versi 0.0.11: Logo maskot robot hijau 3D baru, tema terang soft dengan aksen warna-warni variatif, redesain total dashboard identik mock-up (tanpa tombol shortcut menu di tengah dashboard, grafik garis kurva aktivitas 7 hari, tabel riwayat 6 baris, video tutorial & panduan).`
     });
   }
 });

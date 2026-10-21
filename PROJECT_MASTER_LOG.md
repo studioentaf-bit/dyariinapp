@@ -745,7 +745,7 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
-### V. Pembaruan Logo Robot Maskot Hijau 3D, Tema Terang Soft Variatif, dan Redesain Total Dashboard Identik Image 2 (Rilis v0.0.10)
+### V. Pembaruan v0.0.11: Logo Robot Maskot Hijau 3D, Tema Terang Soft Variatif, Redesain Total Dashboard Identik Image 2, & Elevasi Versi Resmi v0.0.11
 1. **Generasi Logo & Executable Icon Baru**:
    - Sumber logo: Gambar maskot robot hijau 3D futuristik berwajah ramah dan berkacamata neon.
    - Diekspor ke aset aplikasi:
@@ -771,12 +771,17 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      - **Bagian Bawah: Tutorial & Panduan**: 3 kartu video preview bersih (*"Mulai Menggunakan Story.in"*, *"Mengelola Akun AI"*, *"Membuat Konten Pertama"*).
      - **Integritas C#**: Seluruh named element C# lama dipertahankan di container hidden `Visibility="Collapsed"` sehingga kompilasi bersih (zero CS0103 error).
 
-4. **Kompilasi Ulang, Distribusi Lokal, & Sinkronisasi GitHub Release**:
-   - Kompilasi `dotnet publish -c Release -r win-x64 --self-contained true` menghasilkan binary `Story.in-AI-Manager.exe` (165 MB).
-   - Menutup instance lama yang sedang aktif dan menyinkronkan file `.exe` baru ke:
+4. **Elevasi Versi Resmi Menjadi v0.0.11 di Seluruh Ekosistem**:
+   - [`AIPilotManager.csproj`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/AIPilotManager.csproj): `<Version>0.0.11</Version>`, `<AssemblyVersion>0.0.11.0</AssemblyVersion>`, `<FileVersion>0.0.11.0</FileVersion>`.
+   - [`MainWindow.xaml.cs`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/MainWindow.xaml.cs): `public const string CurrentAppVersion = "0.0.11";`.
+   - [`MainWindow.xaml`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/MainWindow.xaml): Header badge versi `AppVersionHeaderBadge` bernilai `Text="v0.0.11"`.
+   - [`server/index.js`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/server/index.js): `const MIN_OFFICIAL_VERSION = '0.0.11';` dan endpoint download URL `v0.0.11`.
+   - [`src/context/StoreContext.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/context/StoreContext.jsx), [`src/views/DownloadAppView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/DownloadAppView.jsx), [`src/views/HomeView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/HomeView.jsx): Penyelarasan versi resmi `0.0.11` dan fallback.
+   - Kompilasi ulang `dotnet publish -c Release -r win-x64 --self-contained true` menghasilkan binary `Story.in-AI-Manager.exe` (165 MB, FileVersion `0.0.11.0`).
+   - Menyalin binary baru ke kedua lokasi lokal:
      - `c:\Users\studi\Downloads\metafori\Story.in-AI-Manager.exe`
      - `c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe`
-   - Mengunggah ulang asset binary ke [GitHub Release v0.0.10](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.10) menggunakan `--clobber`.
+   - Berhasil mempublikasikan rilis resmi publik baru [GitHub Release v0.0.11](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.11) dengan lampiran executable `Story.in-AI-Manager.exe`.
 
 5. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
    ```bash
@@ -786,6 +791,3 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
-
-
-
