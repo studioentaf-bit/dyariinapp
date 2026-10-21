@@ -679,6 +679,44 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      - Mengunggah file aset binary standalone `Story.in-AI-Manager.exe` langsung ke release tag tersebut.
      - Endpoint unduhan `https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.9/Story.in-AI-Manager.exe` kini terverifikasi aktif (HTTP 302 Found) dan siap diunduh otomatis tanpa error 404.
 
+### T. Pembaruan: Transformasi UI Cybernetic Dark Obsidian, Unifikasi Lisensi 100% Semua Fitur, Logo Baru, & Penyederhanaan Dashboard
+1. **Unifikasi Sistem Lisensi Tunggal (1 Lisensi = Akses Penuh Semua Menu & Fitur)**:
+   - Menghapus konsep tiering berjenjang ("Pro All Fitur", "Pro Platform", "Basic/Free limitasi").
+   - Memperbaiki logika evaluasi lisensi di [`story-in-manager-wpf/MainWindow.xaml.cs`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/MainWindow.xaml.cs) dan [`Views/ProductivityView.xaml.cs`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Views/ProductivityView.xaml.cs):
+     - `CanUseTool()` langsung memberikan izin penuh (`allowed = true`) tanpa membatasi tool apapun jika lisensi berstatus valid. Menghapus pesan popup pembatasan seperti *"Fitur TikTok Downloader khusus untuk paket Pro All Fitur"*.
+     - `CanAddAccount()` dan `CanAddCustomPlatform()` memberikan akses tanpa batas jumlah akun kepada seluruh pemilik lisensi resmi.
+     - `IsProAllUser()`, `IsProPlatformUser()`, `IsProductivityUser()`, dan `IsPrimaryPlatform()` diselaraskan untuk mengembalikan status lisensi aktif.
+   - Status badge header dan kartu status lisensi kini menampilkan indikator tunggal: `SEMUA FITUR AKTIF` (saat aktif) dan `BELUM AKTIF` (saat belum aktivasi).
+   - Dialog lisensi ([`Dialogs/LicenseDialog.xaml`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Dialogs/LicenseDialog.xaml) & [`.cs`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Dialogs/LicenseDialog.xaml.cs)) didesain ulang menjadi modern dark slate, menampilkan Hardware ID (HWID), input email & kode lisensi, serta penegasan bahwa 1 lisensi resmi membuka 100% seluruh fitur aplikasi.
+
+2. **Penggantian Logo Aplikasi & Executable (`.exe`)**:
+   - Memproses asset gambar logo cybernetic teal/emerald dari pengguna menjadi:
+     - `Assets/app_logo.png` (High-resolution 1024x1024 PNG) untuk logo di sidebar, header, dialog lisensi, dan kartu beranda.
+     - `Assets/icon.ico` (Multi-resolution Windows Icon: 256x256, 128x128, 64x64, 48x48, 32x32, 16x16) sebagai icon resmi window dan file executable Windows.
+   - Icon dan logo terpasang langsung pada `AIPilotManager.csproj` sebagai `<ApplicationIcon>Assets\icon.ico</ApplicationIcon>`.
+
+3. **Penyederhanaan Dashboard (Minimalis & Elegan)**:
+   - Mengatasi tampilan dashboard yang sebelumnya dinilai terlalu ramai dan membingungkan:
+     - Menghapus 16 tombol sub-step mini (`S1`, `S2`, `S3`, `S4`) pada kartu tutorial beranda yang sebelumnya memadati layar.
+     - Menggantinya dengan 4 kartu tutorial yang bersih dan elegan dengan tombol aksi jelas `Tonton Tutorial ➔`, tetap mempertahankan seluruh integrasi video walkthrough (`PlayTutorialStep1_Click` hingga `4`).
+     - Menyederhanakan Hero Banner dengan gradasi obsidian halus dan lencana Story.in AI Manager yang proporsional.
+     - Menyusun Prompt Bar dengan input kontras gelap yang nyaman di mata dan pill filter kategori yang bersih.
+
+4. **Modernisasi UI Seluruh Menu (Dark Obsidian Slate & Emerald)**:
+   - Mengganti tampilan latar belakang putih polos di seluruh halaman:
+     - Beranda / Dashboard: Seluruh kartu Platform AI, Tools Kreator, Panduan Tutorial, Quick Access, dan Status Akun kini berbalut dark card obsidian `#131f33` dengan border `#1e324f` dan aksen emerald `#10b981`.
+     - Platform Accounts View: Grid & List kartu akun multi-platform kini berlatar belakang dark slate dengan border status tab aktif hijau emerald dan efek hover interaktif.
+     - Tools Kreator (TikTok Downloader, Split Video, Merge Video): Area kerja gelap terpadu dengan kontras teks tajam `#f8fafc`.
+     - Katalog Shop Produk: Kartu produk shop berdesain kartu obsidian modern dengan lencana stok, harga jelas, deskripsi expandable, dan tombol checkout terintegrasi.
+     - Modal Dialog Lisensi: UI bertema dark obsidian berbingkai neon emerald.
+
+5. **Kompilasi Binary & Rilis GitHub v0.0.9**:
+   - Berhasil mengompilasi binary Release standalone x64 melalui `.NET 8 SDK` tanpa error.
+   - Executable `Story.in-AI-Manager.exe` (165 MB) disalin ke:
+     - `c:\Users\studi\Downloads\metafori\Story.in-AI-Manager.exe`
+     - `c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe`
+   - Mengunggah file executable terkompilasi ke GitHub Release tag `v0.0.9` di repository `studioentaf-bit/dyariinapp`.
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
