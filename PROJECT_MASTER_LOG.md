@@ -717,6 +717,34 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
      - `c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe`
    - Mengunggah file executable terkompilasi ke GitHub Release tag `v0.0.9` di repository `studioentaf-bit/dyariinapp`.
 
+### U. Pembaruan v0.0.10: Elevasi Versi Resmi Menjadi v0.0.10 di Seluruh Ekosistem (WPF Desktop, Web Frontend, Backend API, & GitHub Release)
+1. **Latar Belakang & Sinkronisasi Versi**:
+   - Versi `v0.0.9` adalah rilis sebelumnya yang berfokus pada sinkronisasi pemotongan stok otomatis dan fulfillment akun digital.
+   - Perubahan besar pada rilis terkini (unifikasi 1 lisensi resmi 100% semua fitur, logo cybernetic teal/emerald baru, dashboard diringkas minimalis, dan modernisasi UI dark obsidian/emerald) dinaikkan secara resmi ke **`v0.0.10`** di seluruh ekosistem.
+2. **Pembaruan Kode Sumber Desktop WPF (`story-in-manager-wpf`)**:
+   - [`AIPilotManager.csproj`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/AIPilotManager.csproj): `<Version>0.0.10</Version>`, `<AssemblyVersion>0.0.10.0</AssemblyVersion>`, `<FileVersion>0.0.10.0</FileVersion>`.
+   - [`MainWindow.xaml.cs`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/MainWindow.xaml.cs): Konstanta `public const string CurrentAppVersion = "0.0.10";`.
+   - [`MainWindow.xaml`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/MainWindow.xaml): Header badge versi `AppVersionHeaderBadge` bernilai `Text="v0.0.10"`.
+3. **Pembaruan Web Frontend & Backend API (`DYARIKU`)**:
+   - [`server/index.js`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/server/index.js):
+     - `const MIN_OFFICIAL_VERSION = '0.0.10';`
+     - Endpoint `/api/app-version` dan `/api/app/version` menyajikan tag `v0.0.10`, download URL resmi, changelog v0.0.10, dan redirect `/api/app/download` ke binary `v0.0.10`.
+   - [`src/context/StoreContext.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/context/StoreContext.jsx):
+     - Default `appVersionInfo`: `version: '0.0.10'`, `downloadUrl` menuju release `v0.0.10`, `releaseUrl` tag `v0.0.10`, dan changelog pembaruan terkini.
+     - Penanganan outdated version array kini mendeteksi versi `0.0.1` hingga `0.0.9` dan mengarahkan otomatis ke `0.0.10`.
+   - [`src/views/DownloadAppView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/DownloadAppView.jsx): Default fallback `0.0.10` dan penyelarasan URL rilis.
+   - [`src/views/HomeView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/HomeView.jsx): Tombol *"Download App"* di navbar kini menampilkan `v0.0.10`.
+4. **Kompilasi Binary Standalone & Penerbitan Rilis GitHub (`v0.0.10`)**:
+   - Berhasil mengompilasi binary Release single-file x64 `Story.in-AI-Manager.exe` (.NET 8 SDK).
+   - Menyalin binary ke folder kerja lokal:
+     - `c:\Users\studi\Downloads\metafori\Story.in-AI-Manager.exe`
+     - `c:\Users\studi\Downloads\metafori\Story-in-AI-Manager\Story.in-AI-Manager.exe`
+   - Berhasil menerbitkan tag rilis publik baru [GitHub Release v0.0.10](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.10) dengan lampiran asset executable `Story.in-AI-Manager.exe` (165 MB).
+5. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
