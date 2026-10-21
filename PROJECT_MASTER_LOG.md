@@ -75,6 +75,29 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
 
 ## 📜 3. CHRONOLOGICAL UPDATE LOG (CHANGELOG)
 
+### [Versi v0.0.13] - 2026-10-21
+- **Unifikasi Total Palet Tema Biru (Royal Blue & Sky Blue - No Green Remnants)**:
+  - Menghapus seluruh elemen warna hijau (Emerald) pada sidebar menu, vertical tab Story Generator, tombol navigasi Beranda, header badge lisensi, dan dialog lisensi pop-up (`LicenseDialog`).
+  - Pembaruan palet global di `App.xaml` (`BrandEmerald`, `BrandEmeraldDark`, `EmeraldLight`, `EmeraldBorder`, `EmeraldText`, `StoryLimeAccent`, `EmeraldGrad`, `SuccessBtnGrad`, `PrimaryBtnGrad`) dipetakan ke aksen biru premium (`#2563eb`, `#1d4ed8`, `#eff6ff`, `#bfdbfe`, `#3b82f6` -> `#2563eb` -> `#1d4ed8`).
+  - Dialog Aktivasi Lisensi (`LicenseDialog.xaml` & `.xaml.cs`): Border jendela, box HWID, tombol salin, icon box, input key, dan teks status "AKTIF TERIKAT" berganti ke tema biru elegan.
+  - Badge Header Topbar lisensi disinkronkan ke Royal Blue (`#2563eb`) dengan teks putih dan border `#60a5fa`.
+- **Native XAML Vector Dashboard (Zero Blur & Crystal Clear Typography)**:
+  - Mengeliminasi penggunaan gambar bitmap/raster hasil crop yang pecah/blur saat di-stretch pada monitor desktop.
+  - Mengimplementasikan layout **Native WPF XAML Vector** dengan `TextOptions.TextFormattingMode="Display"` dan `TextOptions.TextRenderingMode="ClearType"`.
+  - **Hero Banner**: Desain soft sky blue gradient (`#f0f9ff` -> `#e0f2fe` -> `#dbeafe`), tipografi tajam anti-aliased ("Selamat Datang di Story.In"), dan ilustrasi vector glass window bertumpuk dengan icon Dola, ChatGPT, dan Flow.
+  - **Kartu Tutorial**: Native vector card `#f8faff` dengan pill badge `▶ Tutorial`, teks judul tajam 2 baris ("Mulai Menggunakan Story.In Dalam 3 Langkah Mudah"), tombol pill `▶ Lihat Tutorial ➔`, dan ilustrasi laptop 3D dengan floating checkmarks.
+  - **Kartu Statistik Terintegrasi & Valid (Bukan Dummy)**: Menghubungkan secara dinamis data Total Platform, Total Akun, Generasi Hari Ini, dan Tingkat Sukses dengan database lokal pengguna dan engine runtime.
+  - **Aktivitas Terbaru Interaktif**: List aktivitas terhubung ke event navigasi cepat ke platform terkait saat diklik.
+- **Standarisasi Lisensi Universal**:
+  - 1 Lisensi resmi mencakup akses penuh ke seluruh menu dan fitur (Story Generator, Multi-Akun Browser, AI Voiceover Gemini, Video Splitter & Merger) tanpa pembatasan tier parsial.
+- **Peningkatan Versi Resmi Ekosistem ke v0.0.13**:
+  - `AIPilotManager.csproj`: Versi `0.0.13` (Assembly `0.0.13.0`).
+  - `MainWindow.xaml.cs`: `CurrentAppVersion = "0.0.13"`.
+  - `MainWindow.xaml`: Header badge `v0.0.13`.
+  - Backend Express (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.13'`.
+  - Frontend Web React (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Rilis v0.0.13.
+  - Penerbitan rilis binary standalone single-file `Story.in-AI-Manager.exe` v0.0.13 di GitHub Release.
+
 ### [Versi v0.0.10] - 2026-10-15
 - **Fix & Refactor (Tipe Produk & Mekanisme Stok Mandiri)**:
   - **Aset & Materi Digital (`DIGITAL_PREMIUM`)**: Ditegaskan bahwa kategori ini **TIDAK MEMBUTUHKAN STOK FINITE**. Menggunakan 1 Master Link Akses Sharing (`accessUrl`). Di tabel admin tampil hijau: `Selalu Tersedia` • `1 Link Master (Sharing)`. Pada katalog publik dan detail produk, tombol beli selalu aktif dengan badge `Akses Instan`, tidak pernah "Habis (0 Stok)".
