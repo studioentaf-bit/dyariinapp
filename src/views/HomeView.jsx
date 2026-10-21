@@ -106,7 +106,7 @@ export const HomeView = () => {
                   className="bg-[#1C352D] hover:bg-[#28493E] text-white font-heading font-bold text-xs sm:text-sm px-5 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
                 >
                   <Download size={15} className="text-[#4E8A5C]" />
-                  <span>Download App (v{(appVersionInfo?.version && !['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12'].includes(appVersionInfo.version)) ? appVersionInfo.version : '0.0.13'})</span>
+                  <span>Download App (v{(appVersionInfo?.version && !['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13'].includes(appVersionInfo.version)) ? appVersionInfo.version : '0.0.14'})</span>
                 </button>
                 <button 
                   onClick={() => navigateTo('licenses')}

@@ -75,6 +75,37 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
 
 ## 📜 3. CHRONOLOGICAL UPDATE LOG (CHANGELOG)
 
+### [Versi v0.0.14] - 2026-10-21
+- **Eliminasi Total Efek Blur & Render Tipografi Pixel-Perfect (Crystal Clear Text)**:
+  - Mengidentifikasi akar masalah teks blur pada WPF: Penggunaan `DropShadowEffect` pada container border menyebabkan engine DirectX WPF menonaktifkan subpixel ClearType rendering dan me-rasterize seluruh kartu menjadi grayscale antialiased bitmap di 96 DPI.
+  - Menghapus seluruh `DropShadowEffect` dari kartu-kartu dashboard (`HeroBannerCard`, 4 Stat Cards, `DashboardTutorialCard`, `DashboardActivitiesCard`, `Status Akun`, `Quick Actions`) dan menggantinya dengan border solid presisi tinggi (`BorderThickness="1" BorderBrush="#e2e8f0"` / `#bfdbfe`).
+  - Menerapkan atribut render pixel-perfect langsung pada level `<Window>`:
+    `UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.ClearTypeHint="Enabled"`.
+- **Pembersihan Total Data Dummy & Integrasi 100% Data Riil**:
+  - Menghapus 5 baris riwayat eksekusi statis/palsu di XAML (ChatGPT 14:32, Dola AI 13:47, dsb.).
+  - Mengintegrasikan pembacaan riwayat generasi riil dari `_storyHistory` (`data/story_history.json`):
+    - Jika pengguna baru dan belum melakukan aktivitas (`_storyHistory.Count == 0`): Merender kartu **Empty State** yang bersih, minimalis, dan elegan berlatar `#f8fafc` dengan icon `📝`, teks panduan jelas, dan tombol `+ Buat Story Baru`.
+    - Jika sudah ada riwayat generasi: Menampilkan data riil maksimal 5 item dengan badge tipe (🤖/🎨/🎙️/🎬), waktu riil, dan status dinamis.
+  - Mengintegrasikan metrik dashboard secara riil: Generasi Hari Ini = `0` (atau hitungan riil hari ini), Berhasil Diproses = `0%` (atau persentase riil), Total Akun = jumlah akun terdaftar riil (`_accounts.Count`), Total Platform = `_platforms.Count`.
+- **Scaling Dinamis Kartu Tutorial (Mencegah Teks Terpotong)**:
+  - Menyatukan teks judul tutorial menjadi 1 TextBlock ber-`TextWrapping="Wrap"` dengan `MinHeight="145"` sehingga teks judul panjang "Mulai Menggunakan Story.In Dalam 3 Langkah Mudah" tampil utuh dan dinamis.
+  - Membungkus ilustrasi laptop 3D ke dalam `<Viewbox MaxWidth="140" MaxHeight="115" Stretch="Uniform">` agar mengecil proporsional pada layar yang lebih sempit tanpa pernah memotong teks di sisi kiri.
+- **Perbaikan Tabrakan & Kerusakan Layout Saat Story Generator Drawer Dibuka**:
+  - Memperbaiki layout header "Aktivitas Terbaru": Menggunakan Grid 2 kolom eksplisit (`ColumnDefinition Width="*"` dan `ColumnDefinition Width="Auto"`) dengan `TextTrimming="CharacterEllipsis"` sehingga teks judul dan tombol "Lihat Semua ➔" secara fisik tidak mungkin lagi bertabrakan atau tumpang tindih.
+  - Responsivitas Otomatis saat Drawer Terbuka (`UpdateDashboardLayout`):
+    - Baris bawah (`DashboardBottomRowGrid`) otomatis bertumpuk vertikal (Tutorial Card di atas, Aktivitas Terbaru di bawah) sehingga masing-masing komponen mendapatkan lebar 100% tanpa terhimpit.
+    - 4 Stat Cards (`DashStatsGrid`) otomatis beralih menjadi formasi 2x2 sehingga memiliki ruang horizontal yang leluasa.
+    - Tab vertikal pinned `TabStoryGenBtn` otomatis disembunyikan saat drawer terbuka agar tidak memotong border dashboard, dan muncul kembali saat drawer ditutup.
+  - Menambahkan tombol maximize / wide mode `ExpandStoryGenBtn` pada header Story Generator Drawer untuk fleksibilitas ukuran drawer (580px vs Mode Lebar).
+- **Peningkatan Versi Resmi Ekosistem ke v0.0.14**:
+  - `AIPilotManager.csproj`: Versi `0.0.14` (Assembly `0.0.14.0`).
+  - `MainWindow.xaml.cs`: `CurrentAppVersion = "0.0.14"`.
+  - `MainWindow.xaml`: Header badge `v0.0.14`.
+  - Backend Express (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.14'`.
+  - Frontend Web React (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Rilis v0.0.14.
+  - Build Vite produksi web berhasil dan diperbarui di `dist/`.
+  - Binary standalone single-file `Story.in-AI-Manager.exe` (165 MB, ProductVersion `0.0.14`) dipublikasikan ke [GitHub Release v0.0.14](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.14).
+
 ### [Versi v0.0.13] - 2026-10-21
 - **Unifikasi Total Palet Tema Biru (Royal Blue & Sky Blue - No Green Remnants)**:
   - Menghapus seluruh elemen warna hijau (Emerald) pada sidebar menu, vertical tab Story Generator, tombol navigasi Beranda, header badge lisensi, dan dialog lisensi pop-up (`LicenseDialog`).
@@ -853,6 +884,36 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Publikasi [GitHub Release v0.0.12](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.12) dengan lampiran asset executable.
 
 5. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
+### Y. Pembaruan v0.0.14: Eliminasi Efek Blur, Integrasi 100% Data Riil, Scaling Dinamis Kartu Tutorial, Anti-Tabrakan Drawer, & Elevasi Versi v0.0.14
+1. **Pemberantasan Teks Blur & Optimalisasi Engine DirectX WPF**:
+   - Menghapus efek `DropShadowEffect` dari seluruh border container di MainWindow. Efek ini terbukti memaksa WPF me-rasterize teks dengan grayscale blur pada resolusi 96 DPI. Digantikan dengan border solid berpresisi tinggi (`#e2e8f0` dan `#bfdbfe`).
+   - Menerapkan atribut render visual kristal pada root window: `UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" RenderOptions.BitmapScalingMode="HighQuality" RenderOptions.ClearTypeHint="Enabled"`.
+2. **Pembersihan Data Dummy & Integrasi 100% Data Riil**:
+   - Menghapus 5 baris riwayat dummy (ChatGPT 14:32, dsb.) di XAML.
+   - Implementasi `UpdateDashboardRealData()` yang membaca langsung data persisten dari `_storyHistory` (`data/story_history.json`).
+   - Merender **Empty State Card** yang bersih & elegan jika pengguna baru belum memiliki riwayat generasi.
+   - Metrik Generasi Hari Ini = `0` (atau riil), Berhasil Diproses = `0%` (atau riil), Total Akun = `_accounts.Count`, Total Platform = `_platforms.Count`.
+3. **Scaling Dinamis Kartu Tutorial**:
+   - Menyatukan teks judul tutorial ke dalam 1 TextBlock ber-`TextWrapping="Wrap"` dengan `MinHeight="145"`.
+   - Menggunakan `<Viewbox MaxWidth="140" MaxHeight="115" Stretch="Uniform">` untuk ilustrasi laptop 3D agar proporsional mengecil saat layar sempit tanpa memotong teks di kiri.
+4. **Perbaikan Tabrakan Tampilan saat Story Generator Drawer Dibuka**:
+   - Header Aktivitas Terbaru menggunakan Grid 2 kolom eksplisit (`Width="*"` dan `Width="Auto"`) dengan `CharacterEllipsis` mencegah tabrakan judul dan tombol "Lihat Semua".
+   - Responsivitas dinamis `UpdateDashboardLayout()`: Baris bawah beralih vertikal 100% saat drawer terbuka atau lebar jendela < 960px; 4 Stat Cards beralih ke formasi grid 2x2; tab vertikal pinned disembunyikan otomatis saat drawer terbuka.
+   - Menambahkan tombol maximize drawer `ExpandStoryGenBtn` (`⛶ Lebar` / `❐ Normal`).
+5. **Elevasi Versi Resmi ke v0.0.14 di Seluruh Ekosistem**:
+   - `AIPilotManager.csproj`: `<Version>0.0.14</Version>`, `<AssemblyVersion>0.0.14.0</AssemblyVersion>`, `<FileVersion>0.0.14.0</FileVersion>`.
+   - `MainWindow.xaml.cs`: `CurrentAppVersion = "0.0.14"`.
+   - `MainWindow.xaml`: `AppVersionHeaderBadge` bernilai `v0.0.14`.
+   - `server/index.js`: `MIN_OFFICIAL_VERSION = '0.0.14'`.
+   - `src/context/StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`: Versi resmi `0.0.14`.
+   - Kompilasi single-file standalone `Story.in-AI-Manager.exe` (165.2 MB) dan disinkronisasi ke folder kerja.
+   - Build Vite web produksi di `DYARIKU/dist/` berhasil diperbarui.
+   - Berhasil mempublikasikan [GitHub Release v0.0.14](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.14).
+6. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
    ```bash
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```

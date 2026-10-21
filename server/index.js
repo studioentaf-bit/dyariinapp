@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.13';
+const MIN_OFFICIAL_VERSION = '0.0.14';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
@@ -100,7 +100,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: appCfg.releaseDate || '2026-10-21',
       size: appCfg.size || '165 MB',
-      changelog: appCfg.changelog || `Versi ${version}: Versi 0.0.13: Logo maskot robot hijau 3D baru, tema terang soft dengan aksen warna-warni variatif, redesain total dashboard identik mock-up (tanpa tombol shortcut menu di tengah dashboard, grafik garis kurva aktivitas 7 hari, tabel riwayat 6 baris, video tutorial & panduan).`
+      changelog: appCfg.changelog || `Versi ${version}: Render tampilan tajam pixel-perfect tanpa blur, integrasi data riil & pembersihan data dummy, scaling dinamis tutorial card, layout responsif anti-tabrakan story generator drawer.`
     });
   } catch (err) {
     res.json({
@@ -111,7 +111,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: '2026-10-21',
       size: '165 MB',
-      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Versi 0.0.13: Logo maskot robot hijau 3D baru, tema terang soft dengan aksen warna-warni variatif, redesain total dashboard identik mock-up (tanpa tombol shortcut menu di tengah dashboard, grafik garis kurva aktivitas 7 hari, tabel riwayat 6 baris, video tutorial & panduan).`
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Render tampilan tajam pixel-perfect tanpa blur, integrasi data riil & pembersihan data dummy, scaling dinamis tutorial card, layout responsif anti-tabrakan story generator drawer.`
     });
   }
 });
