@@ -788,6 +788,52 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+### W. Pembaruan v0.0.12: Logo Baru 3D Orbit Window, Redesain Dashboard Persis Gambar 1, Penghapusan Fitur Banner di Admin & Dashboard, dan Elevasi Versi Resmi v0.0.12
+1. **Generasi Logo & Executable Icon Baru (Gambar 2)**:
+   - Sumber logo: Gambar 3D App Window futuristik dengan robot orbit, bintang sparkle, dan teks branding "Story.In AI Manager".
+   - Diekspor ke:
+     - High-res PNG (1024×1024): [`story-in-manager-wpf/Assets/app_logo.png`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Assets/app_logo.png) dan [`Story-in-AI-Manager/Assets/app_logo.png`](file:///c:/Users/studi/Downloads/metafori/Story-in-AI-Manager/Assets/app_logo.png).
+     - Multi-resolution Windows Icon (`.ico` layer 256, 128, 64, 48, 32, 16): [`story-in-manager-wpf/Assets/icon.ico`](file:///c:/Users/studi/Downloads/metafori/story-in-manager-wpf/Assets/icon.ico) dan [`Story-in-AI-Manager/Assets/icon.ico`](file:///c:/Users/studi/Downloads/metafori/Story-in-AI-Manager/Assets/icon.ico).
+   - Seluruh executable `.exe` dan window taskbar/titlebar kini menggunakan icon resmi 3D orbit window ini.
+
+2. **Penghapusan Fitur Banner (Sesuai Permintaan User)**:
+   - Menghapus form dan alat crop banner dashboard aplikasi desktop di panel branding admin toko web ([`src/views/AdminDashboardView.jsx`](file:///c:/Users/studi/Downloads/metafori/DYARIKU/src/views/AdminDashboardView.jsx)).
+   - Menghilangkan dynamic uploaded hero banner dari dashboard aplikasi desktop, menggantikannya dengan hero visual bawaan yang rapi dan elegan.
+
+3. **Redesain Total UI Dashboard & Sidebar Persis Gambar 1**:
+   - **Header Topbar**:
+     - Badge lisensi pill hijau cerah `#10b981` berlabel `🛡️ SEMUA FITUR AKTIF` (teks putih tebal).
+     - Tag versi resmi `🏷️ v0.0.12`.
+     - Search input dengan pill shortcut `Ctrl + K`.
+   - **Sidebar**:
+     - Brand subtitle: `AI Account Manager`.
+     - Menu `Beranda` aktif menggunakan pill gradient biru cerah (`#2563eb` ke `#3b82f6`) dengan teks dan icon putih.
+     - Kartu bawah sidebar: Border soft blue dengan icon cube/window dan teks *"Kelola Puluhan Akun AI Dalam Satu Workspace Rapi"*.
+   - **Dashboard 2 Kolom**:
+     - **Kolom Kiri**:
+       - *Hero Card*: Latar cyan/blue soft (`#f0f9ff` ke `#dbeafe`), ucapan *"Selamat Datang di Story.In"*, deskripsi workspace rapi, dan ilustrasi 3D browser windows bertumpuk dengan icon ChatGPT, Dola, dan Flow.
+       - *4 Stat Metric Cards*: Total Platform (`3`, blue), Total Akun (`0`, green), Generasi Hari Ini (`12`, purple), Berhasil Diproses (`96%`, orange).
+       - *Tutorial Card*: *"Mulai Menggunakan Story.In Dalam 3 Langkah Mudah"* dengan tombol pill biru `▶ Lihat Tutorial ➔` dan ilustrasi laptop 3D checklist steps (Tambah Akun, Login & Isolasi, Mulai Beraktivitas).
+       - *Aktivitas Terbaru*: Tabel rapi 5 baris eksekusi lengkap dengan badge status `● Selesai` dan `● Diproses`.
+       - *Bottom Status Bar*: `● Sistem Berjalan Normal` di kiri dan `Story.In · AI Account Manager` di kanan.
+     - **Kolom Kanan**:
+       - *Status Akun Panel*: Google Flow, Dola AI, ChatGPT dengan status `● Online` dan badge `✦ Semua Terhubung`.
+       - *Quick Actions Panel*: 4 tombol aksi bergradien soft (Tambah Akun Baru, Buat Story Prompt, Kelola Platform, Buka Semua Akun).
+       - *Bottom Promo Productivity Card*: Icon roket dengan slogan *"Produktivitas AI Dimulai dari Sini"*.
+
+4. **Elevasi Versi Resmi ke v0.0.12 di Seluruh Ekosistem**:
+   - `AIPilotManager.csproj`: Version & AssemblyVersion `0.0.12`.
+   - `MainWindow.xaml` & `MainWindow.xaml.cs`: Konstanta versi `0.0.12`.
+   - `DYARIKU/server/index.js`: `MIN_OFFICIAL_VERSION = '0.0.12'`.
+   - `DYARIKU/src/context/StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`: Versi default & fallback `0.0.12`.
+   - Kompilasi single-file executable `Story.in-AI-Manager.exe` (164.9 MB) dan update ke folder kerja lokal.
+   - Publikasi [GitHub Release v0.0.12](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.12) dengan lampiran asset executable.
+
+5. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

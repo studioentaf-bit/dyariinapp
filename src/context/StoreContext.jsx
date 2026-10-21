@@ -1231,15 +1231,15 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.11') return parsed;
+        if (parsed.version === '0.0.12') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.11',
+      version: '0.0.12',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.11/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.12/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.11',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.12',
       releaseDate: '2026-10-21',
       size: '165 MB',
       changelog: 'Versi 0.0.11: Logo maskot robot hijau 3D baru, tema terang soft variatif, redesain total dashboard (tanpa tombol shortcut menu di dashboard, chart kurva 7 hari, riwayat 6 baris, 3 video tutorial).'
@@ -1286,8 +1286,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.11';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10'].includes(verData.version)) {
+            const minOfficial = '0.0.12';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
