@@ -1134,4 +1134,45 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
 
 ---
 
+## [2026-10-25] - Rilis Versi 0.0.20: Ultra-Crisp Rendering, Vector Icons & Butter-Smooth 60 FPS Transitions
+
+### Ringkasan Pembaruan v0.0.20:
+Menindaklanjuti evaluasi dan feedback detail pengguna terkait ketajaman visual, bentuk elemen icon, serta kelancaran animasi:
+
+1. **Penajaman Resolusi & Elemen Bebas Blur (100% Pixel Grid Lock)**:
+   - Mengatasi akar masalah blur subpixel pada area konten utama dengan mengunci default UI zoom scale ke **100% (1.0)**.
+   - Mengimplementasikan layout rounding dan ClearType hint terintegrasi (`UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" RenderOptions.ClearTypeHint="Enabled"`) di seluruh grid utama.
+   - Menambahkan auto-snap pada saved scale antara `0.90` - `0.99` ke `1.0` murni sehingga font dan garis batas tampil ultra-tajam tanpa antialiasing kabur.
+
+2. **Avatar Profil Lingkaran Sempurna (Zero Square Leakage)**:
+   - Merekonstruksi wadah profil avatar di topbar kanan menggunakan `<Ellipse>` murni dengan `ImageBrush` dan border stroke melingkar.
+   - Menghilangkan bug WPF Border clipping di mana elemen anak persegi sebelumnya bocor keluar dari sudut rounded pill.
+
+3. **Icon 3D Earth Globe & 3D Crossed Tools Presisi**:
+   - **Platform Custom**: Menggantikan icon sebelumnya dengan 3D Earth Globe sphere dengan `RadialGradientBrush` bola dunia, lingkar ekuator, meridian latitude/longitude 3D, dan bayangan kedalaman.
+   - **Tools Kreator**: Menggantikan icon sebelumnya dengan 3D Crossed Hammer & Wrench proporsional dengan material kayu hangat (`#ea580c`), kepala palu baja, dan kunci inggris berlapis highlight (`#64748b` & `#475569`).
+
+4. **Animasi Transisi Sidebar Kiri Fluid 60 FPS**:
+   - Memperbaiki layout column grid dengan `SidebarColumn.Width = Auto`, sehingga interpolasi `SidebarBorder.Width` dianimasikan secara real-time frame demi frame menggunakan kurva `QuarticEase` (`240ms`) tanpa sentakan atau kekosongan layout.
+
+5. **Animasi Drawer Story Generator Ultra-Ringan (Zero Lag)**:
+   - Menghilangkan pemanggilan animasi resizing pada OS Window (`Window.Width`) yang sebelumnya membebani Windows Desktop Window Manager (DWM).
+   - Animasi geser kini sepenuhnya GPU-composited murni pada `StoryGenDrawer.Width` (`220ms` QuarticEase), menghasilkan transisi pembukaan dan penutupan yang sangat ringan, mulus, dan responsif.
+   - Tombol vertikal Story Generator tetap stabil melayang di sebelah kiri drawer.
+
+6. **Elevasi Versi Resmi v0.0.20 di Seluruh Ekosistem**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Dinaikkan ke `0.0.20` (Assembly & FileVersion `0.0.20.0`).
+   - File executable `Story.in-AI-Manager.exe` (164.5 MB) berhasil dikompilasi dan didistribusikan.
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.20'`.
+   - React Frontend (`StoreContext.jsx`): Sinkronisasi versi `0.0.20` dan changelog.
+   - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
+   - Publikasi resmi aktif di GitHub Release v0.0.20.
+
+7. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
+---
+
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

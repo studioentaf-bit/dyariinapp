@@ -1231,18 +1231,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.19') return parsed;
+        if (parsed.version === '0.0.20') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.19',
+      version: '0.0.20',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.19/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.20/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.19',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.20',
       releaseDate: '2026-10-25',
       size: '165 MB',
-      changelog: 'Versi 0.0.19: Peningkatan efek 3D timbul dengan colored glow shadow di setiap tombol dan menu. Penajaman resolusi ClearType & penambahan kontrol zoom level di topbar. Pelebaran sidebar kiri (290px), perbaikan icon notifikasi lonceng emas & avatar profil vector ultra-crisp. Penghapusan paket lisensi di beranda, hero banner full left-aligned tanpa grafik kanan, tombol floating Story Generator tetap terlihat saat panel dibuka, dan transisi animasi halus fluid.'
+      changelog: 'Versi 0.0.20: Peningkatan ketajaman resolusi ultra-crisp (ClearType 100% pixel grid lock), avatar profil lingkaran sempurna (circular Ellipse vector), icon 3D Earth Globe untuk Platform Custom & 3D Crossed Tools untuk Tools Kreator, animasi transisi sidebar kiri fluid 60 FPS, dan animasi drawer Story Generator ultra-ringan tanpa lag.'
     };
   });
 
@@ -1286,8 +1286,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.19';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18'].includes(verData.version)) {
+            const minOfficial = '0.0.20';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
