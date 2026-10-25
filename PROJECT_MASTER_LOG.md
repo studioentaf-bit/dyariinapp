@@ -75,6 +75,35 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
 
 ## 📜 3. CHRONOLOGICAL UPDATE LOG (CHANGELOG)
 
+### [Versi v0.0.16] - 2026-10-25
+- **Pemulihan Lengkap Seluruh Menu Sidebar yang Hilang**:
+  - **Shop Produk**: Mengembalikan kartu navigasi Shop Produk dengan badge hijau `LIVE` (`NavShopBtn`), icon keranjang belanja modern, dan event handler `NavShop_Click`.
+  - **Tutorial**: Mengembalikan kartu navigasi Tutorial dengan badge merah `VIDEO` (`NavTutorialBtn`), icon video play, tooltip informatif, dan event handler `NavTutorial_Click`.
+  - **Setting Dropdown**: Mengembalikan dropdown menu pengaturan (`ToggleSettingsDropdown_Click`) beserta seluruh sub-menunya:
+    - *Kelola Lisensi & HWID* (membuka `LicenseDialog` via `OpenLicense_Click`).
+    - *Cek Update Aplikasi* (memeriksa rilis terbaru via `UpdateApp_Click`).
+    - *Tentang Aplikasi* (membuka dialog informasi via `Help_Click`).
+  - **Tagline Card Bawah**: Mengembalikan card inspirasi di bagian bawah sidebar berbunyi *"Buat Konten Jadi Lebih Mudah ›"* yang langsung membuka studio Story Generator saat diklik (`OpenStoryGenerator_Click`).
+  - **Eliminasi Total Karakter Mojibake**: Seluruh emoji mentah yang berpotensi rusak karena encoding digantikan dengan DirectX Vector Shapes (`Path` dan `Rectangle`) yang tajam dan tahan kompresi.
+
+- **Perbaikan Kritis Bug Scale & Tampilan Kosong Dashboard Saat Story Generator Dibuka**:
+  - **Akar Masalah**: Pada saat Story Generator Drawer dibuka (lebar 580px), kolom tengah dashboard terhimpit menjadi ~200-350px. Komponen `HeroBannerCard` (khususnya 4 platform pills horizontal dan aset awan 3D di Column 1 `Width="Auto"`) serta 4 kartu `PricingGrid` horizontal menolak mengecil dan mendesak kolom teks hingga lebar 0px (`ClipToBounds="True"`), menyebabkan seluruh konten dashboard menghilang dan hanya menyisakan background kosong memanjang.
+  - **Solusi Responsif Dinamis**:
+    - **HeroBannerCard**: Membungkus 4 pill platform ke dalam `<WrapPanel>` dinamis dan menyembunyikan aset awan 3D (`HeroBannerCloudsBorder.Visibility = Collapsed`) ketika drawer dibuka atau layar sempit (<850px), memberikan 100% lebar untuk teks dan pills.
+    - **PricingGrid**: Mengadaptasi formasi 4 kartu lisensi menjadi 2x2 grid responsif saat drawer dibuka atau lebar <850px (Basic & Pro di baris atas, Premium & Enterprise di baris bawah), dan kembali ke 1x4 saat drawer ditutup.
+    - **Middle Row**: Menyembunyikan ilustrasi samping (`DashboardTutorialImageBorder` & `DashboardActivitiesImageBorder`) dan menyusun Tutorial Card dan Aktivitas Terbaru secara vertikal.
+    - **Auto-Expand Window**: Saat Story Generator dibuka pada window mode normal, window otomatis melebar hingga minimal 1280px (jika ruang layar mencukupi) untuk kenyamanan optimal kedua panel.
+    - **MinWidth Guard**: Menambahkan `MinWidth="340"` pada `DashboardView` sehingga layout dashboard selalu proporsional dan tidak pernah menciut menjadi kotak kosong.
+
+- **Peningkatan Versi Resmi Ekosistem ke v0.0.16**:
+  - `AIPilotManager.csproj`: Versi `0.0.16` (Assembly `0.0.16.0`, FileVersion `0.0.16.0`).
+  - `MainWindow.xaml.cs`: `CurrentAppVersion = "0.0.16"`.
+  - `MainWindow.xaml`: Header badge `v0.0.16`.
+  - Backend Express (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.16'`.
+  - Frontend Web React (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Rilis v0.0.16.
+  - Build Vite produksi web di `DYARIKU/dist/` berhasil di-generate.
+  - Binary standalone single-file `Story.in-AI-Manager.exe` (164.5 MB, ProductVersion `0.0.16`) dipublikasikan ke GitHub Release v0.0.16.
+
 ### [Versi v0.0.15] - 2026-10-25
 - **Redesain Konsep Visual Total Aplikasi Desktop (100% Identik Mockup Referensi)**:
   - **Identitas & Logo Baru**:

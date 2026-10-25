@@ -1231,18 +1231,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.15') return parsed;
+        if (parsed.version === '0.0.16') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.15',
+      version: '0.0.16',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.15/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.16/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.15',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.16',
       releaseDate: '2026-10-25',
       size: '165 MB',
-      changelog: 'Versi 0.0.15: Konsep visual total baru (Logo Origami 3D, Topbar pill search & notifikasi, Hero awan langit 3D dengan floating icons, 4 Stat Cards, baris tengah Tutorial 3D & Aktivitas real-time, dan Paket Lisensi 4 kolom + Gift 3D).'
+      changelog: 'Versi 0.0.16: Konsep visual 100% presisi identik (Logo Origami 3D Play, Topbar pill search & notifikasi bell 3D, Hero awan langit pastel 3D dengan floating icons & pills wrap dinamis). Pemulihan lengkap menu sidebar (Shop Produk badge LIVE, Tutorial badge VIDEO, Setting dropdown, dan Tagline card). Perbaikan kritis bug scale dashboard saat Story Generator drawer dibuka (adaptive 2x2 grid, zero blank box, zero clipping).'
     };
   });
 
@@ -1286,8 +1286,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.15';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14'].includes(verData.version)) {
+            const minOfficial = '0.0.16';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
