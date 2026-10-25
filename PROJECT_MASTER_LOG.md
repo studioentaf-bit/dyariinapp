@@ -1082,6 +1082,56 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+### AC. Pembaruan v0.0.19: Peningkatan 3D Timbul dengan Colored Glow Shadows, Penajaman Resolusi & Kontrol Zoom, Hero Banner Full Left-Aligned, Pelebaran Sidebar (290px), Retensi Tombol Story Generator saat Panel Terbuka, & Elevasi Versi v0.0.19
+1. **Penerapan 3D Colored Glow Shadows pada Setiap Tombol & Menu**:
+   - Setiap elemen interaktif kini memancarkan bayangan timbul (*floating colored drop shadow*) berona serasi dengan warna aksen masing-masing:
+     - *Beranda*: Bayangan menyala indigo/biru (`#6366f1`, opacity 0.40).
+     - *Shop Produk*: Bayangan hijau emerald (`#10b981`, opacity 0.25).
+     - *Tutorial*: Bayangan merah/rose (`#f43f5e`, opacity 0.25).
+     - *Tambah Platform Baru*: Bayangan biru langit cerah (`#38bdf8`, opacity 0.35).
+     - *Stat Metric Cards*: 4 kartu metrik memiliki shadow sesuai warnanya (Platform: Biru `#3b82f6`, Akun: Mint `#10b981`, Generasi: Ungu `#8b5cf6`, Berhasil: Oranye `#f97316`), serta tombol panah sirkular `›` yang menonjol timbul.
+     - *Platform Pills Hero Banner*: `+ Flow` (biru), `Dola` (ungu), `ChatGPT` (emerald), dan `+ Platform Lainnya` (indigo) masing-masing memancarkan bayangan glow mandiri.
+
+2. **Penajaman Resolusi Tampilan & Penambahan Kontrol Zoom Topbar**:
+   - Menghilangkan potensi efek blur pada teks dengan mengoptimalkan pengaturan engine WPF (`Display` formatting, ClearType hint, dan `Quality` rendering bias pada drop shadow).
+   - Menambahkan widget kontrol zoom interaktif `[ − ] 100% [ + ]` di topbar header sehingga pengguna dapat langsung melihat keterangan persentase zoom dan memperbesar/memperkecil skala aplikasi secara instan.
+
+3. **Pelebaran Sidebar Kiri (290px)**:
+   - Lebar kolom sidebar kiri dinaikkan menjadi `290px` (sebelumnya `240px`-`255px`) memberikan proporsi ruang yang pas, lega, dan elegan untuk seluruh kartu menu 3D.
+
+4. **Pembaruan Icon Notifikasi Lonceng & Profil Avatar Menjadi Ultra-Crisp Vector**:
+   - Menggantikan gambar raster PNG dengan DirectX Vector resolusi kristal:
+     - Lonceng notifikasi emas 3D dengan lencana merah mengambang berangka `1` (`#ef4444`).
+     - Avatar profil modern berbentuk lingkaran siluet vector biru cerah (`#3b82f6`) yang tajam pada semua skala DPI layar.
+
+5. **Hero Banner Full Left-Aligned & Penghapusan Gambar Kanan**:
+   - Menghapus grafik awan/ikon melayang di sebelah kanan hero banner sesuai instruksi referensi.
+   - Teks deskripsi ditarik penuh ke sebelah kiri langsung di bawah subheadline (`MaxWidth="900"`, left-aligned), diikuti oleh deretan platform pills.
+
+6. **Penghapusan Paket Lisensi di Halaman Beranda**:
+   - Menghapus total section paket langganan (Basic, Pro, Premium, Enterprise) di bagian bawah dashboard beranda, menyisakan layout dashboard yang bersih, fokus, dan rapi.
+
+7. **Retensi Tombol Floating Story Generator saat Drawer Terbuka**:
+   - Tombol tab vertikal Story Generator (`TabStoryGenBtn`) kini diprogram untuk **tetap terlihat** (`Visibility.Visible`) di sisi kiri tengah drawer saat panel Story Generator dibuka.
+
+8. **Penghalusan Animasi Transisi (Smooth Fluid Motion)**:
+   - Transisi buka/tutup sidebar kini dianimasikan secara halus menggunakan `CubicEase` (`EaseInOut`).
+   - Pembukaan drawer Story Generator diperhalus dengan `QuarticEase` fluid motion (`280ms`).
+   - Perpindahan antar menu utama dihaluskan dengan animasi cross-fade dan subtle slide `CubicEase`.
+
+9. **Elevasi Versi Resmi v0.0.19 di Seluruh Ekosistem**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Dinaikkan ke `0.0.19` (Assembly & FileVersion `0.0.19.0`).
+   - File executable `Story.in-AI-Manager.exe` (164.5 MB) berhasil dikompilasi dan disalin ke direktori distribusi.
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.19'`.
+   - React Frontend (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Sinkronisasi versi `0.0.19` dan changelog.
+   - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
+   - Publikasi resmi aktif di [GitHub Release v0.0.19](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.19).
+
+10. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+    ```bash
+    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+    ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
