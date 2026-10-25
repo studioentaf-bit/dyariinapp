@@ -1007,6 +1007,49 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+### AA. Pembaruan v0.0.17: Transformasi Total UI Menjadi 3D Playful Pastel Bento UI — Soft Claymorphism & Neumorphism, Retensi Menu Lengkap, & Elevasi Versi v0.0.17
+1. **Konsep Visual 3D Playful Pastel Bento UI — Soft Claymorphism & Neumorphism**:
+   - **Estetika & Palet Warna**:
+     - Background aplikasi diperlembut menjadi marshmallow pastel lavender-tinted cloud (`#f5f7fc`).
+     - Kartu container mengadopsi gaya *Puffy Bento* dengan sudut melengkung tebal (`CornerRadius="22"` hingga `"24"`), border clay berdimensi (`BorderThickness="1.8"` hingga `"2.5"`), serta aksen warna pastel ceria:
+       - Sky Blue Clay (`#f0f7ff`, border `#bfdbfe`)
+       - Mint Fresh (`#f0fdf4`, border `#bbf7d0`)
+       - Lilac Lavender (`#faf5ff`, border `#ddd6fe`)
+       - Tangerine Butter (`#fff7ed`, border `#fed7aa`)
+       - Blush Rose (`#fff5f5`, border `#fecdd3`)
+   - **Topbar Neumorphic & Clay**:
+     - Search bar berdesain pill puffy rounded (`CornerRadius="18"`, border `#cbd5e1`).
+     - Badge versi bertransformasi menjadi puffy clay pill lilac (`#eef2ff`, border `#c7d2fe`).
+   - **Hero Banner Bento Deck**:
+     - Gradasi lembut langit pastel (`#f0f5ff` ke `#e0edfe` ke `#ede9fe`) dengan rounded corner `CornerRadius="24"` dan border clay 2px.
+     - Pill chips platform berbentuk rounded pill dengan squircle icon container berdimensi 3D.
+   - **4 Stat Metric Tiles**:
+     - Menjadi puffy Bento boxes dengan squircle icon container pastel, tombol aksi panah bulat (`CornerRadius="14"`), dan badge subteks berona serasi.
+   - **Tutorial & Aktivitas Bento Cards**:
+     - Kartu Tutorial berbingkai Blush Rose (`#fecdd3`, latar `#fff5f5`) dan Aktivitas Terbaru berbingkai Sky Blue (`#bae6fd`, latar `#f0f9ff`) dengan tombol aksi pill puffy yang kontras dan tajam.
+   - **Pricing Bento Deck (4 Subscription Tiles)**:
+     - Basic (`#a7f3d0`), Pro (`#fed7aa`), Premium (`#f43f5e` dengan floating badge ★ Paling Populer), dan Enterprise (`#bfdbfe`).
+     - Seluruh tombol 'Pilih Paket' berbentuk puffy rounded (`CornerRadius="16"`) bergradasi clay yang lembut.
+   - **Sidebar Bento Navigation**:
+     - Seluruh kartu accordion (Platform AI, Platform Custom, Tools Kreator, Setting) berdesain rounded `CornerRadius="16"` dengan squircle icon container dan badge counter bernuansa pastel.
+
+2. **Integritas Fitur & Penanganan Bug Skala Teruji**:
+   - Menu Shop Produk (badge LIVE), Tutorial (badge VIDEO), dan Setting (Kelola Lisensi, Cek Update, Tentang Aplikasi) serta Tagline bottom card tetap terpasang utuh dan aktif.
+   - Anti-clipping dan adaptive 2x2 grid responsif saat Story Generator drawer dibuka dipertahankan tanpa gangguan layout.
+   - Seluruh named element C# WPF terikat sempurna tanpa error kompilasi.
+
+3. **Penyelarasan Versi Resmi v0.0.17 di Seluruh Ekosistem**:
+   - WPF Desktop Project (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Versi dinaikkan ke `0.0.17` (Assembly & FileVersion `0.0.17.0`).
+   - Express Backend (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.17'`.
+   - React Frontend (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Sinkronisasi versi `0.0.17` dan changelog rilis.
+   - Build Vite web produksi di `DYARIKU/dist/` berhasil dikompilasi ulang.
+   - Executable single-file standalone `Story.in-AI-Manager.exe` (164.5 MB) berhasil dipublikasikan ke [GitHub Release v0.0.17](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.17).
+
+4. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
