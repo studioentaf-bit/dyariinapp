@@ -1175,4 +1175,41 @@ Menindaklanjuti evaluasi dan feedback detail pengguna terkait ketajaman visual, 
 
 ---
 
+## [2026-10-25] - Rilis Versi 0.0.21: Direct 1:1 Hardware Pixel Clarity, Visible Bento States & Instant Zero-Lag Menu Transitions
+
+### Ringkasan Pembaruan v0.0.21:
+Menuntaskan feedback kritis pengguna terkait ketajaman total, visibilitas menu Beranda saat membuka menu lain, harmonisasi kontras warna bayangan bento, serta kelancaran perpindahan menu:
+
+1. **Resolusi 100% Ultra-Tajam & Bebas Blur Transform**:
+   - Menghapus pembungkus transform permanen `<FrameworkElement.LayoutTransform>` pada grid konten utama (`MainContentGrid`).
+   - Pada zoom 100% (default), `LayoutTransform` disetel ke `null` murni sehingga rendering WPF langsung diarahkan 1:1 ke grid piksel layar fisik tanpa interpolasi subpixel matriks.
+   - Mengosongkan transform sisa (`targetView.RenderTransform = null`) saat pergantian menu sehingga setiap karakter teks dan garis batas rendered secara native ClearType setajam topbar.
+
+2. **Perbaikan Total Visibilitas Menu "Beranda" (State Inactive)**:
+   - Tombol Beranda saat tidak aktif (`isDashActive == false`) kini didesain sebagai **kartu bento putih mengambang 3D** (`Background = #ffffff`, border halus `#f1f5f9`, dan bayangan lembut `#64748b`), bukan transparan.
+   - Wadah ikon berubah menjadi warna pastel lavender (`#eef2ff`) dengan ikon rumah berwarna indigo pekat (`#6366f1`) dan teks slate gelap (`#1e293b`), memastikan menu Beranda tetap terlihat jelas, elegan, dan kontras saat pengguna membuka menu lain.
+
+3. **Harmonisasi Kontras Warna Bayangan Bento Sidebar**:
+   - Menghilangkan efek bayangan warna neon berlebih pada tombol yang sedang tidak aktif (seperti bayangan hijau neon pada Shop Produk dan pink neon pada Tutorial).
+   - Seluruh kartu sidebar kini menggunakan bayangan bento netral yang konsisten (`Color = #64748b, BlurRadius = 10, ShadowDepth = 2, Opacity = 0.08`), dan hanya memancarkan cahaya aksen saat menu tersebut aktif.
+
+4. **Perpindahan Antar Menu Instan, Responsif & Super Mulus**:
+   - Menghilangkan animasi komposit ganda `Opacity` dan `TranslateTransform` pada seluruh kontainer tampilan beranda/tools yang membebani GPU/CPU.
+   - Perpindahan antar view (`SwitchToMainView`) kini berlangsung secara instan dengan `Opacity = 1.0` dan `RenderTransform = null`, menghasilkan perpindahan 60 FPS tanpa lag, tanpa frame drop, dan tanpa efek blur render target.
+
+5. **Elevasi Versi Resmi v0.0.21 di Seluruh Ekosistem**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Dinaikkan ke `0.0.21` (Assembly & FileVersion `0.0.21.0`).
+   - File executable `Story.in-AI-Manager.exe` (164.5 MB) berhasil dikompilasi dan didistribusikan.
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.21'`.
+   - React Frontend (`StoreContext.jsx`): Sinkronisasi versi `0.0.21` dan changelog.
+   - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
+   - Publikasi resmi aktif di GitHub Release v0.0.21.
+
+6. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
+---
+
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
