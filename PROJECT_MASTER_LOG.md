@@ -1050,6 +1050,38 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+### AB. Pembaruan v0.0.18: Penyempurnaan Total 3D Floating & Timbul Sesuai Gambar Referensi, Circular 3D Hamburger, Neumorphic Search, Glowing Pill Beranda, & Elevasi Versi v0.0.18
+1. **Penyempurnaan Total Efek 3D Floating & Timbul Sesuai Gambar Referensi User**:
+   - **Topbar Presisi Identik Image 2**:
+     - *Circular 3D Hamburger Button*: Tombol bundar putih timbul (`Width="38" Height="38" CornerRadius="19"`) dengan efek soft drop shadow (`BlurRadius="8" ShadowDepth="2"`) dan 3 baris ikon menu slate gelap.
+     - *Brand Logo Origami 3D*: Logo segitiga lipat 3D dengan drop shadow, teks *"Story.In"* tebal navy dan subtitle *"AI Account Manager"*.
+     - *Neumorphic Capsule Search Bar*: Search bar kapsul lebar (`520px`, `CornerRadius="19"`) berlatar putih dengan bayangan melayang, ikon kaca pembesar, dan placeholder jelas.
+     - *Pill Versi v0.0.18*: Badge pill dengan border halus dan bayangan timbul.
+     - *Circular 3D Notification Bell*: Tombol lonceng bundar putih melayang dengan lencana notifikasi merah bundar mengambang di pojok kanan atas berangka `1`.
+     - *User Profile Floating Pill*: Wadah pill melayang berisi avatar 3D bundar, teks sapaan *"Selamat Datang"* biru cerah dan *"User Story.In"* navy tebal.
+   - **Sidebar Presisi Identik Image 1**:
+     - *Beranda 3D Glowing Pill Button*: Transformasi tombol beranda menjadi pill lonjong (`CornerRadius="23"`) bergradasi biru-indigo lembut (`#818cf8` ke `#93c5fd`) dengan bayangan menyala (*glowing drop shadow* `#6366f1` opacity 0.35) serta ikon rumah putih dalam lingkaran transparan.
+     - *3D Floating White Cards (Platform AI, Platform Custom, Tools Kreator)*: Kartu putih melayang dengan sudut melengkung tebal (`CornerRadius="20"`) dan bayangan timbul (`BlurRadius="14" ShadowDepth="3" Opacity="0.10"`).
+     - *Platform AI Internal Structure*: Panduan garis putus-putus (*dotted line*) di sebelah kiri, item Google Flow, Dola AI, dan ChatGPT dengan logo resmi, badge pill biru cerah `0`, chevron `›`, serta tombol sub-item `+ Tambah Akun` berwarna biru terang `#2563eb` di bawah masing-masing platform.
+     - *Platform Custom*: Tombol puffy pill `+ Tambah Platform Baru` bergradasi sky blue lembut (`#e0f2fe` ke `#eff6ff`) dengan border `#bae6fd` dan bayangan timbul.
+     - *Tools Kreator*: Panduan garis putus-putus dan squircle icon containers untuk TikTok Downloader, Split Video Editor, dan Merge Video (Gabung Klip).
+     - *Retensi Menu Lengkap*: Menu Shop Produk (badge LIVE), Tutorial (badge VIDEO), Setting (Kelola Lisensi, Cek Update, Tentang Aplikasi), dan kartu tagline bawah tetap terpasang utuh dengan efek 3D floating shadow yang serasi.
+   - **Dashboard View 3D Timbul**:
+     - Hero Banner Card, 4 Stat Metric Tiles (Total Platform, Total Akun, Generasi Hari Ini, Berhasil Diproses), Kartu Tutorial, Kartu Aktivitas, dan 4 Subscription Pricing Cards (Basic, Pro, Premium, Enterprise) dilengkapi efek *floating layered drop shadow* sehingga seluruh elemen dashboard tampak menonjol dan timbul secara konsisten.
+
+2. **Kompilasi Standalone & Elevasi Versi Resmi v0.0.18 di Seluruh Ekosistem**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Dinaikkan ke `0.0.18` (Assembly & FileVersion `0.0.18.0`).
+   - Kompilasi single-file portable `Story.in-AI-Manager.exe` (164.5 MB) berhasil dipublish dan disalin ke target distribusi lokal.
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.18'`.
+   - React Frontend (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Sinkronisasi versi `0.0.18` dan changelog.
+   - Vite web build produksi berhasil diperbarui di `DYARIKU/dist/`.
+   - Rilis publik resmi telah dipublikasikan di [GitHub Release v0.0.18](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.18).
+
+3. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

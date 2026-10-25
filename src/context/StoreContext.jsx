@@ -1231,18 +1231,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.17') return parsed;
+        if (parsed.version === '0.0.18') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.17',
+      version: '0.0.18',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.17/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.18/Story.in-AI-Manager.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.17',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.18',
       releaseDate: '2026-10-25',
       size: '165 MB',
-      changelog: 'Versi 0.0.17: Transformasi visual total ke konsep 3D Playful Pastel Bento UI — Soft Claymorphism & Neumorphism. Desain modern, cute, puffy rounded cards, squircle icon containers berona pastel cerah, floating Bento deck, border clay berdimensi, dan optimasi performa desktop.'
+      changelog: 'Versi 0.0.18: Penyempurnaan 100% presisi visual 3D timbul & floating cards sesuai gambar referensi. Topbar dengan tombol circular hamburger 3D timbul, search capsule neumorphic lebar, badge notifikasi melayang, profil avatar floating pill. Sidebar beranda pill melayang gradasi biru-indigo dengan glowing shadow, kartu Platform AI, Platform Custom, Tools Kreator, Shop, Tutorial, dan Setting berbalut 3D floating shadow timbul autentik.'
     };
   });
 
@@ -1286,8 +1286,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.17';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16'].includes(verData.version)) {
+            const minOfficial = '0.0.18';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
