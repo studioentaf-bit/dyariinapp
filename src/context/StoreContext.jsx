@@ -1231,18 +1231,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.21') return parsed;
+        if (parsed.version === '0.0.22') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.21',
+      version: '0.0.22',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.21/Story.in-AI-Manager.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.22/Story.in-AI-Manager-v0.0.22.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.21',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.22',
       releaseDate: '2026-10-25',
       size: '165 MB',
-      changelog: 'Versi 0.0.21: Resolusi 100% pixel-perfect ultra-tajam tanpa blur transform, perbaikan visibilitas menu Beranda saat memilih menu lain (floating white card + indigo icon), harmonisasi bayangan bento pastel lembut tanpa kontras berlebih, serta perpindahan antar menu instan, responsif, dan super mulus.'
+      changelog: 'Versi 0.0.22: Resolusi zoom in/out ultra-tajam dengan dynamic vector rendering, konversi total tampilan menu Platform Akun & Shop Produk ke tema 3D Playful Pastel Bento putih bersih & puffy shadow, dialog popup aktivasi lisensi 3D pastel terang & modern, border sidebar dinamis resizable via draggable splitter, serta penamaan file binary Story.in-AI-Manager-v0.0.22.exe.'
     };
   });
 
@@ -1286,10 +1286,10 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.21';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19', '0.0.20'].includes(verData.version)) {
+            const minOfficial = '0.0.22';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19', '0.0.20', '0.0.21'].includes(verData.version)) {
               verData.version = minOfficial;
-              verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager.exe`;
+              verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager-v${minOfficial}.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
             }
             setAppVersionInfo(verData);

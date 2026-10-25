@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.21';
+const MIN_OFFICIAL_VERSION = '0.0.22';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);

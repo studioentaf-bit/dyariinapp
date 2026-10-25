@@ -1210,6 +1210,44 @@ Menuntaskan feedback kritis pengguna terkait ketajaman total, visibilitas menu B
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+## [2026-10-25] - Rilis Versi 0.0.22: Dynamic Resizable Sidebar, Multi-Scale Vector Sharpness & 3D Playful Pastel Bento Light Cards
+
+### Ringkasan Pembaruan v0.0.22:
+Menuntaskan permintaan pengguna terkait ketajaman multi-scale zoom in/out, konversi total elemen gelap di Platform Akun & Shop ke tema 3D Playful Pastel Bento putih, popup dialog lisensi terang modern, garis batas sidebar dinamis (resizable via splitter), serta penamaan binary resmi dengan nomor versi:
+
+1. **Resolusi Multi-Scale Zoom In/Out Ultra-Tajam**:
+   - Memperbaiki blurriness saat scale berubah (zoom in / zoom out) dengan menerapkan dynamic vector rendering mode.
+   - Pada scale 100%, sistem menggunakan `TextOptions.TextFormattingMode.Display` yang ter-snap langsung 1:1 ke grid hardware.
+   - Saat zoom berubah (< 1.0 atau > 1.0), sistem otomatis mengalihkan ke `TextOptions.TextFormattingMode.Ideal` bersama `TextRenderingMode.ClearType` dan `BitmapScalingMode.HighQuality`, sehingga geometri font dihitung langsung dari kurva bezier vektor pada skala baru tanpa pembesaran bitmap kabur.
+
+2. **Konversi Total Card Platform Akun & Shop Produk ke 3D Playful Pastel Bento**:
+   - Mengubah background gelap (`#131f33` / `#0f172a`) pada seluruh kartu akun di Platform AI & Platform Custom (`CreateGridAccountCard` & `CreateListAccountCard`) menjadi **kartu putih bersih 3D mengambang** (`#ffffff`), border pastel lembut (`#e2e8f0` / `#3b82f6` saat aktif), bayangan 3D berkedalaman 3px, teks kontras slate gelap (`#0f172a`), badge status pastel (`#eff6ff`), serta tombol buka puffy 3D biru dengan drop shadow.
+   - Mengubah katalog Shop Produk & Lisensi (`RenderShopCatalog`) menjadi kartu putih bento mengambang (`#ffffff`), tag badge warna pastel (paling laris, bundle, lisensi resmi, stok), teks deskripsi abu-abu gelap terstruktur, dan tombol aksi "Beli Sekarang" 3D puffy.
+
+3. **Modernisasi Dialog Popup Lisensi (`LicenseDialog.xaml`) ke 3D Pastel Terang**:
+   - Merombak total dialog popup aktivasi perangkat dari modal gelap pekat menjadi modal 3D Playful Bento putih elegan (`Background="#ffffff"`, `CornerRadius="24"`), bayangan timbul lembut berjarak 8px, logo 3D pastel, kolom input email & HWID abu-abu terang (`#f8fafc`), box lisensi biru pastel lembut (`#eff6ff`), dan tombol aktivasi utama 3D biru puffy dengan kedalaman shadow berkualitas.
+
+4. **Ukuran Sidebar Dinamis via Draggable Splitter (`GridSplitter`)**:
+   - Menambahkan `GridSplitter` di antara kolom sidebar dan area kerja utama sehingga pengguna dapat menarik/menggeser garis batas sidebar secara bebas (`MinWidth = 180`, `MaxWidth = 500`).
+   - Seluruh tombol, kartu bento, dan teks di dalam sidebar otomatis menyesuaikan (merentang adaptif) dengan lebar kolom yang ditentukan pengguna.
+   - Menyimpan lebar terakhir (`_savedSidebarWidth`) saat toggle hide/show sehingga ukuran kustom tetap terjaga.
+
+5. **Harmonisasi Fitur & Form Story Generator**:
+   - Mengubah container prompt box output Master Prompt (`ImgMasterPromptText`) dari gelap pekat menjadi kartu pastel 3D bento (`#f8fafc`, border `#e2e8f0`), teks tajam gelap (`#0f172a`), dan tombol salin prompt pastel biru.
+
+6. **Elevasi Versi Resmi v0.0.22 & Penamaan File Binary Berversi**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Dinaikkan ke `0.0.22` (Assembly & FileVersion `0.0.22.0`).
+   - File binary resmi tersedia dengan penamaan spesifik: **`Story.in-AI-Manager-v0.0.22.exe`** (serta `Story.in-AI-Manager.exe` untuk kompabilitas).
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.22'`.
+   - React Frontend (`StoreContext.jsx`): Sinkronisasi versi `0.0.22` dan direct download URL.
+   - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
+   - Rilis publik dipublikasikan di GitHub Release v0.0.22.
+
+7. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*
