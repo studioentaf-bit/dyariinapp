@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.14';
+const MIN_OFFICIAL_VERSION = '0.0.15';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
@@ -98,9 +98,9 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       downloadUrl,
       releaseUrl,
       directDownload: '/api/app/download',
-      releaseDate: appCfg.releaseDate || '2026-10-21',
+      releaseDate: appCfg.releaseDate || '2026-10-25',
       size: appCfg.size || '165 MB',
-      changelog: appCfg.changelog || `Versi ${version}: Render tampilan tajam pixel-perfect tanpa blur, integrasi data riil & pembersihan data dummy, scaling dinamis tutorial card, layout responsif anti-tabrakan story generator drawer.`
+      changelog: appCfg.changelog || `Versi ${version}: Konsep visual total baru (Logo Origami 3D, Topbar pill search & notifikasi, Hero awan langit 3D dengan floating icons, 4 Stat Cards, baris tengah Tutorial 3D & Aktivitas real-time, dan Paket Lisensi 4 kolom + Gift 3D).`
     });
   } catch (err) {
     res.json({
@@ -109,9 +109,9 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       downloadUrl: `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${MIN_OFFICIAL_VERSION}/Story.in-AI-Manager.exe`,
       releaseUrl: `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${MIN_OFFICIAL_VERSION}`,
       directDownload: '/api/app/download',
-      releaseDate: '2026-10-21',
+      releaseDate: '2026-10-25',
       size: '165 MB',
-      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Render tampilan tajam pixel-perfect tanpa blur, integrasi data riil & pembersihan data dummy, scaling dinamis tutorial card, layout responsif anti-tabrakan story generator drawer.`
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Konsep visual total baru (Logo Origami 3D, Topbar pill search & notifikasi, Hero awan langit 3D dengan floating icons, 4 Stat Cards, baris tengah Tutorial 3D & Aktivitas real-time, dan Paket Lisensi 4 kolom + Gift 3D).`
     });
   }
 });

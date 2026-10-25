@@ -75,6 +75,41 @@ Dokumen ini adalah **catatan resmi arsitektur, panduan aturan pengembangan, dan 
 
 ## 📜 3. CHRONOLOGICAL UPDATE LOG (CHANGELOG)
 
+### [Versi v0.0.15] - 2026-10-25
+- **Redesain Konsep Visual Total Aplikasi Desktop (100% Identik Mockup Referensi)**:
+  - **Identitas & Logo Baru**:
+    - Memperbarui logo resmi menjadi icon Origami 3D Play segitiga bergradien oranye-pink-ungu muda (`Assets/app_logo_icon.png`, `Assets/app_logo.png`, `Assets/icon.ico`).
+    - Menempatkan logo dan subtitle "AI Account Manager" pada Topbar kiri sejajar dengan tombol menu hamburger bulat (`≡`).
+  - **Topbar Modern & Clean**:
+    - Tombol Hamburger bulat (`≡`) dengan latar putih ber-border soft `#e2e8f0`.
+    - Search box bentuk kapsul rounded penuh (`CornerRadius="16"`, lebar 360px) dengan placeholder *"Cari fitur, template, atau tekan Ctrl+K..."*.
+    - Tag rilis resmi `🏷️ v0.0.15`.
+    - Lonceng notifikasi sistem bulat dengan badge merah titik `1`.
+    - Avatar pengguna bulat kartu nama (*"Selamat Datang"*, *"User Story.In"*).
+  - **Sidebar Navigasi Elegan**:
+    - Tombol *Beranda* menggunakan gradient kapsul indigo-purple lembut (`#6366f1` -> `#7080f0` -> `#818cf8`) dengan icon rumah putih dan teks putih tebal.
+    - Group *Platform AI* (Google Flow, Dola AI, ChatGPT) default ter-expand dengan tombol sub-item *+ Tambah Akun* berwarna biru teks.
+    - Group *Platform Custom* dengan tombol pill lebar berlatar soft sky blue `#eff6ff` berlabel *+ Tambah Platform Baru*.
+    - Group *Tools Kreator* (TikTok Downloader, Split Video Editor, Merge Video).
+  - **Dashboard 100% Full Width (Single Broad Column)**:
+    - Menghilangkan panel kolom kanan yang sempit sehingga seluruh kartu dashboard membentang 100% horizontal leluasa.
+    - *Hero Banner Card*: Latar soft sky blue pastel gradient (`#f0f7ff` -> `#e0f0fe` -> `#e9f2fe`), badge pill emas `👑 AI Workspace Manager`, ucapan *"Selamat Datang di Story.In ✦"*, sub-headline workspace rapi, 4 tombol pill platform (*Flow*, *Dola*, *ChatGPT*, *+ Platform Lainnya*), dan ilustrasi grafis 3D awan langit pastel dengan kubus-kubus ikon melayang di sebelah kanan (`Assets/hero_3d_clouds.png`).
+    - *4 Stat Metric Cards Sejajar*: Total Platform (3), Total Akun (0), Generasi Hari Ini (0), Berhasil Diproses (0%), masing-masing dilengkapi tombol panah bulat `›` di pojok kanan atas.
+    - *Baris Tengah 2 Kolom*:
+      - *Kartu Tutorial*: Badge pink `▶ Tutorial`, panduan 3 langkah mudah, tombol gradient merah-pink cerah (*Lihat Tutorial ➔*), dan ilustrasi 3D monitor checklist + play button + pot tanaman (`Assets/tutorial_3d_device.png`).
+      - *Kartu Aktivitas Terbaru*: Header dokumen biru, link *Lihat Semua ➔*, empty state riil dengan icon kaca pembesar `🔍` + tombol *+ Buat Story Baru*, dan di sisi kanan ilustrasi 3D clipboard catatan berawan pastel (`Assets/activity_3d_clipboard.png`).
+    - *Baris Bawah: Paket Lisensi (Pricing Section)*:
+      - Header: `👑 Paket Lisensi` • *Pilih paket terbaik untuk kebutuhan kamu*.
+      - 4 Kolom Paket: **Basic** (Rp 5.000/bln, icon daun), **Pro** (Rp 10.000/bln, icon bintang), **Premium** (Rp 15.000/bln, icon mahkota, badge *★ Paling Populer*, border pink fuchsia, tombol pink gradient), dan **Enterprise** (Rp 30.000/bln, icon gedung) dilengkapi ilustrasi 3D kado hadiah berpita emas (`Assets/license_3d_gift.png`).
+  - **Peningkatan Versi Resmi Ekosistem ke v0.0.15**:
+    - `AIPilotManager.csproj`: Versi `0.0.15` (Assembly `0.0.15.0`).
+    - `MainWindow.xaml.cs`: `CurrentAppVersion = "0.0.15"`.
+    - `MainWindow.xaml`: Header badge `v0.0.15`.
+    - Backend Express (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.15'`.
+    - Frontend Web React (`StoreContext.jsx`, `DownloadAppView.jsx`, `HomeView.jsx`): Rilis v0.0.15.
+    - Build Vite produksi web di `DYARIKU/dist/` berhasil di-generate.
+    - Binary standalone single-file `Story.in-AI-Manager.exe` (164.5 MB, ProductVersion `0.0.15`) dipublikasikan ke GitHub Release v0.0.15.
+
 ### [Versi v0.0.14] - 2026-10-21
 - **Eliminasi Total Efek Blur & Render Tipografi Pixel-Perfect (Crystal Clear Text)**:
   - Mengidentifikasi akar masalah teks blur pada WPF: Penggunaan `DropShadowEffect` pada container border menyebabkan engine DirectX WPF menonaktifkan subpixel ClearType rendering dan me-rasterize seluruh kartu menjadi grayscale antialiased bitmap di 96 DPI.
@@ -914,6 +949,31 @@ Copy-Item "c:\Users\studi\Downloads\metafori\story-in-manager-wpf\publish\Story.
    - Build Vite web produksi di `DYARIKU/dist/` berhasil diperbarui.
    - Berhasil mempublikasikan [GitHub Release v0.0.14](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.14).
 6. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
+### Z. Pembaruan v0.0.15: Perubahan Total Konsep Visual Menjadi Tema Soft Pastel 3D, Topbar Modern, Hero Awan & Ikon Melayang, Serta Baris Paket Lisensi
+1. **Pembaruan Logo Origami 3D & Topbar Modern**:
+   - Mengekstrak dan menghasilkan aset logo Origami 3D Play segitiga (`Assets/app_logo_icon.png`, `Assets/app_logo.png`, `Assets/icon.ico`).
+   - Topbar baru: Tombol hamburger bulat (`≡`), logo origami 3D dan subtitle branding, search bar berbentuk kapsul rounded penuh (*Cari fitur, template, atau tekan Ctrl+K...*), tag versi `🏷️ v0.0.15`, lonceng notifikasi bulat dengan counter `1`, serta profil avatar bulat (*Selamat Datang User Story.In*).
+2. **Sidebar Baru Konsisten Soft Pastel**:
+   - Tombol *Beranda* bergradien kapsul indigo-purple lembut (`#6366f1` -> `#7080f0` -> `#818cf8`) dengan icon rumah putih.
+   - Platform AI (Google Flow, Dola AI, ChatGPT) default terbuka dengan sub link *+ Tambah Akun*.
+   - Platform Custom berlatar soft sky blue *+ Tambah Platform Baru*.
+   - Tools Kreator (TikTok Downloader, Split Video Editor, Merge Video).
+3. **Dashboard 100% Full-Width & Section Baru**:
+   - Hero Banner Card: Latar pastel sky blue dengan ilustrasi awan 3D dan ikon-ikon kubus melayang (`Assets/hero_3d_clouds.png`), ucapan selamat datang, deskripsi workspace, dan 4 tombol pill platform.
+   - 4 Stat Cards: Total Platform (3), Total Akun (0), Generasi Hari Ini (0), Berhasil Diproses (0%), lengkap dengan tombol panah bulat `›` di pojok kanan atas.
+   - Baris Tengah: Kartu Tutorial dengan ilustrasi 3D checklist monitor (`Assets/tutorial_3d_device.png`) dan Kartu Aktivitas Terbaru dengan empty state kaca pembesar `🔍` serta ilustrasi 3D clipboard (`Assets/activity_3d_clipboard.png`).
+   - Baris Paket Lisensi (Pricing Section): 4 kolom paket (Basic, Pro, Premium [★ Paling Populer], Enterprise) dan kado hadiah 3D berpita emas (`Assets/license_3d_gift.png`).
+4. **Peningkatan Versi Resmi Ekosistem ke v0.0.15**:
+   - WPF C# Version & AssemblyVersion `0.0.15` (164.5 MB).
+   - Express backend `MIN_OFFICIAL_VERSION = '0.0.15'`.
+   - React frontend (`StoreContext`, `DownloadAppView`, `HomeView`) versi `0.0.15`.
+   - Build Vite web diperbarui di `dist/`.
+   - GitHub Release live di [v0.0.15](https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.15).
+5. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
    ```bash
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
