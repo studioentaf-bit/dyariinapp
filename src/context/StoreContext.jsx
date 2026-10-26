@@ -1157,11 +1157,11 @@ export const StoreProvider = ({ children }) => {
     } catch (_) {}
     return {
       // Flat properties for backward compatibility
-      storeName: 'dyari.in',
+      storeName: 'Story.in',
       tagline: 'Produk digital untuk membuat keseharian lebih rapi, produktif, kreatif, dan terasa lebih mudah.',
       whatsapp: '6282330626054',
-      email: 'halo@dyari.in',
-      announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
+      email: 'halo@story.in',
+      announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundle & Template Digital!',
       showAnnouncement: true,
       heroTitle: 'Bikin keseharianmu jadi sedikit lebih mudah.',
       heroSubtitle: 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
@@ -1175,22 +1175,22 @@ export const StoreProvider = ({ children }) => {
       ],
       // Structured sub-groups for dedicated admin settings tabs
       branding: {
-        storeName: 'dyari.in',
+        storeName: 'Story.in',
         tagline: 'Produk digital untuk membuat keseharian lebih rapi, produktif, kreatif, dan terasa lebih mudah.',
-        logoBadge: 'dy',
+        logoBadge: 'ST',
         heroTitle: 'Bikin keseharianmu jadi sedikit lebih mudah.',
         heroSubtitle: 'Template, tools, prompt & berbagai resource digital yang dirancang untuk membantu kamu mengatur, berkarya, dan berkembang.',
-        announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundel & Template Digital!',
+        announcement: 'Promo Spesial: Diskon hingga 50% untuk Semua Bundle & Template Digital!',
         showAnnouncement: true,
-        primaryColor: '#B8D8C0',
-        accentColor: '#EE7C6B'
+        primaryColor: '#2563eb',
+        accentColor: '#f43f5e'
       },
       contact: {
         whatsapp: '6282330626054',
-        email: 'halo@dyari.in',
-        instagram: '@dyari.in',
-        tiktok: '@dyari.in',
-        telegram: 't.me/dyari_community',
+        email: 'halo@story.in',
+        instagram: '@story.in',
+        tiktok: '@story.in',
+        telegram: 't.me/story_community',
         operationalHours: 'Senin - Minggu (08.00 - 22.00 WIB)'
       },
       payment: {
@@ -1231,18 +1231,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.22') return parsed;
+        if (parsed.version === '0.0.23') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.22',
+      version: '0.0.23',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.22/Story.in-AI-Manager-v0.0.22.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.23/Story.in-AI-Manager-v0.0.23.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.22',
-      releaseDate: '2026-10-25',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.23',
+      releaseDate: '2026-10-26',
       size: '165 MB',
-      changelog: 'Versi 0.0.22: Resolusi zoom in/out ultra-tajam dengan dynamic vector rendering, konversi total tampilan menu Platform Akun & Shop Produk ke tema 3D Playful Pastel Bento putih bersih & puffy shadow, dialog popup aktivasi lisensi 3D pastel terang & modern, border sidebar dinamis resizable via draggable splitter, serta penamaan file binary Story.in-AI-Manager-v0.0.22.exe.'
+      changelog: 'Versi 0.0.23: Transisi perpindahan menu super halus & mulus (fade in / fade out), perombakan visual website publik ke tema 3D Playful Pastel Bento dengan branding resmi Story.in, perbaikan ketajaman multi-scale zoom in/out, ikon profil orang dengan email pengguna, dan perubahan Platform Custom menjadi My Platform dengan ikon browser 3D.'
     };
   });
 
@@ -1286,8 +1286,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.22';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19', '0.0.20', '0.0.21'].includes(verData.version)) {
+            const minOfficial = '0.0.23';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19', '0.0.20', '0.0.21', '0.0.22'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager-v${minOfficial}.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;

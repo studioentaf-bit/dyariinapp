@@ -46,16 +46,16 @@ export const ShopView = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       
       {/* Header */}
-      <div className="text-left space-y-2 border-b border-dyariborder pb-6">
-        <div className="flex items-center gap-2 text-xs font-semibold text-warmgray uppercase tracking-wider">
-          <Sparkles size={14} className="text-forest" />
-          <span>Katalog Digital dyari.in</span>
+      <div className="text-left space-y-2 border-b border-slate-200/80 pb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-600 text-xs font-bold uppercase tracking-wider border border-sky-100">
+          <Sparkles size={14} className="text-sky-500" />
+          <span>Katalog Digital Story.in</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-forest">
-          Jelajahi semua produk.
+        <h1 className="text-3xl sm:text-4xl font-heading font-black text-slate-900 tracking-tight">
+          Jelajahi Semua Produk Digital.
         </h1>
-        <p className="text-warmgray text-sm sm:text-base">
-          Temukan template, tools otomasi, paket prompt, dan aplikasi yang membuat harimu lebih teratur.
+        <p className="text-slate-500 text-sm sm:text-base">
+          Temukan template cerdas, tools otomasi AI, paket prompt premium, dan workspace apps yang meningkatkan produktivitas Anda.
         </p>
       </div>
 
@@ -70,14 +70,14 @@ export const ShopView = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="🔍 Cari produk..."
-              className="w-full bg-white rounded-dyari-sm border border-dyariborder py-2.5 pl-10 pr-4 text-sm text-forest placeholder:text-warmgray focus:outline-none focus:border-forest shadow-xs"
+              placeholder="🔍 Cari produk di Story.in..."
+              className="w-full bg-white rounded-2xl border border-slate-200 py-3 pl-11 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 shadow-sm transition"
             />
-            <Search size={18} className="absolute left-3.5 top-3 text-warmgray" />
+            <Search size={18} className="absolute left-4 top-3.5 text-slate-400" />
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-xs text-warmgray hover:text-forest"
+                className="absolute right-3.5 top-3 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-bold transition"
               >
                 Clear
               </button>
@@ -86,14 +86,14 @@ export const ShopView = () => {
 
           {/* Sort Dropdown */}
           <div className="flex items-center gap-2 self-end sm:self-auto text-xs sm:text-sm">
-            <span className="text-warmgray font-medium flex items-center gap-1.5">
+            <span className="text-slate-500 font-bold flex items-center gap-1.5">
               <SlidersHorizontal size={14} />
               <span>Urutkan:</span>
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-white border border-dyariborder text-forest font-semibold rounded-dyari-sm px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-forest cursor-pointer shadow-xs"
+              className="bg-white border border-slate-200 text-slate-800 font-bold rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-sky-400 cursor-pointer shadow-sm"
             >
               <option value="popular">Paling Populer</option>
               <option value="newest">Terbaru</option>
@@ -109,10 +109,10 @@ export const ShopView = () => {
             <button
               key={tab.id}
               onClick={() => setActiveCategory(tab.id)}
-              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-150 ${
+              className={`px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 activeCategory === tab.id
-                  ? 'bg-forest text-white shadow-sm'
-                  : 'bg-white border border-dyariborder text-warmgray hover:text-forest hover:border-forest/40'
+                  ? 'bg-slate-900 text-white shadow-md -translate-y-0.5'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 shadow-xs'
               }`}
             >
               {tab.label}
@@ -120,15 +120,15 @@ export const ShopView = () => {
           ))}
         </div>
 
-        {/* Product Count & Active Status Badge (CyberTon style) */}
-        <div className="flex items-center justify-between text-xs text-warmgray pt-1">
+        {/* Product Count & Active Status Badge */}
+        <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
           <span>
-            Menampilkan <strong className="text-forest font-bold">{sortedProducts.length}</strong> produk digital
+            Menampilkan <strong className="text-slate-900 font-extrabold">{sortedProducts.length}</strong> produk digital
           </span>
           {activeCategory !== 'all' && (
             <button 
               onClick={() => setActiveCategory('all')} 
-              className="text-coral hover:underline font-semibold"
+              className="text-sky-600 hover:text-sky-700 font-bold hover:underline cursor-pointer"
             >
               Reset ke Semua Kategori
             </button>
@@ -137,30 +137,30 @@ export const ShopView = () => {
 
       </div>
 
-      {/* Grid Produk: Desktop 4 kolom, Tablet 2 kolom, Mobile 2 kolom (spec #10) */}
+      {/* Grid Produk: Desktop 4 kolom, Tablet 2 kolom, Mobile 2 kolom */}
       {isProductsLoading && products.length === 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
           {[1, 2, 3, 4].map(n => (
-            <div key={n} className="bg-white rounded-2xl border border-dyariborder p-4 space-y-4 shadow-2xs">
-              <div className="w-full h-44 bg-[#F0F4F1] rounded-xl"></div>
-              <div className="h-4 bg-[#F0F4F1] rounded w-3/4"></div>
-              <div className="h-3 bg-[#F0F4F1] rounded w-1/2"></div>
-              <div className="h-9 bg-[#F0F4F1] rounded-xl mt-4"></div>
+            <div key={n} className="bg-white rounded-3xl border border-slate-100 p-4 space-y-4 shadow-sm">
+              <div className="w-full h-44 bg-slate-100 rounded-2xl"></div>
+              <div className="h-4 bg-slate-100 rounded-lg w-3/4"></div>
+              <div className="h-3 bg-slate-100 rounded-lg w-1/2"></div>
+              <div className="h-9 bg-slate-100 rounded-xl mt-4"></div>
             </div>
           ))}
         </div>
       ) : sortedProducts.length === 0 ? (
-        <div className="bg-white rounded-dyari-lg border border-dyariborder p-12 text-center space-y-4 my-8">
-          <div className="w-16 h-16 rounded-full bg-sage mx-auto flex items-center justify-center text-forest text-2xl">
+        <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center space-y-4 my-8 shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto flex items-center justify-center text-slate-600 text-2xl shadow-inner">
             🔍
           </div>
-          <h3 className="font-heading font-bold text-lg text-forest">Produk tidak ditemukan</h3>
-          <p className="text-warmgray text-sm max-w-md mx-auto">
+          <h3 className="font-heading font-extrabold text-lg text-slate-900">Produk tidak ditemukan</h3>
+          <p className="text-slate-500 text-sm max-w-md mx-auto">
             Tidak ada produk yang cocok dengan kriteria pencarian &ldquo;{searchQuery}&rdquo;. Coba kata kunci lain atau reset filter.
           </p>
           <button
             onClick={() => { setActiveCategory('all'); setSearchQuery(''); }}
-            className="btn-dyari-outline text-xs inline-flex"
+            className="px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs inline-flex cursor-pointer shadow-sm transition"
           >
             Reset Semua Filter
           </button>
@@ -178,15 +178,15 @@ export const ShopView = () => {
             <div className="text-center pt-8 pb-4 space-y-2">
               <button
                 onClick={() => setVisibleCount((prev) => prev + 24)}
-                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-forest text-white font-semibold text-sm shadow-md hover:bg-[#1E3A2F] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-slate-900 text-white font-bold text-sm shadow-md hover:bg-black hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
                 <span>Muat Lebih Banyak Produk</span>
                 <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-mono font-bold">
                   +{Math.min(24, sortedProducts.length - visibleCount)}
                 </span>
               </button>
-              <p className="text-xs text-warmgray">
-                Menampilkan <span className="font-bold text-forest">{displayedProducts.length}</span> dari <span className="font-bold text-forest">{sortedProducts.length}</span> produk
+              <p className="text-xs text-slate-500">
+                Menampilkan <span className="font-bold text-slate-900">{displayedProducts.length}</span> dari <span className="font-bold text-slate-900">{sortedProducts.length}</span> produk
               </p>
             </div>
           )}

@@ -1248,6 +1248,51 @@ Menuntaskan permintaan pengguna terkait ketajaman multi-scale zoom in/out, konve
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
 
+## [2026-10-26] - Rilis Versi 0.0.23: Transisi Fade Antar Menu Halus, Rebrand Story.in Website Publik (3D Playful Pastel Bento), My Platform & Multi-Scale Zoom Sharpness
+
+### Ringkasan Pembaruan v0.0.23:
+Menuntaskan permintaan lengkap pengguna terkait kehalusan transisi menu, pembaruan ikon dan nama menu, profil email user, ketajaman scale zoom, serta perombakan visual total website publik menjadi tema Story.in 3D Playful Pastel Bento:
+
+1. **Transisi Perpindahan Antar Menu Super Halus & Mulus**:
+   - Menghilangkan pergantian menu yang mendadak/abrupt di aplikasi desktop WPF.
+   - Mengimplementasikan transisi cross-fade terpadu (`SwitchToMainView`) dengan `DoubleAnimation` Opacity (120ms fade out dengan `CubicEaseMode.EaseIn`, dilanjutkan dengan 180ms fade in dengan `CubicEaseMode.EaseOut`).
+   - Memberikan pengalaman moving yang ringan, lembut, dan mulus di setiap pergantian bar dan menu.
+
+2. **Penggantian Nama Menu "Platform Custom" -> "My Platform"**:
+   - Memperbarui label menu navigasi dari "Platform Custom" menjadi **"My Platform"** di sidebar desktop WPF.
+   - Mengganti icon globe lama dengan icon modern 3D Browser Window (terdiri dari bingkai tab window, 3 window control dots, dan address bar) yang konsisten dengan estetika 3D pastel.
+
+3. **Ikon Profil Orang & Tampilan Email User**:
+   - Mengganti icon profil pojok kanan atas topbar menjadi siluet vektor orang (human avatar) dengan background pastel halus yang rapi dan rounded.
+   - Menampilkan email user terdaftar (`_license.Email`) secara dinamis di samping avatar, dengan fallback informasi status lisensi jika belum diaktivasi.
+
+4. **Ketajaman Skala Zoom In / Zoom Out (Multi-Scale Sharpness)**:
+   - Mengeliminasi penyebab font blur saat zoom: menghapus atribut statis `TextOptions.TextFormattingMode="Display"` pada `DashboardView` yang sebelumnya menimpa logika dinamis parent.
+   - Pada saat zoom in/out (scale != 1.0), sistem menonaktifkan pembulatan grid piksel fisik (`UseLayoutRounding = false; SnapsToDevicePixels = false`) dan mengaktifkan kurva bezier vektor asli (`TextFormattingMode.Ideal`), sehingga teks tetap tajam sempurna pada seluruh level perbesaran.
+
+5. **Perombakan Total Konsep Visual Website Publik ke Story.in (3D Playful Pastel Bento)**:
+   - Mengganti total identitas brand dari "dyari" menjadi **`Story.in`** di seluruh antarmuka publik sesuai desain referensi.
+   - Menerapkan arsitektur visual 3D Playful Pastel Bento:
+     - **Navbar Bento**: Top announcement bar sky blue, logo origami 3D folded + `Story.in`, capsule pill navigation (pill Beranda active lavender `#ede9fe` font-black), and search capsule.
+     - **Hero Showcase**: Desain 3D laptop mockup dengan floating feature pills, headline punchy, dan tombol CTA 3D gradient puffy.
+     - **Story Generator Preview Studio**: Komponen interaktif floating generator di halaman utama.
+     - **4 Pilar Nilai Story.in & 6 Kategori 3D Bento**: Kartu-kartu putih mengambang dengan shadow berkedalaman lembut.
+     - **Harmonisasi Seluruh Halaman**: Beranda, Shop Katalog, Download Aplikasi, Paket Lisensi, dan Tentang Kami diselaraskan ke tema terang bento.
+   - **Integritas Sacred Flow Terjaga**: Alur Instant Checkout, verifikasi lisensi, polling antrian order, webhook, dan backend API tetap berfungsi normal tanpa bug.
+
+6. **Elevasi Versi Resmi v0.0.23 & Penamaan File Binary**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Versi dinaikkan ke `0.0.23` (Assembly & FileVersion `0.0.23.0`).
+   - File binary resmi: **`Story.in-AI-Manager-v0.0.23.exe`** (164.55 MB) dan **`Story.in-AI-Manager.exe`**.
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.23'`.
+   - React Frontend (`StoreContext.jsx`): Sinkronisasi versi `0.0.23` dan direct download URL.
+   - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
+   - Publikasi rilis resmi aktif di GitHub Release v0.0.23.
+
+7. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+   ```bash
+   cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
+   ```
+
 ---
 
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

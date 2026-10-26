@@ -19,9 +19,9 @@ export const DownloadAppView = () => {
   const { navigateTo, showToast, appVersionInfo } = useStore();
   const [downloading, setDownloading] = useState(false);
 
-  const rawVersion = appVersionInfo?.version || '0.0.16';
-  const currentVersion = ['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18'].includes(rawVersion) ? '0.0.16' : rawVersion;
-  const currentDownloadUrl = appVersionInfo?.downloadUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${currentVersion}/Story.in-AI-Manager.exe`;
+  const rawVersion = appVersionInfo?.version || '0.0.23';
+  const currentVersion = rawVersion;
+  const currentDownloadUrl = appVersionInfo?.downloadUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${currentVersion}/Story.in-AI-Manager-v${currentVersion}.exe`;
   const currentReleaseUrl = appVersionInfo?.releaseUrl || `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${currentVersion}`;
   const currentSize = appVersionInfo?.size || '165 MB';
 
@@ -97,7 +97,7 @@ export const DownloadAppView = () => {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 size={16} className="text-[#4E8A5C] shrink-0" />
-                <span><strong>Terintegrasi Lisensi Website</strong>: Aktivasi mudah menggunakan kode lisensi resmi Dyari.</span>
+                <span><strong>Terintegrasi Lisensi Website</strong>: Aktivasi mudah menggunakan kode lisensi resmi Story.in.</span>
               </li>
             </ul>
 
@@ -245,7 +245,7 @@ export const DownloadAppView = () => {
             </div>
             <h4 className="text-sm font-bold text-[#1C352D]">Aktivasi Lisensi Resmi</h4>
             <p className="text-xs text-[#616863] leading-relaxed">
-              Sistem lisensi terikat HWID komputer dan tersinkronisasi valid dengan database admin Dyari untuk perlindungan akses yang aman.
+              Sistem lisensi terikat HWID komputer dan tersinkronisasi valid dengan database admin Story.in untuk perlindungan akses yang aman.
             </p>
           </div>
         </div>
@@ -301,7 +301,7 @@ export const DownloadAppView = () => {
             onClick={() => navigateTo('licenses')}
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1C352D] hover:text-[#EE7C6B] transition-colors cursor-pointer"
           >
-            <span>Lihat Paket Lisensi Resmi Dyari</span>
+            <span>Lihat Paket Lisensi Resmi Story.in</span>
             <ArrowRight size={14} />
           </button>
         </div>

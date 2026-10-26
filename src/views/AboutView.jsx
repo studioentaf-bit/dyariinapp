@@ -16,22 +16,22 @@ export const AboutView = () => {
   const { navigateTo } = useStore();
 
   return (
-    <div className="bg-[#FCFAF5] min-h-screen py-12 md:py-20">
+    <div className="bg-[#f8faff] min-h-screen py-12 md:py-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
 
         {/* 01. HERO / BRAND INTRODUCTION */}
         <div className="text-center max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#E8F2EA] border border-[#C5DCCB] text-[#1E3D2F] text-xs font-bold">
-            <Sparkles size={14} className="text-[#4E8A5C]" />
-            <span>Identitas Brand dyari.in</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-50 border border-sky-100 text-sky-600 text-xs font-bold">
+            <Sparkles size={14} className="text-sky-500" />
+            <span>Identitas Brand Story.in</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-heading font-black text-[#191C1A] tracking-tight leading-[1.15]">
+          <h1 className="text-4xl sm:text-5xl font-heading font-black text-slate-900 tracking-tight leading-[1.15]">
             Solusi Digital & Generator AI untuk Melipatgandakan Produktivitas
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            <strong>dyari.in</strong> adalah ekosistem kurasi produk digital, template produktivitas cerdas, 
+          <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+            <strong>Story.in</strong> adalah ekosistem kurasi produk digital, template produktivitas cerdas, 
             dan generative AI tools yang dirancang untuk membantu kreator, profesional, dan pebisnis bekerja lebih cerdas, bukan lebih keras.
           </p>
 
@@ -132,17 +132,17 @@ export const AboutView = () => {
           </div>
         </div>
 
-        {/* 03. NILAI & PRINSIP DYARI.IN */}
-        <div className="bg-[#1E3D2F] text-white rounded-3xl p-8 sm:p-12 space-y-8 shadow-xl">
+        {/* 03. NILAI & PRINSIP STORY.IN */}
+        <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 space-y-8 shadow-xl">
           <div className="max-w-2xl space-y-3">
-            <span className="text-xs font-bold text-[#A3E6B5] uppercase tracking-wider block">
+            <span className="text-xs font-bold text-sky-400 uppercase tracking-wider block">
               Prinsip Kami
             </span>
             <h2 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight">
-              Mengapa dyari.in Hadir untuk Anda?
+              Mengapa Story.in Hadir untuk Anda?
             </h2>
-            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-              Kami percaya bahwa teknologi canggih tidak harus rumit atau mahal. dyari.in berfokus pada 3 prinsip utama:
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Kami percaya bahwa teknologi canggih tidak harus rumit atau mahal. Story.in berfokus pada 3 prinsip utama:
             </p>
           </div>
 

@@ -9,53 +9,55 @@
   }
   
   body {
-    background-color: #FFFDF8;
-    color: #29463A;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f8faff;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     letter-spacing: -0.02em;
   }
 }
 
-/* Custom dyari scrollbar */
+/* Custom 3D Pastel scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #FFFDF8;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #B8D8C0;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #97C0A2;
+  background: #94a3b8;
 }
 
-/* Organic Blobs */
-.organic-blob-1 {
-  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-}
-.organic-blob-2 {
-  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-}
-.organic-blob-3 {
-  border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%;
+/* 3D Bento & Puffy Buttons */
+.btn-bento-primary {
+  @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-full transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-[0_8px_20px_-4px_rgba(37,99,235,0.35)];
 }
 
-/* Micro-interaction Button Styles */
+.btn-bento-coral {
+  @apply bg-gradient-to-r from-[#ff5e7e] to-[#f43f5e] hover:from-[#f43f5e] hover:to-[#e11d48] text-white font-bold px-6 py-3 rounded-full transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-[0_8px_20px_-4px_rgba(244,63,94,0.35)];
+}
+
+.btn-bento-outline {
+  @apply border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-full font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm;
+}
+
+/* Compatibility aliases */
 .btn-dyari-primary {
-  @apply bg-forest text-white hover:bg-forest-light px-6 py-3 rounded-dyari-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm;
+  @apply btn-bento-primary;
 }
 
 .btn-dyari-coral {
-  @apply bg-coral text-forest font-semibold hover:bg-coral-hover px-6 py-3 rounded-dyari-sm transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm;
+  @apply btn-bento-coral;
 }
 
 .btn-dyari-outline {
-  @apply border border-dyariborder bg-white text-forest hover:bg-sage px-6 py-3 rounded-dyari-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95;
+  @apply btn-bento-outline;
 }

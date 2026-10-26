@@ -221,7 +221,7 @@ export const InstantCheckoutModal = () => {
     const itemName = item.name || currentOrder.items?.[0]?.name || 'Produk';
     const methodLabel = paymentMethodTab === 'qris' ? 'QRIS' : (paymentMethodTab === 'bank' ? 'Transfer Bank' : 'E-Wallet');
     const text = encodeURIComponent(
-      `Halo Admin dyari.in,\n\nSaya sudah melakukan pembayaran via ${methodLabel} untuk pesanan:\n` +
+      `Halo Admin Story.in,\n\nSaya sudah melakukan pembayaran via ${methodLabel} untuk pesanan:\n` +
       `📌 *No. Pesanan:* ${currentOrder.id}\n` +
       `📦 *Produk/Lisensi:* ${itemName}\n` +
       `👤 *Nama:* ${fullName || currentOrder.customerName}\n` +
@@ -499,7 +499,7 @@ export const InstantCheckoutModal = () => {
               <div className="bg-[#FAFBF9] border-2 border-dashed border-[#B8D8C0] p-4 rounded-3xl max-w-[240px] mx-auto shadow-inner">
                 <img 
                   src={qrisImage} 
-                  alt="QRIS Pembayaran dyari.in" 
+                  alt="QRIS Pembayaran Story.in" 
                   loading="lazy"
                   decoding="async"
                   className="w-full aspect-square object-contain rounded-2xl bg-white p-2 shadow-2xs"
@@ -516,8 +516,8 @@ export const InstantCheckoutModal = () => {
               <div className="space-y-2 text-left">
                 {(() => {
                   const banks = storeSettings?.payment?.virtualAccounts?.filter(va => va.active) || [
-                    { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro (dyari.in)' },
-                    { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro (dyari.in)' }
+                    { bank: 'BCA', accNo: '8210984123', accName: 'Tony Anggoro (Story.in)' },
+                    { bank: 'Mandiri', accNo: '1370019284192', accName: 'Tony Anggoro (Story.in)' }
                   ];
                   return banks.map((va, idx) => (
                     <div key={idx} className="bg-[#FAFBF9] border border-[#E5EAE4] p-3 rounded-2xl flex items-center justify-between gap-2">

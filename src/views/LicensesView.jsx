@@ -106,7 +106,7 @@ export const LicensesView = () => {
 
   const handleOrderLicense = (tier) => {
     const waNumber = storeSettings?.whatsapp || '6282330626054';
-    const message = `Halo dyari.in, saya ingin membeli Lisensi Resmi: *${tier.name} (${tier.period})* seharga *${tier.formattedPrice}* untuk akses ${tier.category === 'app' ? 'Aplikasi Desktop' : 'Web Story Generator'}. Mohon info nomor rekening & aktivasi serial kodenya. Terima kasih!`;
+    const message = `Halo Story.in, saya ingin membeli Lisensi Resmi: *${tier.name} (${tier.period})* seharga *${tier.formattedPrice}* untuk akses ${tier.category === 'app' ? 'Aplikasi Desktop' : 'Web Story Generator'}. Mohon info nomor rekening & aktivasi serial kodenya. Terima kasih!`;
     const encoded = encodeURIComponent(message);
     window.open(`https://wa.me/${waNumber.replace(/[^0-9]/g, '')}?text=${encoded}`, '_blank');
   };
@@ -119,7 +119,7 @@ export const LicensesView = () => {
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F2EA] border border-[#C5DCCB] text-[#1E3D2F] text-xs font-bold">
             <KeyRound size={14} className="text-[#4E8A5C]" />
-            <span>Lisensi Resmi dyari.in</span>
+            <span>Lisensi Resmi Story.in</span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-[#191C1A] tracking-tight">
             Pilihan Lisensi Aplikasi & Story Generator
@@ -188,7 +188,7 @@ export const LicensesView = () => {
             <div>
               <h4 className="font-heading font-bold text-sm text-[#191C1A]">Terima Kode Serial & Email</h4>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Kode lisensi unik (format <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px] font-mono">DYARI-XXXX-XXXX</code>) diterbitkan langsung setelah pembayaran.
+                Kode lisensi unik (format <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px] font-mono">STORY-XXXX-XXXX</code>) diterbitkan langsung setelah pembayaran.
               </p>
             </div>
           </div>
@@ -332,7 +332,7 @@ export const LicensesView = () => {
                 type="text"
                 value={checkKey}
                 onChange={(e) => setCheckKey(e.target.value.toUpperCase())}
-                placeholder="DYARI-XXXX-XXXX-XXXX"
+                placeholder="STORY-XXXX-XXXX-XXXX"
                 className="w-full bg-[#FAFBF9] rounded-xl border border-[#DDE3DC] px-4 py-2.5 text-xs text-[#1C352D] font-mono tracking-wider focus:outline-none focus:border-[#1C352D]"
                 required
               />
@@ -412,7 +412,7 @@ export const LicensesView = () => {
             <div className="bg-white rounded-2xl p-4.5 border border-[#E6E3DA]">
               <h5 className="font-bold text-xs text-[#191C1A] mb-1">Apakah ada biaya tambahan untuk generate AI?</h5>
               <p className="text-xs text-gray-500 leading-relaxed">
-                Story Generator menggunakan sistem BYOK (Bring Your Own Key) Google Gemini. Anda dapat menggunakan API Key resmi Gemini gratis langsung dari Google AI Studio tanpa biaya server dari dyari.in.
+                Story Generator menggunakan sistem BYOK (Bring Your Own Key) Google Gemini. Anda dapat menggunakan API Key resmi Gemini gratis langsung dari Google AI Studio tanpa biaya server dari Story.in.
               </p>
             </div>
             <div className="bg-white rounded-2xl p-4.5 border border-[#E6E3DA]">
