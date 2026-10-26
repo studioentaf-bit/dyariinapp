@@ -1168,10 +1168,90 @@ Menindaklanjuti evaluasi dan feedback detail pengguna terkait ketajaman visual, 
    - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
    - Publikasi resmi aktif di GitHub Release v0.0.20.
 
-7. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+7. **STANDAR OPERASIONAL PROSEDUR (SOP) DEPLOY VPS RESMI v0.0.23**:
+
+   Berikut adalah SOP resmi untuk memperbarui instance produksi website publik di VPS Ubuntu:
+
+   #### A. Persiapan & Akses Server
+   1. Buka Terminal / PowerShell di komputer Anda:
+      ```bash
+      ssh root@IP_VPS_ANDA
+      ```
+   2. Pastikan Anda berada pada direktori kerja aplikasi:
+      ```bash
+      cd /var/www/dyariapp.my.id
+      ```
+
+   #### B. Opsi 1: One-Command Auto-Deploy (Direkomendasikan)
+   Jalankan script otomasi pembaruan yang aman dan teruji:
    ```bash
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
+   *Script ini secara otomatis akan melakukan git pull, instalasi dependensi jika ada perubahan, build ulang Vite React ke `dist/`, restart service PM2 `dyari-api`, dan reload Nginx.*
+
+   #### C. Opsi 2: Prosedur Manual Step-by-Step (Jika Ingin Kontrol Penuh)
+   1. **Tarik Kode Terbaru dari GitHub**:
+      ```bash
+      cd /var/www/dyariapp.my.id
+      git stash || true
+      git fetch origin main
+      git reset --hard origin/main
+      ```
+   2. **Build Ulang Tampilan Frontend React (Vite)**:
+      ```bash
+      npm install --no-audit --no-fund
+      npm run build
+      ```
+      *(Pastikan folder `dist/` ter-generate tanpa error)*
+   3. **Sinkronisasi Dependensi Backend Express**:
+      ```bash
+      cd /var/www/dyariapp.my.id/server
+      npm install --no-audit --no-fund
+      ```
+   4. **Restart Layanan Backend PM2 (`dyari-api`)**:
+      ```bash
+      cd /var/www/dyariapp.my.id
+      pm2 restart dyari-api
+      pm2 save
+      ```
+   5. **Reload Konfigurasi Nginx Web Server**:
+      ```bash
+      sudo nginx -t && sudo systemctl reload nginx
+      ```
+
+   #### D. Verifikasi Pasca Deploy (Checklist Sukses)
+   - [ ] Cek status PM2: `pm2 status dyari-api` (harus `online`, status uptime berjalan, restart count wajar).
+   - [ ] Cek endpoint health backend: `curl -I http://localhost:5000/api/products` (harus merespons `HTTP/1.1 200 OK`).
+   - [ ] Buka website publik di browser: `https://dyariapp.my.id` (bersihkan cache browser Ctrl+Shift+R) dan pastikan tampilan baru **Story.in** 3D Playful Pastel Bento tampil sempurna.
+   - [ ] Uji navigasi menu: Beranda, Shop Katalog, Download App, Lisensi Resmi.
+   - [ ] Uji alur Instant Checkout: Buka salah satu produk/lisensi dan pastikan modal pembayaran terbuka normal.
+
+   #### E. Prosedur Rollback Cepat (Jika Terjadi Kendala Kritis)
+   Jika terjadi kendala tak terduga, rollback instan ke commit stabil sebelumnya:
+   ```bash
+   cd /var/www/dyariapp.my.id
+   git reset --hard 50983df
+   npm run build
+   pm2 restart dyari-api
+   ```
+
+8. **Rincian Berkas yang Diperbarui pada Rilis v0.0.23**:
+   - `story-in-manager-wpf/MainWindow.xaml`: Pembaruan topbar profile pill (siluet orang + email), navigasi "My Platform" dengan ikon browser 3D window, penghapusan override formatting statis di `DashboardView`.
+   - `story-in-manager-wpf/MainWindow.xaml.cs`: Peningkatan versi ke `0.0.23`, implementasi animasi cross-fade menu `SwitchToMainView` (120ms fade-out + 180ms cubic ease fade-in), dynamic vector curve calculation saat zoom (`UseLayoutRounding = false; SnapsToDevicePixels = false; TextFormattingMode.Ideal`).
+   - `story-in-manager-wpf/AIPilotManager.csproj`: Elevasi versi `0.0.23` (AssemblyVersion & FileVersion `0.0.23.0`).
+   - `DYARIKU/server/index.js`: Penyesuaian `MIN_OFFICIAL_VERSION = '0.0.23'`.
+   - `DYARIKU/src/context/StoreContext.jsx`: Versi `0.0.23`, direct download binary `Story.in-AI-Manager-v0.0.23.exe`, changelog v0.0.23, dan default branding `Story.in`.
+   - `DYARIKU/index.html`: Judul `Story.in — Ekosistem Produk Digital & AI Workspace Manager`, meta tags, dan background `#f8faff`.
+   - `DYARIKU/src/index.css`: Utilitas bento 3D, bayangan kedalaman pastel, dan styling scrollbar.
+   - `DYARIKU/src/components/Navbar.jsx`: Navbar 3D Playful Bento dengan top announcement bar sky blue, logo origami folded 3D + `Story.in`, capsule menu pill (active lavender font-black).
+   - `DYARIKU/src/components/Footer.jsx`: Footer bento modern `Story.in`.
+   - `DYARIKU/src/components/ProductCard.jsx`: Kartu bento floating putih rounded-3xl, shadow 3D lembut, dan tombol puffy biru.
+   - `DYARIKU/src/components/InstantCheckoutModal.jsx`: Rebranding pesan WhatsApp admin dan instruksi pembayaran QRIS / Bank Transfer ke `Story.in`.
+   - `DYARIKU/src/views/HomeView.jsx`: Perombakan total halaman beranda bento 3D persis gambar referensi (Hero 3D mockup laptop, showcase Story Generator, 4 pilar nilai, 6 kategori bento, produk terpopuler, super bundle, ulasan).
+   - `DYARIKU/src/views/ShopView.jsx`: Rebranding ke Katalog Digital `Story.in`, pencarian dan kategori pills 3D bento.
+   - `DYARIKU/src/views/DownloadAppView.jsx`: URL download binary `Story.in-AI-Manager-v0.0.23.exe` (165 MB), tata cara aktivasi 4 langkah, dan rebranding `Story.in`.
+   - `DYARIKU/src/views/AboutView.jsx`: Halaman tentang brand `Story.in` dengan 3 prinsip utama.
+   - `DYARIKU/src/views/LicensesView.jsx`: Rebranding ke Lisensi Resmi `Story.in` format `STORY-XXXX-XXXX`.
 
 ---
 
@@ -1288,10 +1368,90 @@ Menuntaskan permintaan lengkap pengguna terkait kehalusan transisi menu, pembaru
    - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
    - Publikasi rilis resmi aktif di GitHub Release v0.0.23.
 
-7. **Instruksi Deploy VPS (Wajib Dijalankan pada Server)**:
+7. **STANDAR OPERASIONAL PROSEDUR (SOP) DEPLOY VPS RESMI v0.0.23**:
+
+   Berikut adalah SOP resmi untuk memperbarui instance produksi website publik di VPS Ubuntu:
+
+   #### A. Persiapan & Akses Server
+   1. Buka Terminal / PowerShell di komputer Anda:
+      ```bash
+      ssh root@IP_VPS_ANDA
+      ```
+   2. Pastikan Anda berada pada direktori kerja aplikasi:
+      ```bash
+      cd /var/www/dyariapp.my.id
+      ```
+
+   #### B. Opsi 1: One-Command Auto-Deploy (Direkomendasikan)
+   Jalankan script otomasi pembaruan yang aman dan teruji:
    ```bash
    cd /var/www/dyariapp.my.id && git fetch origin main && git checkout origin/main -- deploy/update.sh && bash deploy/update.sh
    ```
+   *Script ini secara otomatis akan melakukan git pull, instalasi dependensi jika ada perubahan, build ulang Vite React ke `dist/`, restart service PM2 `dyari-api`, dan reload Nginx.*
+
+   #### C. Opsi 2: Prosedur Manual Step-by-Step (Jika Ingin Kontrol Penuh)
+   1. **Tarik Kode Terbaru dari GitHub**:
+      ```bash
+      cd /var/www/dyariapp.my.id
+      git stash || true
+      git fetch origin main
+      git reset --hard origin/main
+      ```
+   2. **Build Ulang Tampilan Frontend React (Vite)**:
+      ```bash
+      npm install --no-audit --no-fund
+      npm run build
+      ```
+      *(Pastikan folder `dist/` ter-generate tanpa error)*
+   3. **Sinkronisasi Dependensi Backend Express**:
+      ```bash
+      cd /var/www/dyariapp.my.id/server
+      npm install --no-audit --no-fund
+      ```
+   4. **Restart Layanan Backend PM2 (`dyari-api`)**:
+      ```bash
+      cd /var/www/dyariapp.my.id
+      pm2 restart dyari-api
+      pm2 save
+      ```
+   5. **Reload Konfigurasi Nginx Web Server**:
+      ```bash
+      sudo nginx -t && sudo systemctl reload nginx
+      ```
+
+   #### D. Verifikasi Pasca Deploy (Checklist Sukses)
+   - [ ] Cek status PM2: `pm2 status dyari-api` (harus `online`, status uptime berjalan, restart count wajar).
+   - [ ] Cek endpoint health backend: `curl -I http://localhost:5000/api/products` (harus merespons `HTTP/1.1 200 OK`).
+   - [ ] Buka website publik di browser: `https://dyariapp.my.id` (bersihkan cache browser Ctrl+Shift+R) dan pastikan tampilan baru **Story.in** 3D Playful Pastel Bento tampil sempurna.
+   - [ ] Uji navigasi menu: Beranda, Shop Katalog, Download App, Lisensi Resmi.
+   - [ ] Uji alur Instant Checkout: Buka salah satu produk/lisensi dan pastikan modal pembayaran terbuka normal.
+
+   #### E. Prosedur Rollback Cepat (Jika Terjadi Kendala Kritis)
+   Jika terjadi kendala tak terduga, rollback instan ke commit stabil sebelumnya:
+   ```bash
+   cd /var/www/dyariapp.my.id
+   git reset --hard 50983df
+   npm run build
+   pm2 restart dyari-api
+   ```
+
+8. **Rincian Berkas yang Diperbarui pada Rilis v0.0.23**:
+   - `story-in-manager-wpf/MainWindow.xaml`: Pembaruan topbar profile pill (siluet orang + email), navigasi "My Platform" dengan ikon browser 3D window, penghapusan override formatting statis di `DashboardView`.
+   - `story-in-manager-wpf/MainWindow.xaml.cs`: Peningkatan versi ke `0.0.23`, implementasi animasi cross-fade menu `SwitchToMainView` (120ms fade-out + 180ms cubic ease fade-in), dynamic vector curve calculation saat zoom (`UseLayoutRounding = false; SnapsToDevicePixels = false; TextFormattingMode.Ideal`).
+   - `story-in-manager-wpf/AIPilotManager.csproj`: Elevasi versi `0.0.23` (AssemblyVersion & FileVersion `0.0.23.0`).
+   - `DYARIKU/server/index.js`: Penyesuaian `MIN_OFFICIAL_VERSION = '0.0.23'`.
+   - `DYARIKU/src/context/StoreContext.jsx`: Versi `0.0.23`, direct download binary `Story.in-AI-Manager-v0.0.23.exe`, changelog v0.0.23, dan default branding `Story.in`.
+   - `DYARIKU/index.html`: Judul `Story.in — Ekosistem Produk Digital & AI Workspace Manager`, meta tags, dan background `#f8faff`.
+   - `DYARIKU/src/index.css`: Utilitas bento 3D, bayangan kedalaman pastel, dan styling scrollbar.
+   - `DYARIKU/src/components/Navbar.jsx`: Navbar 3D Playful Bento dengan top announcement bar sky blue, logo origami folded 3D + `Story.in`, capsule menu pill (active lavender font-black).
+   - `DYARIKU/src/components/Footer.jsx`: Footer bento modern `Story.in`.
+   - `DYARIKU/src/components/ProductCard.jsx`: Kartu bento floating putih rounded-3xl, shadow 3D lembut, dan tombol puffy biru.
+   - `DYARIKU/src/components/InstantCheckoutModal.jsx`: Rebranding pesan WhatsApp admin dan instruksi pembayaran QRIS / Bank Transfer ke `Story.in`.
+   - `DYARIKU/src/views/HomeView.jsx`: Perombakan total halaman beranda bento 3D persis gambar referensi (Hero 3D mockup laptop, showcase Story Generator, 4 pilar nilai, 6 kategori bento, produk terpopuler, super bundle, ulasan).
+   - `DYARIKU/src/views/ShopView.jsx`: Rebranding ke Katalog Digital `Story.in`, pencarian dan kategori pills 3D bento.
+   - `DYARIKU/src/views/DownloadAppView.jsx`: URL download binary `Story.in-AI-Manager-v0.0.23.exe` (165 MB), tata cara aktivasi 4 langkah, dan rebranding `Story.in`.
+   - `DYARIKU/src/views/AboutView.jsx`: Halaman tentang brand `Story.in` dengan 3 prinsip utama.
+   - `DYARIKU/src/views/LicensesView.jsx`: Rebranding ke Lisensi Resmi `Story.in` format `STORY-XXXX-XXXX`.
 
 ---
 
