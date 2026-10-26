@@ -3634,7 +3634,7 @@ export const AdminDashboardView = () => {
                                   {/* Salin Info WA */}
                                   <button
                                     onClick={() => {
-                                      const text = `Halo Kak ${lic.customerName},\n\nBerikut rincian lisensi resmi Anda untuk membuka *Story Generator AI* di dyari.in:\n\n📧 *Email Terdaftar:* ${lic.customerEmail}\n🔑 *Kode Lisensi:* ${lic.code}\n📦 *Paket:* ${lic.productName} (${lic.durationLabel || lic.expiresAt})\n📌 *Status:* ${lic.status}\n\n🔗 *Akses Studio:* https://dyariapp.my.id/#story-generator\n\n_Silakan masukkan email dan kode lisensi di atas untuk langsung membuka studio AI. Selamat berkreasi!_`;
+                                      const text = `Halo Kak ${lic.customerName},\n\nBerikut rincian lisensi resmi Anda untuk membuka *Story Generator AI* di Story.in:\n\n📧 *Email Terdaftar:* ${lic.customerEmail}\n🔑 *Kode Lisensi:* ${lic.code}\n📦 *Paket:* ${lic.productName} (${lic.durationLabel || lic.expiresAt})\n📌 *Status:* ${lic.status}\n\n🔗 *Akses Studio:* https://story-in.my.id/#story-generator\n\n_Silakan masukkan email dan kode lisensi di atas untuk langsung membuka studio AI. Selamat berkreasi!_`;
                                       navigator.clipboard.writeText(text);
                                       showToast('Rincian Akses Disalin', 'Pesan WhatsApp siap dikirim ke member.');
                                     }}

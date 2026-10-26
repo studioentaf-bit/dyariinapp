@@ -238,7 +238,7 @@ export const defaultLicensePackages = [
     period: '1 Bulan Akses',
     badge: '',
     features: [
-      'Akses Web Story Generator di dyariapp.my.id',
+      'Akses Web Story Generator di story-in.my.id',
       'Storyboard Sinematik (5 Kategori)',
       'AI Image Prompt Studio (6 Mode)',
       'Neural Voice Over Teks ke Suara Gemini',
