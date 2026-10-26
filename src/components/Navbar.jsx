@@ -50,18 +50,17 @@ export const Navbar = () => {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-2xs transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
           
-          {/* Logo 3D Origami + Story.in */}
+          {/* Logo 3D Story.in */}
           <div className="flex items-center gap-3">
             <button 
               onClick={() => navigateTo('home')}
               className="flex items-center gap-2.5 hover:opacity-90 transition-opacity cursor-pointer group"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L3 9L6 21L12 17L18 21L21 9L12 2Z" fill="white" fillOpacity="0.9" />
-                  <path d="M12 2L12 17L18 21L21 9L12 2Z" fill="white" fillOpacity="0.35" />
-                </svg>
-              </div>
+              <img 
+                src="/story-in-logo.png" 
+                alt="Story.in Official 3D Logo" 
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
+              />
               <span className="text-2xl sm:text-[26px] font-heading font-black tracking-tight text-slate-900">
                 Story<span className="text-blue-600">.in</span>
               </span>

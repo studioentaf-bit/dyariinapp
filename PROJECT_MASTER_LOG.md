@@ -1464,4 +1464,76 @@ Menuntaskan permintaan lengkap pengguna terkait kehalusan transisi menu, pembaru
 
 ---
 
+## [2026-10-26] - Rilis Versi 0.0.24: Official 3D Story.in Pastel Branding, Multi-Resolution Windows ICO, Clean Topbar & Domain Alignment
+
+### Ringkasan Pembaruan v0.0.24:
+Menuntaskan permintaan pengguna terkait integrasi logo visual 3D resmi Story.in pastel glossy di website dan aplikasi desktop, penyediaan file icon `.ico` Windows multi-resolusi, penghapusan tombol lonceng notifikasi non-aktif di pojok kanan atas aplikasi desktop, perataan domain resmi `https://story-in.my.id`, serta dokumentasi akses login panel admin:
+
+1. **Integrasi Logo Resmi 3D Story.in Pastel Glossy**:
+   - Memproses source image visual 3D huruf 'S' pastel timbul dengan glossy finish dan teks timbul `Story.in`.
+   - Menggantikan logo origami SVG di Navbar dan Footer website publik dengan aset gambar resmi `story-in-logo.png`.
+   - Mengintegrasikan logo baru ke aplikasi desktop WPF (`Assets/app_logo.png` dan `Assets/app_logo_icon.png`).
+   - Memperbarui favicon web di `index.html` menggunakan `story-in-logo.png` dan `favicon.ico`.
+
+2. **Logo Berkas File Aplikasi Windows (Multi-Resolution .ICO)**:
+   - Dibuat berkas `.ico` Windows profesional yang memuat multi-resolusi: 256x256, 128x128, 64x64, 48x48, 32x32, dan 16x16 pixel dengan transparency alpha channel murni.
+   - Diatur sebagai icon executable resmi aplikasi di `AIPilotManager.csproj` (`<ApplicationIcon>Assets\icon.ico</ApplicationIcon>`).
+
+3. **Pembersihan Topbar Desktop (Hapus Tombol Notifikasi Non-Aktif)**:
+   - Menghapus container elemen tombol lonceng notifikasi statis di pojok kanan atas `MainWindow.xaml` yang sebelumnya tidak memiliki fungsi/interaksi.
+   - Tampilan topbar kini lebih bersih, rapi, dan berfokus pada pill zoom control, indikator versi, dan User Profile / License Pill.
+
+4. **Konfigurasi Domain Resmi (`story-in.my.id`)**:
+   - Nginx server block di `deploy/nginx.conf` mendukung multi-domain: `story-in.my.id`, `www.story-in.my.id`, `dyariapp.my.id`, dan `www.dyariapp.my.id`.
+   - API endpoints, WhatsApp redirect URL, dan referensi sistem diselaraskan ke domain utama `story-in.my.id`.
+
+5. **Lokasi & Kredensial Login Panel Admin Story.in**:
+   - **URL Login Admin:** `https://story-in.my.id/#admin` (atau `https://dyariapp.my.id/#admin`)
+   - **Email Default Admin:** `owner@dyariapp.my.id`
+   - **Password Master:** Kredensial master tersimpan di konfigurasi database server. Terdapat tombol *"Reset ke Kredensial Master Default"* pada form login jika kata sandi lupa.
+
+6. **Elevasi Versi Resmi v0.0.24 & Penamaan File Binary**:
+   - Proyek WPF Desktop (`AIPilotManager.csproj` & `MainWindow.xaml.cs`): Versi dinaikkan ke `0.0.24` (Assembly & FileVersion `0.0.24.0`).
+   - File binary resmi: **`Story.in-AI-Manager-v0.0.24.exe`** (167.12 MB) dan **`Story.in-AI-Manager.exe`**.
+   - Express Backend API (`server/index.js`): `MIN_OFFICIAL_VERSION = '0.0.24'`.
+   - React Frontend (`StoreContext.jsx`): Sinkronisasi versi `0.0.24` dan direct download URL.
+   - Vite web build produksi berhasil dikompilasi ulang di `DYARIKU/dist/`.
+   - Publikasi rilis resmi aktif di GitHub Release v0.0.24.
+
+7. **STANDAR OPERASIONAL PROSEDUR (SOP) DEPLOY VPS RESMI v0.0.24**:
+   Berikut langkah deploy ke server produksi VPS Ubuntu:
+   ```bash
+   # 1. Masuk ke folder web di VPS
+   cd /var/www/dyariapp.my.id
+
+   # 2. Ambil update terbaru dari GitHub
+   git pull origin main
+
+   # 3. Build frontend website
+   npm run build
+
+   # 4. Reload Nginx (jika ada update domain di nginx.conf)
+   sudo cp deploy/nginx.conf /etc/nginx/sites-available/dyariapp.my.id
+   sudo nginx -t && sudo systemctl reload nginx
+
+   # 5. Restart backend Node.js API
+   pm2 restart dyari-api --update-env
+   ```
+
+8. **Rincian Berkas yang Diperbarui pada Rilis v0.0.24**:
+   - `story-in-manager-wpf/MainWindow.xaml`: Penghapusan tombol notifikasi lonceng di topbar.
+   - `story-in-manager-wpf/MainWindow.xaml.cs`: Elevasi `CurrentAppVersion = "0.0.24"`.
+   - `story-in-manager-wpf/AIPilotManager.csproj`: Elevasi versi `0.0.24` (AssemblyVersion & FileVersion `0.0.24.0`).
+   - `story-in-manager-wpf/Assets/icon.ico`: Multi-layer Windows icon 3D Story.in.
+   - `story-in-manager-wpf/Assets/app_logo.png` & `app_logo_icon.png`: Aset logo 3D resmi Story.in.
+   - `DYARIKU/public/story-in-logo.png`, `favicon.png`, `favicon.ico`: Logo web & favicon resolusi tinggi.
+   - `DYARIKU/src/components/Navbar.jsx`: Logo resmi 3D Story.in.
+   - `DYARIKU/src/components/Footer.jsx`: Logo resmi 3D Story.in.
+   - `DYARIKU/index.html`: Favicon 3D Story.in.
+   - `DYARIKU/server/index.js`: `MIN_OFFICIAL_VERSION = '0.0.24'`.
+   - `DYARIKU/src/context/StoreContext.jsx`: Versi `0.0.24`, direct download `Story.in-AI-Manager-v0.0.24.exe`, changelog v0.0.24.
+   - `DYARIKU/PROJECT_MASTER_LOG.md`: Catatan rilis v0.0.24, panduan login admin, dan SOP deploy.
+
+---
+
 *Catatan ini harus dibaca dan dipatuhi pada setiap iterasi pengembangan berikutnya.*

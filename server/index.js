@@ -65,7 +65,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // App version and direct download endpoints for Desktop Story.in AI Manager
-const MIN_OFFICIAL_VERSION = '0.0.23';
+const MIN_OFFICIAL_VERSION = '0.0.24';
 
 function isVersionGreater(v1, v2) {
   const p1 = (v1 || '').replace(/^v/i, '').split('.').map(Number);
@@ -111,7 +111,7 @@ app.get(['/api/app-version', '/api/app/version'], async (req, res) => {
       directDownload: '/api/app/download',
       releaseDate: '2026-10-25',
       size: '165 MB',
-      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Konsep visual total baru (Logo Origami 3D, Topbar pill search & notifikasi, Hero awan langit 3D dengan floating icons, 4 Stat Cards, baris tengah Tutorial 3D & Aktivitas real-time, dan Paket Lisensi 4 kolom + Gift 3D).`
+      changelog: `Versi ${MIN_OFFICIAL_VERSION}: Logo 3D Resmi Story.in pastel glossy terpasang di seluruh platform (Web & Desktop), integrasi icon Windows .ico multi-resolusi, penghapusan tombol lonceng notifikasi non-aktif di aplikasi desktop, serta sinkronisasi domain https://story-in.my.id.`
     });
   }
 });

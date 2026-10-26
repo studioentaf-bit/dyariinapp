@@ -30,12 +30,11 @@ export const Footer = () => {
           {/* Brand Info (5 cols) */}
           <div className="md:col-span-5 space-y-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-blue-500/20">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L3 9L6 21L12 17L18 21L21 9L12 2Z" fill="white" fillOpacity="0.9" />
-                  <path d="M12 2L12 17L18 21L21 9L12 2Z" fill="white" fillOpacity="0.35" />
-                </svg>
-              </div>
+              <img 
+                src="/story-in-logo.png" 
+                alt="Story.in Official 3D Logo" 
+                className="w-8 h-8 rounded-xl object-contain drop-shadow-md" 
+              />
               <span className="text-2xl font-heading font-black tracking-tight text-slate-900">
                 Story<span className="text-blue-600">.in</span>
               </span>

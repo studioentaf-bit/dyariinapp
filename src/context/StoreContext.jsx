@@ -1231,18 +1231,18 @@ export const StoreProvider = ({ children }) => {
       const cached = localStorage.getItem('dyari_app_version_info');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.version === '0.0.23') return parsed;
+        if (parsed.version === '0.0.24') return parsed;
       }
     } catch (_) {}
     return {
-      version: '0.0.23',
+      version: '0.0.24',
       name: 'Story.in AI Manager',
-      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.23/Story.in-AI-Manager-v0.0.23.exe',
+      downloadUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/download/v0.0.24/Story.in-AI-Manager-v0.0.24.exe',
       directDownload: '/api/app/download',
-      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.23',
+      releaseUrl: 'https://github.com/studioentaf-bit/dyariinapp/releases/tag/v0.0.24',
       releaseDate: '2026-10-26',
       size: '165 MB',
-      changelog: 'Versi 0.0.23: Transisi perpindahan menu super halus & mulus (fade in / fade out), perombakan visual website publik ke tema 3D Playful Pastel Bento dengan branding resmi Story.in, perbaikan ketajaman multi-scale zoom in/out, ikon profil orang dengan email pengguna, dan perubahan Platform Custom menjadi My Platform dengan ikon browser 3D.'
+      changelog: 'Versi 0.0.24: Logo 3D Resmi Story.in pastel glossy terpasang di seluruh platform (Web & Desktop), integrasi icon Windows .ico multi-resolusi, penghapusan tombol lonceng notifikasi non-aktif di aplikasi desktop, serta sinkronisasi domain resmi https://story-in.my.id.'
     };
   });
 
@@ -1286,8 +1286,8 @@ export const StoreProvider = ({ children }) => {
         if (verRes.ok) {
           const verData = await verRes.json();
           if (verData && verData.version && isMounted) {
-            const minOfficial = '0.0.23';
-            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19', '0.0.20', '0.0.21', '0.0.22'].includes(verData.version)) {
+            const minOfficial = '0.0.24';
+            if (['0.0.1', '0.0.2', '0.0.3', '0.0.4', '0.0.5', '0.0.6', '0.0.7', '0.0.8', '0.0.9', '0.0.10', '0.0.11', '0.0.12', '0.0.13', '0.0.14', '0.0.15', '0.0.16', '0.0.17', '0.0.18', '0.0.19', '0.0.20', '0.0.21', '0.0.22', '0.0.23'].includes(verData.version)) {
               verData.version = minOfficial;
               verData.downloadUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/download/v${minOfficial}/Story.in-AI-Manager-v${minOfficial}.exe`;
               verData.releaseUrl = `https://github.com/studioentaf-bit/dyariinapp/releases/tag/v${minOfficial}`;
