@@ -1850,33 +1850,33 @@ export const AdminDashboardView = () => {
   // JIKA BELUM TERAUTENTIKASI SEBAGAI ADMIN -> TAMPILKAN PORTAL LOGIN TERKUNCI
   if (!isAdminAuthenticated) {
     return (
-      <div className="min-h-screen w-full bg-[#12221C] flex flex-col justify-center items-center p-4 relative overflow-hidden text-[#1C352D]">
+      <div className="min-h-screen w-full bg-[#070d19] flex flex-col justify-center items-center p-4 relative overflow-hidden text-slate-100">
         {/* Subtle background glow */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-coral/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-md bg-white rounded-3xl p-7 sm:p-9 shadow-2xl border border-white/20 relative z-10 space-y-6 animate-scale-up">
+        <div className="w-full max-w-md bg-[#0d1527] rounded-3xl p-7 sm:p-9 shadow-2xl border border-slate-800 relative z-10 space-y-6 animate-scale-up text-slate-100">
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="inline-flex items-center justify-center gap-2 mb-1">
-              <span className="w-9 h-9 rounded-2xl bg-[#B8D8C0] flex items-center justify-center text-[#1C352D] text-sm font-black shadow-xs">
-                dy
+              <span className="w-9 h-9 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-sm font-black shadow-xs">
+                S
               </span>
-              <span className="text-2xl font-heading font-extrabold text-[#1C352D]">
-                dyari<span className="text-coral">.</span>in
+              <span className="text-2xl font-heading font-extrabold text-white">
+                Story<span className="text-blue-500">.</span>in
               </span>
             </div>
             
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold">
-              <ShieldCheck size={14} className="text-rose-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-500/30 text-blue-400 text-[11px] font-bold">
+              <ShieldCheck size={14} className="text-blue-400" />
               <span>Portal Administrator Terproteksi</span>
             </div>
 
-            <h2 className="text-xl font-heading font-extrabold text-[#1C352D] pt-1">
+            <h2 className="text-xl font-heading font-extrabold text-white pt-1">
               Masuk ke Panel Kontrol
             </h2>
-            <p className="text-xs text-warmgray">
-              Area ini dibatasi hanya untuk pemilik dan pengelola toko <strong>dyariapp.my.id</strong>.
+            <p className="text-xs text-slate-400">
+              Area ini dibatasi hanya untuk pemilik dan pengelola toko <strong>Story.in</strong>.
             </p>
           </div>
 
@@ -1989,7 +1989,7 @@ export const AdminDashboardView = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-[#F7F9F7] flex flex-col lg:flex-row text-[#1C352D] antialiased overflow-hidden">
+    <div className="h-screen w-full bg-[#070d19] flex flex-col lg:flex-row text-slate-100 antialiased overflow-hidden dark-admin">
       
       {/* ======================================================== */}
       {/* 1. SIDEBAR (COLLAPSIBLE / HIDE & SHOW)                   */}

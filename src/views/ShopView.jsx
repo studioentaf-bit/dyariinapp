@@ -71,7 +71,7 @@ export const ShopView = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="🔍 Cari produk di Story.in..."
-              className="w-full bg-white rounded-2xl border border-slate-200 py-3 pl-11 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 shadow-sm transition"
+              className="w-full bg-white rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-300 py-3 pl-11 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 shadow-[0_4px_12px_rgba(0,0,0,0.04)] transition"
             />
             <Search size={18} className="absolute left-4 top-3.5 text-slate-400" />
             {searchQuery && (
@@ -93,7 +93,7 @@ export const ShopView = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-white border border-slate-200 text-slate-800 font-bold rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-sky-400 cursor-pointer shadow-sm"
+              className="bg-white border border-slate-200 border-b-[3px] border-b-slate-300 text-slate-800 font-bold rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-sky-400 cursor-pointer shadow-xs"
             >
               <option value="popular">Paling Populer</option>
               <option value="newest">Terbaru</option>
@@ -103,16 +103,16 @@ export const ShopView = () => {
           </div>
         </div>
 
-        {/* Category Pills */}
+        {/* Category Pills 3D */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {filterTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveCategory(tab.id)}
-              className={`px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+              className={`px-4.5 py-2.5 rounded-full text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-150 cursor-pointer ${
                 activeCategory === tab.id
-                  ? 'bg-slate-900 text-white shadow-md -translate-y-0.5'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 shadow-xs'
+                  ? 'bg-slate-900 text-white border-b-[3px] border-slate-950 shadow-[0_6px_18px_rgba(15,23,42,0.35)] -translate-y-0.5'
+                  : 'bg-white border border-slate-200 border-b-[3px] border-b-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-2xs hover:-translate-y-0.5'
               }`}
             >
               {tab.label}
@@ -178,7 +178,7 @@ export const ShopView = () => {
             <div className="text-center pt-8 pb-4 space-y-2">
               <button
                 onClick={() => setVisibleCount((prev) => prev + 24)}
-                className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-slate-900 text-white font-bold text-sm shadow-md hover:bg-black hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="btn-3d-dark px-8 py-3.5 mx-auto"
               >
                 <span>Muat Lebih Banyak Produk</span>
                 <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full font-mono font-bold">

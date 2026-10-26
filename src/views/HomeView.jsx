@@ -85,21 +85,21 @@ export const HomeView = () => {
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button 
                   onClick={() => { setActiveCategory('all'); navigateTo('shop'); }}
-                  className="bg-gradient-to-r from-[#ff5e7e] to-[#f43f5e] hover:from-[#f43f5e] hover:to-[#e11d48] text-white font-heading font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-[0_8px_20px_-4px_rgba(244,63,94,0.4)] active:scale-95 cursor-pointer"
+                  className="btn-3d-coral text-xs sm:text-sm px-7 py-3.5"
                 >
                   <span>Jelajahi Shop</span>
                   <ArrowRight size={16} />
                 </button>
                 <button 
                   onClick={() => navigateTo('story-generator')}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-heading font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-[0_8px_20px_-4px_rgba(37,99,235,0.4)] active:scale-95 cursor-pointer"
+                  className="btn-3d-blue text-xs sm:text-sm px-6 py-3.5"
                 >
                   <Sparkles size={16} className="text-blue-200" />
                   <span>Story Generator AI</span>
                 </button>
                 <button 
                   onClick={() => navigateTo('download')}
-                  className="bg-white hover:bg-blue-50/80 text-blue-600 border border-blue-200 font-heading font-bold text-xs sm:text-sm px-5 py-3.5 rounded-full transition-all duration-200 flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
+                  className="btn-3d-white text-xs sm:text-sm px-5 py-3.5"
                 >
                   <Download size={15} className="text-blue-500" />
                   <span>Download App (v{appVer})</span>
@@ -283,14 +283,14 @@ export const HomeView = () => {
               <div className="pt-4 flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => navigateTo('story-generator')}
-                  className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-heading font-black text-xs sm:text-sm transition flex items-center gap-2 shadow-[0_6px_18px_-3px_rgba(37,99,235,0.4)] cursor-pointer active:scale-95"
+                  className="btn-3d-blue text-xs sm:text-sm px-6 py-3"
                 >
                   <Sparkles size={16} />
                   <span>Buka Story Generator →</span>
                 </button>
                 <button
                   onClick={() => navigateTo('licenses')}
-                  className="px-5 py-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-heading font-bold text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                  className="btn-3d-white text-xs sm:text-sm px-5 py-3"
                 >
                   <KeyRound size={15} className="text-blue-600" />
                   <span>Beli Lisensi Akses</span>
@@ -299,7 +299,7 @@ export const HomeView = () => {
             </div>
 
             {/* Right Studio Card: Preview Output AI */}
-            <div className="lg:col-span-5 bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-2xl space-y-4">
+            <div className="lg:col-span-5 bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-[0_16px_40px_-8px_rgba(0,0,0,0.5)] space-y-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <span className="text-xs font-black text-blue-400">Preview Output AI</span>
                 <span className="text-[10px] text-slate-400 font-mono font-bold">STORY-ENGINE V3.8</span>
@@ -316,7 +316,7 @@ export const HomeView = () => {
               </div>
               <div className="pt-2 flex items-center justify-between text-xs text-slate-400 font-bold">
                 <span>🔑 Akses Lisensi Aktif</span>
-                <span className="text-emerald-400 font-black bg-emerald-950/80 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+                <span className="text-emerald-400 font-black bg-emerald-950/80 border border-emerald-500/30 px-3 py-1 rounded-full border-b-[2px] border-b-emerald-700 shadow-xs">
                   Siap Dipakai
                 </span>
               </div>
@@ -338,7 +338,7 @@ export const HomeView = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Card 1 */}
-          <div className="bg-white rounded-3xl p-6 border border-emerald-100 shadow-[0_8px_24px_-4px_rgba(16,185,129,0.12)] space-y-3 hover:-translate-y-1 transition-all">
+          <div className="bg-white rounded-3xl p-6 border border-emerald-100 border-b-[4px] border-b-emerald-400 shadow-[0_12px_32px_-6px_rgba(16,185,129,0.18)] space-y-3 hover:-translate-y-2 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shadow-2xs">
                 <Bot size={22} />
@@ -352,7 +352,7 @@ export const HomeView = () => {
           </div>
 
           {/* Card 2 */}
-          <div className="bg-white rounded-3xl p-6 border border-rose-100 shadow-[0_8px_24px_-4px_rgba(244,63,94,0.12)] space-y-3 hover:-translate-y-1 transition-all">
+          <div className="bg-white rounded-3xl p-6 border border-rose-100 border-b-[4px] border-b-rose-400 shadow-[0_12px_32px_-6px_rgba(244,63,94,0.18)] space-y-3 hover:-translate-y-2 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200/60 shadow-2xs">
                 <Layers size={22} />
@@ -366,7 +366,7 @@ export const HomeView = () => {
           </div>
 
           {/* Card 3 */}
-          <div className="bg-white rounded-3xl p-6 border border-purple-100 shadow-[0_8px_24px_-4px_rgba(147,51,234,0.12)] space-y-3 hover:-translate-y-1 transition-all">
+          <div className="bg-white rounded-3xl p-6 border border-purple-100 border-b-[4px] border-b-purple-400 shadow-[0_12px_32px_-6px_rgba(147,51,234,0.18)] space-y-3 hover:-translate-y-2 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-200/60 shadow-2xs">
                 <KeyRound size={22} />
@@ -380,7 +380,7 @@ export const HomeView = () => {
           </div>
 
           {/* Card 4 */}
-          <div className="bg-white rounded-3xl p-6 border border-blue-100 shadow-[0_8px_24px_-4px_rgba(37,99,235,0.12)] space-y-3 hover:-translate-y-1 transition-all">
+          <div className="bg-white rounded-3xl p-6 border border-blue-100 border-b-[4px] border-b-blue-400 shadow-[0_12px_32px_-6px_rgba(37,99,235,0.18)] space-y-3 hover:-translate-y-2 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200/60 shadow-2xs">
                 <ShieldCheck size={22} />
@@ -418,9 +418,9 @@ export const HomeView = () => {
             <div
               key={cat.id}
               onClick={() => handleCategoryClick(cat.id)}
-              className="cursor-pointer bg-white rounded-3xl p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_24px_-6px_rgba(37,99,235,0.15)] hover:border-blue-300 border border-slate-200/80 flex flex-col items-center justify-between shadow-2xs"
+              className="cursor-pointer bg-white rounded-3xl p-5 text-center transition-all duration-200 hover:-translate-y-2 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_32px_-6px_rgba(37,99,235,0.2)] hover:border-blue-300 border border-slate-200/90 border-b-[4px] border-b-slate-200 flex flex-col items-center justify-between active:translate-y-0 active:border-b-[2px]"
             >
-              <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl mb-3 shadow-inner">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-100 flex items-center justify-center text-2xl mb-3 shadow-inner">
                 {cat.icon}
               </div>
               <div>
@@ -485,13 +485,13 @@ export const HomeView = () => {
                       addToCart(bundleProduct);
                       navigateTo('checkout');
                     }}
-                    className="bg-gradient-to-r from-[#ff5e7e] to-[#f43f5e] hover:from-[#f43f5e] hover:to-[#e11d48] text-white font-heading font-black text-xs sm:text-sm px-6 py-3.5 rounded-full transition-all active:scale-95 shadow-[0_6px_20px_-3px_rgba(244,63,94,0.4)] cursor-pointer"
+                    className="btn-3d-coral text-xs sm:text-sm px-7 py-3.5"
                   >
                     Beli Paket Bundel Sekarang →
                   </button>
                   <button
                     onClick={() => { setActiveCategory('bundel'); navigateTo('shop'); }}
-                    className="text-xs font-black text-slate-700 hover:text-blue-600 cursor-pointer"
+                    className="btn-3d-white text-xs sm:text-sm px-6 py-3.5"
                   >
                     Lihat Pilihan Bundel Lain →
                   </button>
@@ -532,7 +532,7 @@ export const HomeView = () => {
           {(reviews || testimonials).slice(0, 3).map((testi) => (
             <div 
               key={testi.id}
-              className="bg-white rounded-3xl border border-purple-100/80 p-6 shadow-[0_8px_24px_-4px_rgba(147,51,234,0.08)] space-y-4 flex flex-col justify-between hover:-translate-y-1 transition-all"
+              className="bg-white rounded-3xl border border-purple-100 border-b-[4px] border-b-purple-300 p-6 shadow-[0_12px_28px_-6px_rgba(147,51,234,0.12)] space-y-4 flex flex-col justify-between hover:-translate-y-1.5 transition-all duration-300"
             >
               <div className="space-y-3">
                 <div className="flex text-amber-400 text-sm gap-0.5">

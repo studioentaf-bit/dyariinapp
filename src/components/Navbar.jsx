@@ -68,8 +68,8 @@ export const Navbar = () => {
             </button>
           </div>
 
-          {/* Desktop Navigation Menu: Capsule Pill Container */}
-          <nav className="hidden md:flex items-center gap-1 p-1 rounded-full bg-slate-50 border border-slate-200/70 shadow-2xs text-xs sm:text-[13px] font-bold">
+          {/* Desktop Navigation Menu: 3D Capsule Pill Container */}
+          <nav className="hidden md:flex items-center gap-1.5 nav-capsule-container text-xs sm:text-[13px]">
             {navItems.map((item) => {
               const isActive = currentView === item.key;
               return (
@@ -79,10 +79,8 @@ export const Navbar = () => {
                     if (item.key === 'shop') setActiveCategory('all');
                     navigateTo(item.key);
                   }}
-                  className={`px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? 'bg-indigo-100/90 text-indigo-700 shadow-2xs font-black'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+                  className={`px-4 py-2 rounded-full transition-all duration-150 cursor-pointer ${
+                    isActive ? 'pill-3d-active' : 'pill-3d-idle'
                   }`}
                 >
                   {item.label}
@@ -95,7 +93,7 @@ export const Navbar = () => {
           <div className="flex items-center space-x-2">
             <button 
               onClick={() => setShowSearchModal(true)}
-              className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-105"
+              className="w-10 h-10 rounded-full bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center transition-all cursor-pointer border border-slate-200 border-b-[3px] border-b-slate-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:scale-105 active:translate-y-[1px] active:border-b-[2px]"
               title="Cari Produk & Lisensi Story.in"
             >
               <Search size={17} />

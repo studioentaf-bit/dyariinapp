@@ -44,59 +44,59 @@ export const DownloadAppView = () => {
   };
 
   return (
-    <div className="py-10 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#f8faff] min-h-screen py-10 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       {/* Hero Section */}
-      <div className="text-center max-w-3xl mx-auto space-y-4 mb-12 sm:mb-16">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F0EA] text-[#1C352D] text-xs font-bold tracking-wide uppercase">
-          <Sparkles size={14} className="text-[#EE7C6B]" />
-          <span>Story.in AI Manager Desktop v{currentVersion}</span>
+        <div className="text-center max-w-3xl mx-auto space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <Sparkles size={14} className="text-blue-600" />
+            <span>Story.in AI Manager Desktop v{currentVersion}</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-heading font-black text-slate-900 tracking-tight leading-tight">
+            Download Aplikasi Desktop <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Story.in AI Manager</span>
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium">
+            Aplikasi desktop all-in-one untuk kreator konten dan otomasi multi-akun platform AI. 
+            Tinggal download langsung buka (portabel), tanpa instalasi rumit.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-[#1C352D] tracking-tight leading-tight">
-          Download Aplikasi Desktop <br className="hidden sm:inline" />
-          <span className="text-[#EE7C6B]">Story.in AI Manager</span>
-        </h1>
-        <p className="text-sm sm:text-base text-[#616863] leading-relaxed">
-          Aplikasi desktop all-in-one untuk kreator konten dan otomasi multi-akun platform AI. 
-          Tinggal download langsung buka (portabel), tanpa instalasi rumit.
-        </p>
-      </div>
 
-      {/* Main Download Card */}
-      <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-[#E5EAE4] p-6 sm:p-10 shadow-sm relative overflow-hidden mb-16">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#E8F0EA]/50 rounded-full blur-3xl -z-0 pointer-events-none" />
+      {/* Main Download Card (3D Bento Card) */}
+      <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 border-b-[5px] border-b-slate-300 p-6 sm:p-10 shadow-[0_16px_40px_-8px_rgba(37,99,235,0.14)] relative overflow-hidden mb-16">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 rounded-full blur-3xl -z-0 pointer-events-none" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           <div className="lg:col-span-7 space-y-5">
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 rounded-md bg-[#1C352D] text-white text-[11px] font-bold">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="px-3 py-1 rounded-full bg-slate-900 text-white text-[11px] font-black">
                 Versi {currentVersion} (Resmi)
               </span>
-              <span className="px-2.5 py-1 rounded-md bg-[#F2F5F2] text-[#1C352D] text-[11px] font-semibold border border-[#E5EAE4]">
+              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-200">
                 Windows 10 / 11 (64-bit)
               </span>
-              <span className="px-2.5 py-1 rounded-md bg-[#FFF5F2] text-[#EE7C6B] text-[11px] font-bold border border-[#FCD9D0]">
+              <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] font-black border border-blue-200">
                 Single-File Standalone ({currentSize})
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1C352D]">
+            <h2 className="text-2xl sm:text-3xl font-heading font-black text-slate-900">
               Siap Digunakan Seketika
             </h2>
-            <p className="text-xs sm:text-sm text-[#616863] leading-relaxed">
-              File executable self-contained yang sudah memaketkan runtime secara mandiri. Cukup unduh satu file <code className="font-mono bg-[#F2F5F2] text-[#1C352D] px-1.5 py-0.5 rounded text-xs">Story.in-AI-Manager.exe</code> dan klik dua kali untuk langsung membuka workspace.
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+              File executable self-contained yang sudah memaketkan runtime secara mandiri. Cukup unduh satu file <code className="font-mono bg-slate-100 text-slate-900 px-2 py-0.5 rounded-lg text-xs font-bold border border-slate-200">Story.in-AI-Manager.exe</code> dan klik dua kali untuk langsung membuka workspace.
             </p>
 
-            <ul className="space-y-2.5 text-xs sm:text-sm text-[#1C352D]">
+            <ul className="space-y-2.5 text-xs sm:text-sm text-slate-700 font-medium">
               <li className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-[#4E8A5C] shrink-0" />
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                 <span><strong>Langsung Buka</strong>: Tidak memerlukan installer atau dependensi terpisah.</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-[#4E8A5C] shrink-0" />
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                 <span><strong>Auto-Updater Bawaan</strong>: Pembaruan versi otomatis langsung terdeteksi dari GitHub Release.</span>
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-[#4E8A5C] shrink-0" />
+                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                 <span><strong>Terintegrasi Lisensi Website</strong>: Aktivasi mudah menggunakan kode lisensi resmi Story.in.</span>
               </li>
             </ul>
@@ -109,7 +109,7 @@ export const DownloadAppView = () => {
                 onClick={() => {
                   showToast('Mengunduh Aplikasi', `File Story.in-AI-Manager.exe v${currentVersion} sedang diunduh ke komputer Anda...`, 'info');
                 }}
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-[#1C352D] hover:bg-[#28493E] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
+                className="btn-3d-blue px-7 py-3.5 text-sm"
               >
                 <Download size={18} />
                 <span>Download Sekarang (v{currentVersion})</span>
@@ -117,13 +117,13 @@ export const DownloadAppView = () => {
 
               <button
                 onClick={() => navigateTo('licenses')}
-                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-[#FAFBF9] hover:bg-[#E8F0EA] border border-[#E5EAE4] text-[#1C352D] font-bold text-xs sm:text-sm transition-all cursor-pointer"
+                className="btn-3d-white px-5 py-3.5 text-xs sm:text-sm"
               >
-                <KeyRound size={16} className="text-[#4E8A5C]" />
+                <KeyRound size={16} className="text-blue-600" />
                 <span>Beli / Klaim Lisensi</span>
               </button>
             </div>
-            <p className="text-[11px] text-[#8A918B]">
+            <p className="text-[11px] text-slate-400 font-medium">
               *Tautan langsung bersumber dari rilis resmi GitHub. Unduhan dimulai seketika tanpa pop-up iklan.
             </p>
           </div>

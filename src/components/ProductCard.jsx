@@ -30,7 +30,7 @@ export const ProductCard = ({ product }) => {
   return (
     <div 
       onClick={handleCardClick}
-      className="group cursor-pointer bg-white rounded-3xl border border-slate-200/80 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_14px_30px_-6px_rgba(37,99,235,0.16)] hover:border-blue-300/80 flex flex-col relative"
+      className="group cursor-pointer bg-white rounded-3xl border border-slate-200/80 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 shadow-[0_10px_28px_-6px_rgba(0,0,0,0.08),0_4px_10px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_-6px_rgba(37,99,235,0.2)] hover:border-blue-300/80 flex flex-col relative"
     >
       {/* Product Image */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
@@ -157,7 +157,7 @@ export const ProductCard = ({ product }) => {
                 e.stopPropagation();
                 openInstantCheckout(product, 'product');
               }}
-              className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white active:scale-95 transition-all flex items-center gap-1.5 shadow-[0_4px_12px_-2px_rgba(37,99,235,0.35)] cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-b-[3px] border-[#1e3a8a] shadow-[0_4px_12px_rgba(37,99,235,0.35)] active:translate-y-[1px] active:border-b-[1px] transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <ShoppingBag size={13} />
               <span>Beli Sekarang</span>

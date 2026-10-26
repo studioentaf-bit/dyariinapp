@@ -38,16 +38,16 @@ export const AboutView = () => {
           <div className="pt-2 flex items-center justify-center gap-3">
             <button
               onClick={() => navigateTo('shop')}
-              className="px-6 py-3 rounded-full bg-[#EE7C6B] hover:bg-[#E26A59] text-white font-heading font-bold text-xs sm:text-sm transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+              className="btn-3d-coral text-xs sm:text-sm px-7 py-3"
             >
               <Store size={16} />
               <span>Jelajahi Shop</span>
             </button>
             <button
               onClick={() => navigateTo('story-generator')}
-              className="px-6 py-3 rounded-full bg-[#1E3D2F] hover:bg-[#162F24] text-white font-heading font-bold text-xs sm:text-sm transition shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+              className="btn-3d-blue text-xs sm:text-sm px-6 py-3"
             >
-              <Sparkles size={16} className="text-[#A3E6B5]" />
+              <Sparkles size={16} className="text-blue-200" />
               <span>Coba Story Generator</span>
             </button>
           </div>
@@ -56,36 +56,36 @@ export const AboutView = () => {
         {/* 02. TWO PILLARS: DIGITAL PRODUCTS & AI GENERATOR */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Pillar 1: Digital Products */}
-          <div className="bg-white rounded-3xl p-8 border border-[#E6E3DA] shadow-xs space-y-5 flex flex-col justify-between">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 border-b-[4px] border-b-slate-200 shadow-[0_12px_32px_-6px_rgba(0,0,0,0.06)] space-y-5 flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
             <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#E8F2EA] text-[#1E3D2F] flex items-center justify-center text-xl shadow-2xs">
-                <Layers size={24} className="text-[#4E8A5C]" />
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-2xs border border-blue-100">
+                <Layers size={24} className="text-blue-600" />
               </div>
-              <h3 className="font-heading font-extrabold text-xl text-[#191C1A]">
-                1. Kurasi Produk Digital & Template
+              <h3 className="font-heading font-black text-xl text-slate-900">
+                1. Kurasi Produk Digital &amp; Template
               </h3>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
                 Kami menyediakan template Notion terstruktur, spreadsheet otomasi keuangan, habit tracker, kalender konten, dan prompt library yang langsung siap pakai tanpa perlu mendesain dari nol.
               </p>
-              <ul className="space-y-2 text-xs text-gray-700">
+              <ul className="space-y-2 text-xs text-slate-700 font-medium">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <CheckCircle2 size={15} className="text-emerald-600" />
                   <span>Desain minimalis, estetis, dan fungsional</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
-                  <span>Instan download & panduan penggunaan komprehensif</span>
+                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  <span>Instan download &amp; panduan penggunaan komprehensif</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <CheckCircle2 size={15} className="text-emerald-600" />
                   <span>Dibuat berdasarkan alur kerja nyata para profesional</span>
                 </li>
               </ul>
             </div>
-            <div className="pt-4 border-t border-[#F0EEE6]">
+            <div className="pt-4 border-t border-slate-100">
               <button
                 onClick={() => navigateTo('shop')}
-                className="text-xs font-bold text-[#1E3D2F] hover:text-[#4E8A5C] flex items-center gap-1.5 transition cursor-pointer"
+                className="text-xs font-black text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>Lihat Produk Digital di Shop</span>
                 <ArrowRight size={14} />
@@ -94,36 +94,36 @@ export const AboutView = () => {
           </div>
 
           {/* Pillar 2: AI Productivity Generator */}
-          <div className="bg-white rounded-3xl p-8 border border-[#E6E3DA] shadow-xs space-y-5 flex flex-col justify-between">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 border-b-[4px] border-b-slate-200 shadow-[0_12px_32px_-6px_rgba(0,0,0,0.06)] space-y-5 flex flex-col justify-between hover:-translate-y-1 transition-all duration-300">
             <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#1E3D2F] text-[#A3E6B5] flex items-center justify-center text-xl shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-2xs border border-indigo-100">
                 <Cpu size={24} />
               </div>
-              <h3 className="font-heading font-extrabold text-xl text-[#191C1A]">
+              <h3 className="font-heading font-black text-xl text-slate-900">
                 2. Story Generator AI Studio
               </h3>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
                 Inovasi generator AI sinematik lengkap untuk memproduksi storyboard video iklan, visual prompt Imagen 3 / Veo berstandar studio, neural text-to-speech voice over, hingga penggabungan klip video langsung di browser Anda.
               </p>
-              <ul className="space-y-2 text-xs text-gray-700">
+              <ul className="space-y-2 text-xs text-slate-700 font-medium">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
-                  <span>Storyboard komersial, drama, animasi, & dokumenter</span>
+                  <CheckCircle2 size={15} className="text-emerald-600" />
+                  <span>Storyboard komersial, drama, animasi, &amp; dokumenter</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <CheckCircle2 size={15} className="text-emerald-600" />
                   <span>Sistem BYOK (Bring Your Own Key) tanpa kuota server tersembunyi</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#4E8A5C]" />
+                  <CheckCircle2 size={15} className="text-emerald-600" />
                   <span>Penyimpanan riwayat privat di browser perangkat Anda</span>
                 </li>
               </ul>
             </div>
-            <div className="pt-4 border-t border-[#F0EEE6]">
+            <div className="pt-4 border-t border-slate-100">
               <button
                 onClick={() => navigateTo('story-generator')}
-                className="text-xs font-bold text-[#1E3D2F] hover:text-[#4E8A5C] flex items-center gap-1.5 transition cursor-pointer"
+                className="text-xs font-black text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>Buka Story Generator AI Studio</span>
                 <ArrowRight size={14} />

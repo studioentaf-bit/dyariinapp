@@ -91,10 +91,10 @@ export const StoryGeneratorView = () => {
 
   if (checkingLicense) {
     return (
-      <div className="h-[calc(100vh-5rem)] flex items-center justify-center bg-[#F8F7F4]">
+      <div className="h-[calc(100vh-5rem)] flex items-center justify-center bg-[#f8faff]">
         <div className="flex flex-col items-center gap-2">
-          <div className="w-8 h-8 border-3 border-[#1E3D2F] border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs font-bold text-gray-500">Memverifikasi lisensi...</span>
+          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-xs font-bold text-slate-500">Memverifikasi lisensi...</span>
         </div>
       </div>
     );
@@ -103,32 +103,32 @@ export const StoryGeneratorView = () => {
   // 1. IF NO VALID LICENSE: RENDER LICENSE GATE
   if (!licenseData) {
     return (
-      <div className="min-h-[calc(100vh-5rem)] bg-[#F8F7F4] flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 border border-[#E6E3DA] shadow-xl space-y-6">
+      <div className="min-h-[calc(100vh-5rem)] bg-[#f8faff] flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 border-b-[4px] border-b-slate-200 shadow-[0_16px_40px_-8px_rgba(0,0,0,0.08)] space-y-6">
           
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-[#E8F2EA] text-[#1E3D2F] flex items-center justify-center text-2xl shadow-xs">
-              <Lock size={26} className="text-[#4E8A5C]" />
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl shadow-xs border border-blue-100">
+              <Lock size={26} className="text-blue-600" />
             </div>
-            <h2 className="text-2xl font-heading font-extrabold text-[#191C1A]">
+            <h2 className="text-2xl font-heading font-black text-slate-900">
               Aktivasi Lisensi Story Generator
             </h2>
-            <p className="text-xs sm:text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
               Fitur Story Generator memerlukan lisensi aktif. Masukkan email dan kode lisensi resmi yang terdaftar di panel admin.
             </p>
           </div>
 
           {errorMessage && (
-            <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs flex items-start gap-2.5">
-              <AlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
-              <span className="leading-relaxed">{errorMessage}</span>
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-2.5">
+              <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+              <span className="leading-relaxed font-medium">{errorMessage}</span>
             </div>
           )}
 
           <form onSubmit={handleVerifySubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1.5">
-                <Mail size={13} className="text-gray-400" />
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Mail size={13} className="text-slate-400" />
                 <span>Email Terdaftar</span>
               </label>
               <input
@@ -137,29 +137,29 @@ export const StoryGeneratorView = () => {
                 onChange={(e) => setInputEmail(e.target.value)}
                 placeholder="nama@emailanda.com"
                 required
-                className="w-full bg-[#FAFBF9] rounded-xl border border-[#DDE3DC] px-4 py-3 text-xs sm:text-sm text-[#1C352D] focus:outline-none focus:border-[#1E3D2F] transition"
+                className="w-full bg-slate-50 rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-200 px-4 py-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-blue-400 transition font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1.5">
-                <KeyRound size={13} className="text-gray-400" />
+              <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <KeyRound size={13} className="text-slate-400" />
                 <span>Kode Lisensi Serial</span>
               </label>
               <input
                 type="text"
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value.toUpperCase())}
-                placeholder="DYARI-XXXX-XXXX-XXXX"
+                placeholder="STORY-XXXX-XXXX-XXXX"
                 required
-                className="w-full bg-[#FAFBF9] rounded-xl border border-[#DDE3DC] px-4 py-3 text-xs sm:text-sm font-mono tracking-wider text-[#1C352D] focus:outline-none focus:border-[#1E3D2F] transition"
+                className="w-full bg-slate-50 rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-200 px-4 py-3 text-xs sm:text-sm font-mono tracking-wider text-slate-900 focus:outline-none focus:border-blue-400 transition font-bold"
               />
             </div>
 
             <button
               type="submit"
               disabled={isVerifying}
-              className="w-full py-3.5 rounded-xl bg-[#1E3D2F] hover:bg-[#162F24] text-white font-heading font-bold text-xs sm:text-sm transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
+              className="w-full btn-3d-blue py-3.5 text-xs sm:text-sm font-black disabled:opacity-50"
             >
               {isVerifying ? (
                 <>
@@ -168,22 +168,22 @@ export const StoryGeneratorView = () => {
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={16} className="text-[#A3E6B5]" />
-                  <span>Aktivasi & Masuk Studio</span>
+                  <ShieldCheck size={16} className="text-blue-200" />
+                  <span>Aktivasi &amp; Masuk Studio</span>
                 </>
               )}
             </button>
           </form>
 
           {/* Call to buy license */}
-          <div className="pt-4 border-t border-[#F0EEE6] text-center space-y-2">
-            <p className="text-xs text-gray-500">
+          <div className="pt-4 border-t border-slate-100 text-center space-y-2">
+            <p className="text-xs text-slate-500 font-medium">
               Belum memiliki lisensi Story Generator?
             </p>
             <button
               type="button"
               onClick={() => navigateTo('licenses')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#EE7C6B] hover:text-[#E26A59] transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition cursor-pointer"
             >
               <span>Beli Lisensi Resmi di Sini</span>
               <ArrowRight size={13} />
@@ -197,18 +197,18 @@ export const StoryGeneratorView = () => {
 
   // 2. IF VALID LICENSE EXISTS: RENDER STUDIO
   return (
-    <div className="w-full flex flex-col bg-[#F8F7F4]" style={{ height: 'calc(100vh - 4.5rem)' }}>
+    <div className="w-full flex flex-col bg-[#f8faff]" style={{ height: 'calc(100vh - 4.5rem)' }}>
       {/* Slim Top Bar Status Lisensi */}
-      <div className="h-9 px-4 sm:px-6 bg-[#1E3D2F] text-white text-[11px] font-medium flex items-center justify-between shrink-0 border-b border-[#162F24]">
+      <div className="h-9 px-4 sm:px-6 bg-slate-900 text-white text-[11px] font-medium flex items-center justify-between shrink-0 border-b border-slate-800">
         <div className="flex items-center gap-2 truncate">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="font-bold text-[#A3E6B5] hidden sm:inline">Lisensi Aktif:</span>
-          <span className="font-mono text-gray-200 truncate">{licenseData.license_key}</span>
+          <span className="font-bold text-blue-400 hidden sm:inline">Lisensi Aktif:</span>
+          <span className="font-mono text-slate-200 truncate">{licenseData.license_key}</span>
           {licenseData.user_email && (
-            <span className="text-gray-400 hidden md:inline truncate">({licenseData.user_email})</span>
+            <span className="text-slate-400 hidden md:inline truncate">({licenseData.user_email})</span>
           )}
           {licenseData.duration_label && (
-            <span className="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-bold text-gray-300">
+            <span className="px-1.5 py-0.2 rounded bg-white/10 text-[9px] font-bold text-slate-300">
               {licenseData.duration_label}
             </span>
           )}
@@ -217,7 +217,7 @@ export const StoryGeneratorView = () => {
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={() => navigateTo('licenses')}
-            className="hover:text-[#A3E6B5] transition text-[10px] hidden sm:inline cursor-pointer"
+            className="hover:text-blue-300 transition text-[10px] hidden sm:inline cursor-pointer"
             title="Kelola & Beli Lisensi"
           >
             Info Lisensi

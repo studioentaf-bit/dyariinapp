@@ -112,32 +112,32 @@ export const LicensesView = () => {
   };
 
   return (
-    <div className="bg-[#FCFAF5] min-h-screen py-10 md:py-16">
+    <div className="bg-[#f8faff] min-h-screen py-10 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
 
         {/* 01. HEADER TITLE */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F2EA] border border-[#C5DCCB] text-[#1E3D2F] text-xs font-bold">
-            <KeyRound size={14} className="text-[#4E8A5C]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold shadow-2xs">
+            <KeyRound size={14} className="text-blue-600" />
             <span>Lisensi Resmi Story.in</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-[#191C1A] tracking-tight">
-            Pilihan Lisensi Aplikasi & Story Generator
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-black text-slate-900 tracking-tight">
+            Pilihan Lisensi Aplikasi &amp; Story Generator
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-medium">
             Dapatkan lisensi resmi untuk membuka software <strong>Story.in AI Manager Desktop</strong> atau studio <strong>Story Generator Website</strong>. Langsung aktif dan terverifikasi otomatis.
           </p>
         </div>
 
-        {/* CATEGORY FILTER TABS */}
-        <div className="flex flex-wrap items-center justify-center gap-2 max-w-xl mx-auto">
+        {/* CATEGORY FILTER TABS (3D Pills) */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-xl mx-auto">
           <button
             type="button"
             onClick={() => setCategoryFilter('all')}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all cursor-pointer ${
               categoryFilter === 'all'
-                ? 'bg-[#1E3D2F] text-white shadow-sm'
-                : 'bg-white text-gray-600 border border-[#E6E3DA] hover:bg-gray-50'
+                ? 'bg-slate-900 text-white border-b-[3px] border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.35)] -translate-y-0.5'
+                : 'bg-white text-slate-700 border border-slate-200 border-b-[3px] border-b-slate-200 hover:bg-slate-50 shadow-2xs'
             }`}
           >
             Semua Lisensi ({licenseTiers.length})
@@ -145,81 +145,81 @@ export const LicensesView = () => {
           <button
             type="button"
             onClick={() => setCategoryFilter('app')}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
               categoryFilter === 'app'
-                ? 'bg-[#1E3D2F] text-white shadow-sm'
-                : 'bg-white text-gray-600 border border-[#E6E3DA] hover:bg-gray-50'
+                ? 'bg-slate-900 text-white border-b-[3px] border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.35)] -translate-y-0.5'
+                : 'bg-white text-slate-700 border border-slate-200 border-b-[3px] border-b-slate-200 hover:bg-slate-50 shadow-2xs'
             }`}
           >
             <Monitor size={14} />
-            <span>💻 Lisensi Aplikasi Desktop</span>
+            <span>💻 Lisensi Desktop App</span>
           </button>
           <button
             type="button"
             onClick={() => setCategoryFilter('web')}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-5 py-2.5 rounded-full text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
               categoryFilter === 'web'
-                ? 'bg-[#1E3D2F] text-white shadow-sm'
-                : 'bg-white text-gray-600 border border-[#E6E3DA] hover:bg-gray-50'
+                ? 'bg-slate-900 text-white border-b-[3px] border-slate-950 shadow-[0_6px_16px_rgba(15,23,42,0.35)] -translate-y-0.5'
+                : 'bg-white text-slate-700 border border-slate-200 border-b-[3px] border-b-slate-200 hover:bg-slate-50 shadow-2xs'
             }`}
           >
             <Globe size={14} />
-            <span>🌐 Lisensi Story Generator Website</span>
+            <span>🌐 Lisensi Web Studio</span>
           </button>
         </div>
 
         {/* 02. CARA KERJA LISENSI */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white rounded-3xl p-6 sm:p-8 border border-[#E6E3DA] shadow-xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 border-b-[4px] border-b-slate-200 shadow-[0_10px_28px_-6px_rgba(0,0,0,0.06)]">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E3D2F] text-white flex items-center justify-center font-black text-sm shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md">
               1
             </div>
             <div>
-              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Pilih Lisensi</h4>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              <h4 className="font-heading font-black text-sm text-slate-900">Pilih Lisensi</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
                 Pilih kategori Aplikasi Desktop Windows atau Web Story Generator sesuai kebutuhan Anda.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E3D2F] text-white flex items-center justify-center font-black text-sm shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md">
               2
             </div>
             <div>
-              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Terima Kode Serial & Email</h4>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                Kode lisensi unik (format <code className="bg-gray-100 px-1 py-0.5 rounded text-[11px] font-mono">STORY-XXXX-XXXX</code>) diterbitkan langsung setelah pembayaran.
+              <h4 className="font-heading font-black text-sm text-slate-900">Terima Kode Serial &amp; Email</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                Kode lisensi unik (format <code className="bg-slate-100 px-1.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-800">STORY-XXXX-XXXX</code>) diterbitkan langsung setelah pembayaran.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#1E3D2F] text-white flex items-center justify-center font-black text-sm shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md">
               3
             </div>
             <div>
-              <h4 className="font-heading font-bold text-sm text-[#191C1A]">Aktivasi Seketika</h4>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              <h4 className="font-heading font-black text-sm text-slate-900">Aktivasi Seketika</h4>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
                 Masukkan email dan kode serial pada pop up aktivasi aplikasi desktop atau di web studio. Fitur langsung terbuka!
               </p>
             </div>
           </div>
         </div>
 
-        {/* 03. PRICING CARDS (Compact sizing matching shop product cards) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 items-stretch">
+        {/* 03. PRICING CARDS 3D BENTO */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
           {filteredTiers.map((tier) => {
             const IconComp = tier.icon;
             return (
               <div 
                 key={tier.id}
-                className={`rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 relative ${
+                className={`rounded-3xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 relative ${
                   tier.isPopular 
-                    ? 'bg-[#1E3D2F] text-white shadow-lg scale-[1.01] border-2 border-[#4E8A5C]' 
-                    : 'bg-white text-[#191C1A] border border-[#E6E3DA] shadow-2xs hover:border-[#1E3D2F]/30 hover:-translate-y-1'
+                    ? 'bg-gradient-to-b from-slate-900 to-slate-950 text-white shadow-[0_16px_40px_-6px_rgba(37,99,235,0.35)] scale-[1.02] border-2 border-blue-500 border-b-[5px] border-b-blue-600' 
+                    : 'bg-white text-slate-900 border border-slate-200 border-b-[4px] border-b-slate-200 shadow-[0_10px_28px_-6px_rgba(0,0,0,0.06)] hover:border-blue-400 hover:-translate-y-1.5'
                 }`}
               >
                 {tier.badge && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#EE7C6B] text-white font-extrabold text-[10px] shadow-xs tracking-wide">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-gradient-to-r from-[#ff5e7e] to-[#f43f5e] text-white font-black text-[10px] shadow-md border-b-[2px] border-rose-800 tracking-wider uppercase">
                     {tier.badge}
                   </span>
                 )}
@@ -228,15 +228,15 @@ export const LicensesView = () => {
                   {/* Category Pill */}
                   <div>
                     {tier.category === 'app' ? (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                        tier.isPopular ? 'bg-white/20 text-[#A3E6B5]' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black ${
+                        tier.isPopular ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' : 'bg-blue-50 text-blue-700 border border-blue-200'
                       }`}>
                         <Monitor size={11} />
                         <span>💻 DESKTOP APP</span>
                       </span>
                     ) : (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                        tier.isPopular ? 'bg-white/20 text-[#A3E6B5]' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black ${
+                        tier.isPopular ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                       }`}>
                         <Globe size={11} />
                         <span>🌐 WEB STUDIO</span>
@@ -246,52 +246,48 @@ export const LicensesView = () => {
 
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <h3 className={`font-heading font-extrabold text-sm sm:text-base leading-tight ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
+                      <h3 className={`font-heading font-black text-base sm:text-lg leading-tight ${tier.isPopular ? 'text-white' : 'text-slate-900'}`}>
                         {tier.name}
                       </h3>
-                      <p className={`text-[11px] mt-0.5 ${tier.isPopular ? 'text-gray-300' : 'text-gray-500'}`}>
+                      <p className={`text-[11px] mt-0.5 font-medium ${tier.isPopular ? 'text-slate-300' : 'text-slate-500'}`}>
                         {tier.subtitle}
                       </p>
                     </div>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${tier.isPopular ? 'bg-white/10 text-[#A3E6B5]' : 'bg-[#F0EEE6] text-[#1E3D2F]'}`}>
-                      <IconComp size={18} />
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${tier.isPopular ? 'bg-white/10 text-blue-400' : 'bg-slate-100 text-slate-800'}`}>
+                      <IconComp size={20} />
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className={`text-2xl sm:text-3xl font-heading font-black tracking-tight ${tier.isPopular ? 'text-white' : 'text-[#191C1A]'}`}>
+                      <span className={`text-2xl sm:text-3xl font-heading font-black tracking-tight ${tier.isPopular ? 'text-white' : 'text-slate-900'}`}>
                         {tier.formattedPrice || tier.price}
                       </span>
                     </div>
-                    <span className={`text-[11px] font-semibold block mt-0.5 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`}>
+                    <span className={`text-[11px] font-bold block mt-0.5 ${tier.isPopular ? 'text-blue-300' : 'text-blue-600'}`}>
                       {tier.period}
                     </span>
                   </div>
 
-                  <div className={`pt-3 border-t ${tier.isPopular ? 'border-white/10' : 'border-[#F0EEE6]'} space-y-2`}>
-                    <p className={`text-[10px] font-bold uppercase tracking-wider ${tier.isPopular ? 'text-gray-300' : 'text-gray-400'}`}>
+                  <div className={`pt-3 border-t ${tier.isPopular ? 'border-white/10' : 'border-slate-100'} space-y-2`}>
+                    <p className={`text-[10px] font-black uppercase tracking-wider ${tier.isPopular ? 'text-slate-400' : 'text-slate-400'}`}>
                       Fasilitas:
                     </p>
                     <ul className="space-y-1.5 text-[11px]">
                       {tier.features.map((feat, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5 leading-snug">
-                          <CheckCircle2 size={13} className={`shrink-0 mt-0.5 ${tier.isPopular ? 'text-[#A3E6B5]' : 'text-[#4E8A5C]'}`} />
-                          <span className={tier.isPopular ? 'text-gray-200' : 'text-gray-700'}>{feat}</span>
+                        <li key={idx} className="flex items-start gap-1.5 leading-snug font-medium">
+                          <CheckCircle2 size={13} className={`shrink-0 mt-0.5 ${tier.isPopular ? 'text-blue-400' : 'text-emerald-600'}`} />
+                          <span className={tier.isPopular ? 'text-slate-200' : 'text-slate-700'}>{feat}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 </div>
 
-                <div className="pt-4 mt-auto">
+                <div className="pt-5 mt-auto">
                   <button
                     onClick={() => openInstantCheckout(tier, 'license')}
-                    className={`w-full py-2.5 px-4 rounded-xl font-heading font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 ${
-                      tier.isPopular 
-                        ? 'bg-[#EE7C6B] hover:bg-[#E26A59] text-white' 
-                        : 'bg-[#1E3D2F] hover:bg-[#162F24] text-white'
-                    }`}
+                    className={`w-full ${tier.isPopular ? 'btn-3d-coral' : 'btn-3d-blue'} text-xs sm:text-sm py-3`}
                   >
                     <span>{tier.ctaText || 'Beli Lisensi'}</span>
                     <ArrowRight size={14} />
@@ -302,38 +298,38 @@ export const LicensesView = () => {
           })}
         </div>
 
-        {/* 04. CEK / VERIFIKASI KODE LISENSI */}
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#E6E3DA] shadow-xs max-w-2xl mx-auto space-y-6">
+        {/* 04. CEK / VERIFIKASI KODE LISENSI (3D Bento Card) */}
+        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 border-b-[4px] border-b-slate-200 shadow-[0_12px_32px_-6px_rgba(0,0,0,0.06)] max-w-2xl mx-auto space-y-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#E8F2EA] text-[#1E3D2F] flex items-center justify-center text-lg">
-              <ShieldCheck size={22} className="text-[#4E8A5C]" />
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200/60 shadow-2xs">
+              <ShieldCheck size={24} />
             </div>
             <div>
-              <h3 className="font-heading font-bold text-base text-[#191C1A]">Sudah Memiliki Lisensi? Cek Status di Sini</h3>
-              <p className="text-xs text-gray-500">Cek validitas lisensi Anda atau langsung aktifkan ke studio Story Generator.</p>
+              <h3 className="font-heading font-black text-lg text-slate-900">Sudah Memiliki Lisensi? Cek Status di Sini</h3>
+              <p className="text-xs text-slate-500 font-medium">Cek validitas lisensi Anda atau langsung aktifkan ke studio Story Generator.</p>
             </div>
           </div>
 
           <form onSubmit={handleVerifyLicense} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Email Terdaftar</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Email Terdaftar</label>
               <input 
                 type="email"
                 value={checkEmail}
                 onChange={(e) => setCheckEmail(e.target.value)}
                 placeholder="nama@emailanda.com"
-                className="w-full bg-[#FAFBF9] rounded-xl border border-[#DDE3DC] px-4 py-2.5 text-xs text-[#1C352D] focus:outline-none focus:border-[#1C352D]"
+                className="w-full bg-slate-50 rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-200 px-4 py-3 text-xs text-slate-900 focus:outline-none focus:border-blue-400 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Kode Lisensi (Serial Key)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Kode Lisensi (Serial Key)</label>
               <input 
                 type="text"
                 value={checkKey}
                 onChange={(e) => setCheckKey(e.target.value.toUpperCase())}
                 placeholder="STORY-XXXX-XXXX-XXXX"
-                className="w-full bg-[#FAFBF9] rounded-xl border border-[#DDE3DC] px-4 py-2.5 text-xs text-[#1C352D] font-mono tracking-wider focus:outline-none focus:border-[#1C352D]"
+                className="w-full bg-slate-50 rounded-2xl border border-slate-200 border-b-[3px] border-b-slate-200 px-4 py-3 text-xs text-slate-900 font-mono tracking-wider focus:outline-none focus:border-blue-400 font-bold"
                 required
               />
             </div>
@@ -341,7 +337,7 @@ export const LicensesView = () => {
             <button 
               type="submit"
               disabled={isChecking}
-              className="w-full py-3 rounded-xl bg-[#1E3D2F] hover:bg-[#162F24] text-white font-heading font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full btn-3d-dark py-3.5 text-xs sm:text-sm"
             >
               {isChecking ? (
                 <>

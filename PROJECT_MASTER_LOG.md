@@ -1350,14 +1350,23 @@ Menuntaskan permintaan lengkap pengguna terkait kehalusan transisi menu, pembaru
    - Mengeliminasi penyebab font blur saat zoom: menghapus atribut statis `TextOptions.TextFormattingMode="Display"` pada `DashboardView` yang sebelumnya menimpa logika dinamis parent.
    - Pada saat zoom in/out (scale != 1.0), sistem menonaktifkan pembulatan grid piksel fisik (`UseLayoutRounding = false; SnapsToDevicePixels = false`) dan mengaktifkan kurva bezier vektor asli (`TextFormattingMode.Ideal`), sehingga teks tetap tajam sempurna pada seluruh level perbesaran.
 
-5. **Perombakan Total Konsep Visual Website Publik ke Story.in (3D Playful Pastel Bento)**:
+5. **Perombakan Total Konsep Visual Website Publik ke Story.in (3D Playful Pastel Bento & Tactile Shadow)**:
    - Mengganti total identitas brand dari "dyari" menjadi **`Story.in`** di seluruh antarmuka publik sesuai desain referensi.
-   - Menerapkan arsitektur visual 3D Playful Pastel Bento:
-     - **Navbar Bento**: Top announcement bar sky blue, logo origami 3D folded + `Story.in`, capsule pill navigation (pill Beranda active lavender `#ede9fe` font-black), and search capsule.
-     - **Hero Showcase**: Desain 3D laptop mockup dengan floating feature pills, headline punchy, dan tombol CTA 3D gradient puffy.
-     - **Story Generator Preview Studio**: Komponen interaktif floating generator di halaman utama.
-     - **4 Pilar Nilai Story.in & 6 Kategori 3D Bento**: Kartu-kartu putih mengambang dengan shadow berkedalaman lembut.
-     - **Harmonisasi Seluruh Halaman**: Beranda, Shop Katalog, Download Aplikasi, Paket Lisensi, dan Tentang Kami diselaraskan ke tema terang bento.
+   - **Sistem Tombol & Menu 3D Timbul (Tactile 3D Buttons & Pills)**:
+     - Setiap tombol utama kini memiliki kedalaman fisik nyata (timbul) dengan bevel bawah tebal (`border-b-[4px]` atau `border-b-[3px]`), bayangan warna berkedalaman (`shadow-[0_8px_20px_rgba(...)]`), dan feedback klik realistis (`active:translate-y-[2px] active:border-b-[2px]`).
+     - Tersedia utility classes: `.btn-3d-coral`, `.btn-3d-blue`, `.btn-3d-emerald`, `.btn-3d-white`, dan `.btn-3d-dark`.
+     - Menu navigasi desktop menggunakan `.nav-capsule-container` mengambang dengan 3D active pill `.pill-3d-active` (lavender/indigo bevel timbul `border-b-[3px]`) dan `.pill-3d-idle`.
+   - **Penerapan Menyeluruh di Semua Halaman Website**:
+     - **Beranda (`HomeView.jsx`)**: Hero action buttons 3D puffy, Story Generator preview studio 3D, 4 pilar bento cards dengan bottom bevel warna-warni (emerald, rose, purple, blue), 6 kategori produk 3D bento, produk terpopuler dengan kartu 3D timbul, Super Bundle promo dengan tombol 3D coral, dan kartu testimoni 3D bento.
+     - **Shop Katalog (`ShopView.jsx`)**: Search input 3D timbul, filter tab kategori 3D bento dengan tombol aktif timbul, kartu katalog produk 3D, dan tombol "Muat Lebih Banyak" 3D dark.
+     - **Lisensi Resmi (`LicensesView.jsx`)**: Kartu-kartu tier lisensi 3D bento (Basic, Pro, Lifetime) dengan tombol aksi 3D coral/blue, filter tab kategori 3D, dan form cek validitas lisensi bento 3D.
+     - **Story Generator (`StoryGeneratorView.jsx`)**: Gerbang aktivasi lisensi 3D bento card, form input serial 3D, tombol aktivasi 3D blue, dan studio bar slate-900.
+     - **Download Aplikasi (`DownloadAppView.jsx`)**: Main card bento 3D timbul dengan tombol download 3D blue puffy, kartu 4 langkah aktivasi 3D, dan badge spesifikasi rilis 3D.
+     - **Tentang Kami (`AboutView.jsx`)**: Kartu 2 pilar produk digital & AI studio 3D bento, tombol CTA 3D coral & blue, dan box prinsip Story.in slate-900.
+   - **Panel Admin Tampilan Gelap Elegan (`AdminDashboardView.jsx` & `.dark-admin`)**:
+     - Merombak tampilan Panel Admin menjadi **mode gelap menyeluruh** (`bg-[#070d19]`, sidebar & header `#0d1527`, card container `#111c33`, form input `#0b1324` dengan border `#1e293b` dan glowing focus `#3b82f6`).
+     - Tampilan portal login admin gelap elegan dengan aksen biru Story.in.
+     - Seluruh tabel pesanan, antrian order, manajemen stok, dan pengaturan otomatis beradaptasi ke tema gelap kontras tinggi.
    - **Integritas Sacred Flow Terjaga**: Alur Instant Checkout, verifikasi lisensi, polling antrian order, webhook, dan backend API tetap berfungsi normal tanpa bug.
 
 6. **Elevasi Versi Resmi v0.0.23 & Penamaan File Binary**:

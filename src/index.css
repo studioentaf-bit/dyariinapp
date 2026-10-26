@@ -36,28 +36,174 @@
   background: #94a3b8;
 }
 
-/* 3D Bento & Puffy Buttons */
+/* 3D Bento & Puffy Tactile Buttons */
+.btn-3d-coral {
+  @apply bg-gradient-to-r from-[#ff5e7e] to-[#f43f5e] hover:from-[#f43f5e] hover:to-[#e11d48] text-white font-bold px-6 py-3 rounded-full transition-all duration-150 flex items-center justify-center gap-2 border-b-[4px] border-[#be123c] shadow-[0_8px_20px_rgba(244,63,94,0.4)] active:translate-y-[2px] active:border-b-[2px] active:shadow-[0_4px_10px_rgba(244,63,94,0.3)] cursor-pointer;
+}
+
+.btn-3d-blue {
+  @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-full transition-all duration-150 flex items-center justify-center gap-2 border-b-[4px] border-[#1e40af] shadow-[0_8px_20px_rgba(37,99,235,0.4)] active:translate-y-[2px] active:border-b-[2px] active:shadow-[0_4px_10px_rgba(37,99,235,0.3)] cursor-pointer;
+}
+
+.btn-3d-emerald {
+  @apply bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold px-6 py-3 rounded-full transition-all duration-150 flex items-center justify-center gap-2 border-b-[4px] border-[#065f46] shadow-[0_8px_20px_rgba(16,185,129,0.4)] active:translate-y-[2px] active:border-b-[2px] active:shadow-[0_4px_10px_rgba(16,185,129,0.3)] cursor-pointer;
+}
+
+.btn-3d-white {
+  @apply bg-white border border-slate-200 border-b-[4px] border-b-slate-300 text-slate-700 font-bold px-6 py-3 rounded-full transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:bg-slate-50 hover:text-slate-900 active:translate-y-[2px] active:border-b-[2px] active:shadow-[0_2px_8px_rgba(0,0,0,0.05)] cursor-pointer;
+}
+
+.btn-3d-dark {
+  @apply bg-slate-900 hover:bg-black text-white font-bold px-6 py-3 rounded-full transition-all duration-150 flex items-center justify-center gap-2 border-b-[4px] border-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.35)] active:translate-y-[2px] active:border-b-[2px] active:shadow-[0_4px_10px_rgba(15,23,42,0.25)] cursor-pointer;
+}
+
+/* 3D Bento Card Elevated */
+.card-3d-bento {
+  @apply bg-white rounded-3xl border border-slate-100 shadow-[0_12px_32px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_45px_-8px_rgba(0,0,0,0.14)] hover:-translate-y-1.5 transition-all duration-300;
+}
+
+/* 3D Navigation Capsule Pill */
+.nav-capsule-container {
+  @apply p-1.5 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)];
+}
+
+.pill-3d-active {
+  @apply bg-gradient-to-b from-[#f5f3ff] to-[#ede9fe] text-[#4f46e5] font-black border border-[#d8b4fe] border-b-[3px] border-b-[#c084fc] shadow-[0_4px_12px_rgba(168,85,247,0.22)] -translate-y-0.5;
+}
+
+.pill-3d-idle {
+  @apply text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 hover:shadow-sm transition-all font-bold;
+}
+
+/* Legacy/Compatibility aliases */
 .btn-bento-primary {
-  @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-6 py-3 rounded-full transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-[0_8px_20px_-4px_rgba(37,99,235,0.35)];
+  @apply btn-3d-blue;
 }
 
 .btn-bento-coral {
-  @apply bg-gradient-to-r from-[#ff5e7e] to-[#f43f5e] hover:from-[#f43f5e] hover:to-[#e11d48] text-white font-bold px-6 py-3 rounded-full transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-[0_8px_20px_-4px_rgba(244,63,94,0.35)];
+  @apply btn-3d-coral;
 }
 
 .btn-bento-outline {
-  @apply border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-full font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 shadow-sm;
+  @apply btn-3d-white;
 }
 
-/* Compatibility aliases */
 .btn-dyari-primary {
-  @apply btn-bento-primary;
+  @apply btn-3d-blue;
 }
 
 .btn-dyari-coral {
-  @apply btn-bento-coral;
+  @apply btn-3d-coral;
 }
 
 .btn-dyari-outline {
-  @apply btn-bento-outline;
+  @apply btn-3d-white;
+}
+
+/* ======================================================== */
+/* DARK ADMIN DASHBOARD STYLING                             */
+/* ======================================================== */
+.dark-admin {
+  background-color: #070d19 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-admin aside {
+  background-color: #0d1527 !important;
+  border-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+.dark-admin header {
+  background-color: #0d1527 !important;
+  border-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark-admin main {
+  background-color: #070d19 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-admin .bg-white {
+  background-color: #111c33 !important;
+  border-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+.dark-admin .bg-\[\#F7F9F7\],
+.dark-admin .bg-\[\#FAFBF9\],
+.dark-admin .bg-cream,
+.dark-admin .bg-slate-50,
+.dark-admin .bg-\[\#F2F5F2\],
+.dark-admin .bg-\[\#F4F7F5\] {
+  background-color: #0b1324 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-admin input,
+.dark-admin select,
+.dark-admin textarea {
+  background-color: #070d19 !important;
+  border-color: #27354f !important;
+  color: #f8fafc !important;
+}
+
+.dark-admin input:focus,
+.dark-admin select:focus,
+.dark-admin textarea:focus {
+  border-color: #3b82f6 !important;
+  outline: none !important;
+}
+
+.dark-admin .text-forest,
+.dark-admin .text-\[\#1C352D\],
+.dark-admin .text-slate-900,
+.dark-admin .text-\[\#191C1A\] {
+  color: #f8fafc !important;
+}
+
+.dark-admin .text-warmgray,
+.dark-admin .text-\[\#737873\],
+.dark-admin .text-slate-500,
+.dark-admin .text-\[\#616863\] {
+  color: #94a3b8 !important;
+}
+
+.dark-admin .border-\[\#E5EAE4\],
+.dark-admin .border-dyariborder,
+.dark-admin .border-slate-100,
+.dark-admin .border-slate-200,
+.dark-admin .border-\[\#DCE4DD\] {
+  border-color: #1e293b !important;
+}
+
+.dark-admin table {
+  color: #e2e8f0 !important;
+}
+
+.dark-admin tr {
+  border-color: #1e293b !important;
+}
+
+.dark-admin tr:hover {
+  background-color: #162442 !important;
+}
+
+.dark-admin th {
+  background-color: #0b1324 !important;
+  color: #94a3b8 !important;
+  border-color: #1e293b !important;
+}
+
+.dark-admin td {
+  border-color: #1e293b !important;
+}
+
+.dark-admin .shadow-2xs,
+.dark-admin .shadow-xs,
+.dark-admin .shadow-sm,
+.dark-admin .shadow-md,
+.dark-admin .shadow-card {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45) !important;
 }
